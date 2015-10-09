@@ -62,29 +62,29 @@ This is a test: we plan to keep the server running for at least the next 3 month
 
 
 ---
-[0] http://hadoop.apache.org/
-[1] https://news.ycombinator.com/item?id=4298284 - see the 4. comment thread for a nice rundown on the cons of Hadoop. 
-[2] https://wiki.debian.org/Hadoop
-[3] http://discoproject.org/
-[4] http://disco.readthedocs.org/en/develop/howto/ddfs.html?highlight=hdfs
-[5] http://spark.apache.org/
-[6] http://www.infoq.com/articles/apache-spark-introduction
-[7] https://aws.amazon.com/elasticmapreduce/pricing/
-[8] https://github.com/TheTorProject/ooni-pipeline
-[9] http://hive.apache.org/
-[10] http://www.zdnet.com/article/sql-and-hadoop-its-complicated/
-[11] https://www.mongodb.org/
-[12] https://docs.mongodb.org/manual/core/map-reduce/
-[13] https://redis.io 
-[14] https://packages.debian.org/search?suite=jessie&arch=any&searchon=names&keywords=redis
-[15] http://heynemann.github.io/r3/ - maybe also others although Google didn’t really help
-[16] https://drill.apache.org/, https://drill.apache.org/faq/
-[17] http://cassandra.apache.org/
-[18] http://www.planetcassandra.org/getting-started-with-apache-spark-and-cassandra/
-[19] http://hbase.apache.org/
-[20] http://www.vidyasource.com/blog/Programming/Scala/Java/Data/Hadoop/Analytics/2014/01/25/lighting-a-spark-with-hbase
-[21] http://www.slideshare.net/cloudera/5-h-base-schemahbasecon2012
-[22] http://www.infoworld.com/article/2848722/nosql/mongodb-cassandra-hbase-three-nosql-databases-to-watch.html
-[23] http://stackoverflow.com/questions/31017755
-[24] https://parquet.apache.org/documentation/latest/
-[25] http://arnon.me/2015/08/spark-parquet-s3/
+[0] http://hadoop.apache.org/   
+[1] https://news.ycombinator.com/item?id=4298284 - see the 4. comment thread for a nice rundown on the cons of Hadoop.   
+[2] https://wiki.debian.org/Hadoop   
+[3] http://discoproject.org/  
+[4] http://disco.readthedocs.org/en/develop/howto/ddfs.html?highlight=hdfs  
+[5] http://spark.apache.org/  
+[6] http://www.infoq.com/articles/apache-spark-introduction  
+[7] https://aws.amazon.com/elasticmapreduce/pricing/  
+[8] https://github.com/TheTorProject/ooni-pipeline  
+[9] http://hive.apache.org/   
+[10] http://www.zdnet.com/article/sql-and-hadoop-its-complicated/  
+[11] https://www.mongodb.org/  
+[12] https://docs.mongodb.org/manual/core/map-reduce/  
+[13] https://redis.io  
+[14] https://packages.debian.org/search?suite=jessie&arch=any&searchon=names&keywords=redis  
+[15] http://heynemann.github.io/r3/ - maybe also others although Google didn’t really help  
+[16] https://drill.apache.org/, https://drill.apache.org/faq/  
+[17] http://cassandra.apache.org/  
+[18] http://www.planetcassandra.org/getting-started-with-apache-spark-and-cassandra/  
+[19] http://hbase.apache.org/  
+[20] http://www.vidyasource.com/blog/Programming/Scala/Java/Data/Hadoop/Analytics/2014/01/25/lighting-a-spark-with-hbase  
+[21] http://www.slideshare.net/cloudera/5-h-base-schemahbasecon2012  
+[22] http://www.infoworld.com/article/2848722/nosql/mongodb-cassandra-hbase-three-nosql-databases-to-watch.html  
+[23] http://stackoverflow.com/questions/31017755  
+[24] https://parquet.apache.org/documentation/latest/  
+[25] http://arnon.me/2015/08/spark-parquet-s3/  
