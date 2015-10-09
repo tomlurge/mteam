@@ -1,8 +1,7 @@
 # mteam
-analytics server for Tor measurement data
+### analytics server for Tor measurement data
 
-## tl;dr
-measurement team is setting up a server for you to play with raw metrics data.
+measurement team is setting up a server for you to play with raw metrics data.  
 please check below if it meets your requirements and if you have any suggestions for the setup.
 
 
