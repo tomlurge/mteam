@@ -1,0 +1,7 @@
+### TextMate template
+*.tmproj
+*.tmproject
+tmtags
+.idea
+
+# Created by .ignore support plugin (hsz.mobi)
