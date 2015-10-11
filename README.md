@@ -48,9 +48,25 @@ In summary it seems like Spark and Drill are the aggregation and analytic softwa
 
 
 ## Storage
-Amazons EMR is an option but for now we’ll install our own box. We could go with CSV files in the Hadoop Distributed File System HDFS to keep complexity down but given the amount of data a proper DBMS seems justified. Two databases are supported by both Spark and Drill: Apache Cassandra [17][18] and Apache HBase [19][20][21]. Both are column-oriented key-value-store. HBase follows the same design principles as Cassandra but comes out of the Hadoop community and is better integrated wiht other offerings. Also while Cassandra is more optimized for easy scaling and write performance HBase has the emphasis on fast read [22]. It also seems like getting Drill to work with Cassandra is not as easy as advertized [23]. So HBase seems like the best fit.
+Amazons EMR is an option but for now we’ll install our own box. We could go with CSV files in the Hadoop Distributed File System HDFS to keep complexity down but given the amount of data some more effort seems justified.  
+Two databases are supported by both Spark and Drill: Apache Cassandra [17][18] and Apache HBase [19][20][21]. Both are column-oriented key-value-store. HBase follows the same design principles as Cassandra but comes out of the Hadoop community and is better integrated wiht other offerings. Also while Cassandra is more optimized for easy scaling and write performance HBase has the emphasis on fast read [22]. It also seems like getting Drill to work with Cassandra is not as easy as advertized [23]. So HBase seems like the better fit.  
 
-Hopefully Drill and Spark will work from the same data in HBase and not want to import it into their own store (thereby duplicating it) but we’re not sure about that right now. If they do import the data into their own stores anyway then HBase might be overkill and CSV files on HDFS sufficient. Or Parquet [24][25]? We plan to figure that out during the next days. Any help and remarks appreciated!
+Another option are specialzed file formats like Parquet [24][25] and Avro [26|. 
+Both  support semistructured data - that is data with nested structures, where one document does not easily map to one row while HBase is schemaless. They are better suited to continuous reads where e.g. one map reduce job crawls the entire data set whereas a database. HBase OTOH is indexed and will always be faster in selecting a single document but that is not our typical use case 
+[27][28]. Parquet seems better suited than Avro since it is column oriented and 
+provides faster access to a certain field in a big data set. Maybe also 
+better compression for our type of data.
+
+	        |  fixed     schemafree
+	        |  schema    + indexed
+	--------+---------------------
+	complex |  Parquet   MongoDB
+	        |  Avro
+	        |
+	flat    |  CSV       HBase
+
+Hopefully Drill and Spark will work from the same data and not want to import it into their own store (thereby duplicating it) but we’re not sure about that right now. 
+Any help and remarks appreciated!
 
 Redis and MongoDB, the 2 systems that are available as Debian stable packages, are not well enough supported by analytic softwares to be useful.
 
@@ -60,7 +76,7 @@ Measurement team will set up a hosted server with 32 GB RAM and 5 TB storage (pa
 This is a test: we plan to keep the server running for at least the next 3 months or so. If it doesn’t prove useful we will probably shut it down afterwards, but we hope otherwise.
 
 
----
+---   
 [0] http://hadoop.apache.org/   
 [1] https://news.ycombinator.com/item?id=4298284 - see the 4. comment thread for a nice rundown on the cons of Hadoop.   
 [2] https://wiki.debian.org/Hadoop   
@@ -76,14 +92,18 @@ This is a test: we plan to keep the server running for at least the next 3 month
 [12] https://docs.mongodb.org/manual/core/map-reduce/  
 [13] https://redis.io  
 [14] https://packages.debian.org/search?suite=jessie&arch=any&searchon=names&keywords=redis  
-[15] http://heynemann.github.io/r3/ - maybe also others although Google didn’t really help  
+[15] http://heynemann.github.io/r3/   
 [16] https://drill.apache.org/, https://drill.apache.org/faq/  
 [17] http://cassandra.apache.org/  
-[18] http://www.planetcassandra.org/getting-started-with-apache-spark-and-cassandra/  
+[18] http://www.planetcassandra
+.org/getting-started-with-apache-spark-and-cassandra  
 [19] http://hbase.apache.org/  
 [20] http://www.vidyasource.com/blog/Programming/Scala/Java/Data/Hadoop/Analytics/2014/01/25/lighting-a-spark-with-hbase  
 [21] http://www.slideshare.net/cloudera/5-h-base-schemahbasecon2012  
-[22] http://www.infoworld.com/article/2848722/nosql/mongodb-cassandra-hbase-three-nosql-databases-to-watch.html  
+[22] http://www.infoworld.com/article/2848722   
 [23] http://stackoverflow.com/questions/31017755  
 [24] https://parquet.apache.org/documentation/latest/  
-[25] http://arnon.me/2015/08/spark-parquet-s3/  
+[25] http://arnon.me/2015/08/spark-parquet-s3/   
+[26] https://avro.apache.org/docs/1.7.7/index.html   
+[27] http://statrgy.com/2015/05/07/hbase-parquet-or-avro/   
+[28] http://www.infoworld.com/article/2915565   

@@ -40,8 +40,19 @@ Name: mteam
 
 ### Open tasks:
   - karsten: install MongoDB 2.4.x https://packages.debian.org/jessie/mongodb (jessie stable)
-  - t: figure out how to install the analytics stack -> [how2setupHadoop.md]
-  (how2setupHadoop.md)
+  - karsten: change disk partition names
+  
+
+	SSD 1   /          OS
+	                   programs
+	                   HDFS namenode
+	                   collecTor tarballs
+	SSD 2   /mnt/ssd2  Hadoop temp dir
+	HDD 1   /mnt/hdd1  HDFS datanode
+	HDD 2   /mnt/hdd2  HDFS datanode
+  
+  
+  - t: finish [how2setupHadoop.md](how2setupHadoop.md)
  
 
 
