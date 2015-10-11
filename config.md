@@ -52,8 +52,11 @@ Name: mteam
 	HDD 2   /mnt/hdd2  HDFS datanode
   
   
-  - t: finish [how2setupHadoop.md](how2setupHadoop.md)
- 
+  - t: prepare data ingestion
+  
+    - schemata
+    - scripts
+    - execution plan
 
 
 
