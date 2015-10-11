@@ -29,7 +29,7 @@ configure passwordless ssh access for hadoop to localhost:
 
 	ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa
 	cat ~/.ssh/id_dsa.pub >> ~/.ssh/authorized_keys
-	export HADOOP\_PREFIX=/usr/local/ha
+	export HADOOP\_PREFIX=/usr/local/hadoop
 
 sshd must be running. check with the following command that you can see 
 localhost without a passphrase:
@@ -46,10 +46,7 @@ localhost without a passphrase:
 Let's first edit some configuration files.
 
 #### ~/.bash.rc
-*not sure about the first line - correct path? - and the last 2 lines, whih 
-come from one of the blogposts*
 
-	#Hadoop variables
 	export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
 	export HADOOP_INSTALL=/usr/local/hadoop
 	export PATH=$PATH:$HADOOP_INSTALL/bin
@@ -58,8 +55,6 @@ come from one of the blogposts*
 	export HADOOP_COMMON_HOME=$HADOOP_INSTALL
 	export HADOOP_HDFS_HOME=$HADOOP_INSTALL
 	export YARN_HOME=$HADOOP_INSTALL
-	export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_INSTALL/lib/native
-	export HADOOP_OPTS="-Djava.library.path=$HADOOP_INSTALL/lib"
 
 #### /usr/local/hadoop/etc/hadoop/hadoop-env.sh
 
@@ -71,10 +66,10 @@ Run the following command
 	hadoop
 
 If it shows the usage documentation for the hadoop script everything is fine 
-(so far)
+(so far).
 
 #### /usr/local/hadoop/etc/hadoop/core-site.xml
-https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/core-default.xml
+https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/core-default.xml   
 
 	<property>
 	  <name>fs.defaultFS</name>
@@ -107,7 +102,7 @@ https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/hdfs-defau
 	</property>
 	<property>
 	   <name>dfs.namenode.name.dir</name>
-	   <value>file://tmp/hadoop/namenode</value>
+	   <value>file://home/hadoop/namenode</value>
 	</property>
 	<property>
 	   <name>dfs.datanode.data.dir</name>
@@ -147,12 +142,12 @@ The namenode manages the filesystem metadata in the HDFS
 Let's try to keep 'namenode' on /. It keeps track of the files in 'datanode' 
 and needs about 150 bytes per file. That should fit on /.
 
-	mkdir -p /tmp/hadoop/namenode
+	mkdir -p /home/hadoop/namenode
 
 #### check permissions
 
-	sudo chown hduser:hadoop -R /tmp/hadoop/namenode
-	sudo chmod 777 -R /tmp/hadoop/namenode
+	sudo chown hduser:hadoop -R /home/hadoop/namenode
+	sudo chmod 777 -R /home/hadoop/namenode
 
 #### Initialze namenode as user 'hdfs':  
 
@@ -238,14 +233,38 @@ After issuing 'start-dfs.sh' and 'start-yarn.sh' commands run 'jps' to see if
 
 
 ## (7) HBase
-- download http://www.apache.org/dist/hbase/stable/
+- download http://www.apache.org/dist/hbase/stable
 
+#### conf/hbase-env.sh
 
+	JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
 
+#### conf/hbase-site.xml
 
+	<configuration>
+	  <property>
+	    <name>hbase.rootdir</name>
+	    <value>hdfs://localhost:8020/hbase</value>
+	  </property>
+	  <property>
+	    <name>hbase.zookeeper.property.dataDir</name>
+	    <value>/home/hadoop/zookeeper</value>
+	  </property>
+		<property>
+		  <name>hbase.cluster.distributed</name>
+		  <value>true</value>
+		</property>
+	</configuration>
+	
+hbase will create the hbase dir in hdfs for you. do not interfer.   
+the following command will list the directory
 
+	hadoop fs -ls /hbase
 
+#### start and stopping HBase
 
+	bin/start-hbase.sh 
+	bin/stop-hbase.sh
 
   
 ## (8) Spark 
