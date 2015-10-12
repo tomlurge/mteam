@@ -12,9 +12,9 @@ Name: mteam
 
 ### Mounted disks/partitions:
  - /: SSD for the system (/dev/sda3)
- - /mnt/hdd-ext4: HDD for downloading and extracting data (/dev/sdc1)
- - /mnt/hdd-hdfs: HDD for storing raw data (/dev/sdd1)
- - /mnt/ssd-hdfs: SSD for aggregating data (/dev/sdb1)
+ - /mnt/ssd2: Hadoop Distributed File System HDFS (/dev/sdb1)
+ - /mnt/hdd1: Hadoop Distributed File System HDFS (/dev/sdc1)
+ - /mnt/hdd2: Hadoop Distributed File System HDFS (/dev/sdd1)
 
 ### Users:
  - root: for server administration only
@@ -29,6 +29,7 @@ Name: mteam
  - r-base (3.1.1-1)
  - mc (Midnight Commander)
  - ipython3
+ - MongoDB 2.4.10
 
 ### Manually installed software:
  - Scala 2.10.4 and Scala build tool 0.13.6  
@@ -39,19 +40,8 @@ Name: mteam
    sudo dpkg -i sbt-0.13.6.deb    
 
 ### Open tasks:
-  - karsten: install MongoDB 2.4.x https://packages.debian.org/jessie/mongodb (jessie stable)
-  - karsten: change disk partition names
   
-
-	SSD 1   /          OS
-	                   programs
-	                   HDFS namenode
-	                   collecTor tarballs
-	SSD 2   /mnt/ssd2  Hadoop temp dir
-	HDD 1   /mnt/hdd1  HDFS datanode
-	HDD 2   /mnt/hdd2  HDFS datanode
-  
-  
+  - karsten: install hadoop
   - t: prepare data ingestion
   
     - schemata
