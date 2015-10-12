@@ -34,25 +34,24 @@ Another type of specification is probably the two parsers:
 - [metrics-lib](https://gitweb.torproject.org/metrics-lib.git) (Java)
 - [Stem](https://stem.torproject.org/) (Python)
 
-                            head        body 
-	name                      flat nested flat nested
-	
-	server-descriptor                     x
-	extra-info                                 x
-	network-status-consensus       x      x
-	network-status-vote            x           x
-	dir-key-certificate
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 
+Most of the documents have nested data structures.
+
+                                      head        body 
+	name                                flat nested flat nested
+	          
+	server-descriptor                               x
+	extra-info                                           x
+	network-status-consensus                 x      x
+	network-status-vote                      x           x
+	dir-key-certificate                             x
+	network-status-microdesc-consensus       x      x
+	bridge-network-status               x           x
+	bridge-server-descriptor                             x
+	bridge-extra-info                                    x
+	bridge-pool-assignment                               x
+	tordnsel                                 x           x
+	torperf                                              x
 
 
 #### collecTor examples
@@ -105,10 +104,6 @@ instead.
 	ntor-onion-key                5dZwYsrLkvdlrAqgBbFRMDHgTvFyitosFExQJGAFh3E=
 	reject                        *:*
 	router-signature              SIGNATURE
-
-notes
-- structure: quite flat
-- unclear: protocols
 
 
 ###### extra-info 1.0
@@ -205,10 +200,6 @@ downloaded by clients by default.
 	                              d9=1605219,
 	                              max=3402475
 	router-signature              SIGNATURE
-	
-notes
-- structure: nested
-- unclear: 
 
 
 ###### network-status-consensus-3 1.0
@@ -303,10 +294,6 @@ flags, heuristics used for relay selection, etc.
 	vote-digest                   09818950D27BBB6CC4D25D3287A6D17584A25808
 	
 	[[ and so forth ]]
-	
-notes
-- structure: nested head, flat body
-- unclear: 
 
 
 ######  network-status-vote-3 1.0
@@ -431,10 +418,6 @@ consensus. Vote documents are by far the largest documents provided here.
 	                              sha256=vXOfevUd3V8WbiM0Svk6wvnavdJRvJ3pxWvRfDrGkjI
 	
 	[[ and so forth ]]
-	
-notes
-- structure: nested head, nested body
-- unclear: a lot
 
 	
 #### dir-key-certificate-3 1.0
@@ -450,10 +433,6 @@ months, so they are only available in the archive.
 	dir-identity-key              RSA PUBLIC KEY
 	dir-signing-key               RSA PUBLIC KEY
 	dir-key-certification         SIGNATURE
-	
-notes
-- structure: flat
-- unclear: 
 
 	
 ######  network-status-microdesc-consensus-3 1.0
@@ -509,10 +488,6 @@ TODO what to do?
 	vote-digest                   09818950D27BBB6CC4D25D3287A6D17584A25808
 	
 	[[ and so forth ]]
-	
-notes
-- structure: heavily nested head, relatively flat body
-- unclear: do we care at all?
 
 	
 ##### microdescriptor 1.0
@@ -594,10 +569,6 @@ month, not just network statuses.
 	                              1-65535
 	
 	[[ and so forth ]]
-	
-notes
-- structure: nested head, nested body
-- unclear: 
 
 
 ######  bridge-server-descriptor 1.1
@@ -606,6 +577,7 @@ Bridge server descriptors follow the same format as relay server descriptors,
 except for the sanitizing steps mentioned above.   
 The format has changed over time to accomodate changes to the sanitizing 
 process, with earlier versions being:
+
 - @type bridge-server-descriptor 1.0 was the first version.
 - There was supposed to be a newer version indicating added ntor-onion-key 
 lines, but due to a mistake only the version number of sanitized bridge 
@@ -615,6 +587,7 @@ without those lines.
 - @type bridge-server-descriptor 1.1 added master-key-ed25519 lines and 
 router-digest-sha256 to server descriptors published by bridges using an Ed25519 
 master key.
+
 
 	router                        Unnamed 
 	                              10.143.227.19 
@@ -756,6 +729,7 @@ clients. Hidden service descriptors are not formally archived, but some librarie
 support parsing these descriptors when obtaining them from a locally running Tor 
 instance. 
 
+
 ###### bridge-pool-assignment 1.0
 
 The document below shows a BridgeDB pool assignment file from March 13, 2011. Every such file begins with a line containing the timestamp when BridgeDB wrote this file. Subsequent lines start with the SHA-1 hash of a bridge fingerprint, followed by ring, subring, and/or file bucket information. There are currently three distributor ring types in BridgeDB:
@@ -779,17 +753,24 @@ As of December 8, 2014, bridge pool assignment files are no longer archived.
 	002941....8b0de74e97          email 
 	                              ip=4 
 	                              flag=stable 
-	                              transport=obfs3,obfs2,scramblesuit
+	                              transport=obfs3,
+	                                        obfs2,
+	                                        scramblesuit
 	0126c6....fa7f658257          https 
 	                              ip=4 
 	                              ring=3 
 	                              flag=stable 
-	                              transport=obfs3,obfs2,scramblesuit
+	                              transport=obfs3,
+	                                        obfs2,
+	                                        scramblesuit
 	0241c8....d81ccda97c          https 
 	                              ip=4 
 	                              ring=2 
 	                              flag=stable 
-	                              transport=fte,obfs3,scramblesuit
+	                              transport=fte,
+	                                        obfs3,
+	                                        scramblesuit
+	                                        
 	                              
 ###### tordnsel 1.0
 
@@ -830,6 +811,7 @@ the relay also uses IP address 91.102.152.227 for exiting.
 	
 	[[ and so forth ]]
 	
+	
 ######  torperf 1.0
 
 The performance measurement service Torperf publishes performance data from 
@@ -862,8 +844,12 @@ long substeps take.
 	DATAPERC90=1441065603.37 
 	LAUNCH=1441065361.30 
 	USED_AT=1441065603.40 
-	PATH=$C4C9C332D25B3546BEF4E1250CF410E97EF996E6,$C43FA6474A9F071E9120DF63ED6EB8FDBA105234,$7C0AA4E3B73E407E9F5FEB1912F8BE26D8AA124D 
-	BUILDTIMES=0.872834920883,1.09103679657,1.49180984497 
+	PATH=$C4C9C332D25B3546BEF4E1250CF410E97EF996E6,
+	     $C43FA6474A9F071E9120DF63ED6EB8FDBA105234,
+	     $7C0AA4E3B73E407E9F5FEB1912F8BE26D8AA124D 
+	BUILDTIMES=0.872834920883,
+	           1.09103679657,
+	           1.49180984497 
 	TIMEOUT=1500 
 	QUANTILE=0.800000 
 	CIRC_ID=1228  
