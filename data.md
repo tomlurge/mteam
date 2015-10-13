@@ -9,7 +9,7 @@ Pre-aggregated versions for common usecases may be added.
 - maybe there's even more in other places?
 - collecTor data for 09/2015 is 1 GB compressed, 24 GB uncompressed
 - 24 GB x 12 months x 10 years = 2.880 GB of uncompressed.   
-  This is exaggerated, since we only have since 2007 (8 years) and earlier 
+  This is exaggerated, since we only have data since 2007 (8 years) and earlier 
   years contain less data. So we are on the save side here.    
   2.800 GB do fit on our 2 x 2 TB HDDs = 4.000 GB.  
   Since either HBase or Parquet will compress data, the whole dataset should 
@@ -65,8 +65,8 @@ rather be considered a cursory overview.
 
 The following descriptive texts are copied from the collector [formats](https://collector.torproject.org/formats.html)
 page. When it speaks about documents  "in archive" or "in recent" the original 
-text links to directories containing those documents. Please check the page
-referenced above if you want to access them.
+text links to directories containing those documents. Please check the [formats](https://collector.torproject.org/formats.html)
+page if you want to retrieve them.
 
 
 ##### relay descriptors

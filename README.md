@@ -54,8 +54,12 @@ Two databases are supported by both Spark and Drill: Apache Cassandra [17][18] a
 Another option are specialzed file formats like Parquet [24][25] and Avro [26|. 
 Both  support semistructured data - that is data with nested structures, where one document does not easily map to one row while HBase is schemaless. They are better suited to continuous reads where e.g. one map reduce job crawls the entire data set whereas a database. HBase OTOH is indexed and will always be faster in selecting a single document but that is not our typical use case 
 [27][28]. Parquet seems better suited than Avro since it is column oriented and 
-provides faster access to a certain field in a big data set. Maybe also 
-better compression for our type of data.
+provides faster access to a certain field in a big data set. "Parquet is efficient for column based query and avro for full scan or when we need all the columns 
+data" [29]. Maybe Parquet has also better compression for our type of data. 
+But: "I'd go ahead and write Avro schemas for your data. Once that's done, choosing between Avro container files and Parquet files is about as simple as swapping out" two 
+container classes [29]. There is an overlap between Parquet and Avro though: "A variety of tools and frameworks including MapReduce, Hive, Impala, and Pig provided the ability to work with Parquet data and a number of data models such as AVRO, Protobuf, and Thrift have been expanded to be used with Parquet as storage format." [30] Parquet 
+provides only data storage and needs a data model added through Avro, Thrift 
+[31] or others while Avro provides both.
 
 	        |  fixed     schemafree
 	        |  schema    + indexed
@@ -107,3 +111,6 @@ This is a test: we plan to keep the server running for at least the next 3 month
 [26] https://avro.apache.org/docs/1.7.7/index.html   
 [27] http://statrgy.com/2015/05/07/hbase-parquet-or-avro/   
 [28] http://www.infoworld.com/article/2915565   
+[29] http://stackoverflow.com/questions/28957291   
+[30] https://www.mapr.com/blog/evolving-parquet-self-describing-data-format-new-paradigms-consumerization-hadoop-data    
+[31] https://thrift.apache.org/
