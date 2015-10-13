@@ -8,24 +8,17 @@ those tutorials about settingup Hadoop (clusters) out there. And we've been
 warned that setting up Hadoop isn't exactly trivial - in any case.
 
 Help comes in the form of instructions on the Hadoop homepage [0](https://hadoop
-.apache.org/docs/current/hadoop-project-dist/hadoop-common/SingleCluster.html) and in two 
-blogpost [1](http://www
- .bogotobogo.com/Hadoop/BigData_hadoop_Install_on_ubuntu_single_node_cluster
- .php) and [2](https://rstudio-pubs-static.s3.amazonaws
- .com/78508_abe89197267240dfb6f4facb361a20ed.html)
+.apache.org/docs/current/hadoop-project-dist/hadoop-common/SingleCluster.html) 
+and in two blogpost [1](http://www.bogotobogo.com/Hadoop/BigData_hadoop_Install_on_ubuntu_single_node_cluster.php) 
+and [2](https://rstudio-pubs-static.s3.amazonaws.com/78508_abe89197267240dfb6f4facb361a20ed.html)
 
 
 ## (1) Users
-Setup group and add members
- 
-	sudo addgroup hadoop
-	sudo adduser --ingroup hadoop hduser
-	sudo adduser --ingroup hadoop hdfs
-	sudo adduser --ingroup hadoop yarn
-
+Setup a user hadoop
 
 ## (2) Setup passphraseless ssh
-configure passwordless ssh access for hadoop to localhost:
+If you cannot ssh to localhost without a passphrase, execute the following 
+commands to configure passwordless ssh access for hadoop to localhost:
 
 	ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa
 	cat ~/.ssh/id_dsa.pub >> ~/.ssh/authorized_keys
@@ -45,7 +38,7 @@ localhost without a passphrase:
 ### configure Hadoop:
 Let's first edit some configuration files.
 
-#### ~/.bash.rc
+#### /home/hadoop/.bashrc
 
 	export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
 	export HADOOP_INSTALL=/usr/local/hadoop
@@ -71,46 +64,43 @@ If it shows the usage documentation for the hadoop script everything is fine
 #### /usr/local/hadoop/etc/hadoop/core-site.xml
 https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/core-default.xml   
 
-	<property>
-	  <name>fs.defaultFS</name>
-	  <value>hdfs://localhost:9000</value>
-	</property>
-	
-	<!-- TODO
-	     see http://stackoverflow.com/questions/2354525 
-	     i changed this a bit
-	     have no idea where the $user.name should come from
-	     maybe a simple /tmp/hadoop dir would be sufficient
-	-->
-	<property>
-    <name>hadoop.tmp.dir</name>
-    <value>/tmp/hadoop/user-${user.name}</value>
-    <description>A base for other temp dirs</description>
-	</property>
+	<configuration>
+		<property>
+		  <name>fs.defaultFS</name>
+		  <value>hdfs://localhost:9000</value>
+		</property>
+		<property>
+	    <name>hadoop.tmp.dir</name>
+	    <value>/tmp/hadoop</value>
+	    <description>A base for other temp dirs</description>
+		</property>
+	</configuration>
 
 and, on the shell:
 
 	sudo mkdir -p /tmp/hadoop
-	sudo chown hduser:hadoop /tmp/hadoop
+	sudo chown hadoop:hadoop /tmp/hadoop
 
 #### /usr/local/hadoop/etc/hadoop/hdfs-site.xml
 https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/hdfs-default.xml
 
-	<property>
-	   <name>dfs.replication</name>
-	   <value>1</value>
-	</property>
-	<property>
-	   <name>dfs.namenode.name.dir</name>
-	   <value>file://home/hadoop/namenode</value>
-	</property>
-	<property>
-	   <name>dfs.datanode.data.dir</name>
-	   <value>
-	    file:/mnt/hdd1/datanode,
-	    file:/mnt/hdd2/datanode,
-	    [SS]file:/mnt/ssd2/datanode</value>
-	</property>
+	<configuration>
+		<property>
+		   <name>dfs.replication</name>
+		   <value>1</value>
+		</property>
+		<property>
+		   <name>dfs.namenode.name.dir</name>
+		   <value>file:///home/hadoop/namenode</value>
+		</property>
+		<property>
+		   <name>dfs.datanode.data.dir</name>
+		   <value>
+		    file:/mnt/hdd1/hadoop/datanode,
+		    file:/mnt/hdd2/hadoop/datanode,
+		    [SSD]file:/mnt/ssd2/hadoop/datanode</value>
+		</property>
+	</configuration>
 
 #### /usr/local/hadoop/etc/hadoop/mapred-site.xml
 https://hadoop.apache.org/docs/current/hadoop-mapreduce-client/hadoop-mapreduce-client-core/mapred-default.xml   
@@ -121,6 +111,7 @@ We want YARN to manage our map reduce jobs
 	    <name>mapreduce.framework.name</name>
 	    <value>yarn</value>
 	  </property>
+	</configuration>
 
 #### /usr/local/hadoop/etc/hadoop/yarn-site.xml
 https://hadoop.apache.org/docs/current/hadoop-yarn/hadoop-yarn-common/yarn-default.xml
@@ -146,26 +137,25 @@ and needs about 150 bytes per file. That should fit on /.
 
 #### check permissions
 
-	sudo chown hduser:hadoop -R /home/hadoop/namenode
-	sudo chmod 777 -R /home/hadoop/namenode
+	sudo chown hadoop:hadoop -R /home/hadoop/namenode
+	sudo chmod 755 -R /home/hadoop/namenode
 
-#### Initialze namenode as user 'hdfs':  
+#### Initialze namenode 
 
-	su hdfs
-	hdfs namenode -format  
+	/usr/local/hadoop/bin/hdfs namenode -format  
      
 see [https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/HDFSCommands.html#namenode](https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/HDFSCommands.html#namenode). 
 This commad doesn't reformat the disk. It rather initializes some sort of 
 file-database that grows on demand. It is possible to limit it's grow by e.g.
  setting a minimum of disk space that should remain untouched by HDFS.  
-Note that hadoop namenode -format command should be executed once before we start using Hadoop.  
-If this command is executed again after Hadoop has been used, it'll destroy all the data on the Hadoop file system.
+Note that hdfs namenode -format command should be executed once before we start 
+using Hadoop. If this command is executed again after Hadoop has been used, 
+it'll destroy all the data on the Hadoop file system.
 	
 #### start HDFS
 We only start HDFS. So far we don't need YARN (start-yarn.sh). And start-all.sh
 is deprecated.
 
-	su hduser
 	start-dfs.sh
 
 Check the web interface for the NameNode if everything went well.
@@ -177,22 +167,22 @@ Datanodes store the actual data.
 
 #### set users for HDFS partitions
 
-	sudo chown hduser:hadoop -R /mnt/hdd1/
-	sudo chown hduser:hadoop -R /mnt/hdd2/
-	sudo chown hduser:hadoop -R /mnt/ssd2/
-	sudo chmod 777 -R /mnt/hdd1/
-	sudo chmod 777 -R /mnt/hdd2/
-	sudo chmod 777 -R /mnt/ssd2/
+	sudo chown hadoop:hadoop -R /mnt/hdd1/hadoop/datanode
+	sudo chown hadoop:hadoop -R /mnt/hdd2/hadoop/datanode
+	sudo chown hadoop:hadoop -R /mnt/ssd2/hadoop/datanode
+	sudo chmod 700 -R /mnt/hdd1/hadoop/datanode
+	sudo chmod 700 -R /mnt/hdd2/hadoop/datanode
+	sudo chmod 700 -R /mnt/ssd2/hadoop/datanode
 
 #### create HDFS users
 Now Hadoop users - as opposed to users of this unix box - need to be given 
 access to HDFS by creating home dirs and setting permissions. The HDFS commands are similar to Unix commands though.   
-Setting the space quota is optional. Here we set it to 200 GB. 
+Setting the space quota is optional. Here we do not set it to 200 GB. 
  
-	dfs -mkdir /user
-	dfs -mkdir /user/<username>
-	dfs -chown <username>:<username> /user/<username>
-	dfsadmin -setSpaceQuota 200g /user/<username> 
+	hdfs dfs -mkdir /user
+	hdfs dfs -mkdir /user/hadoop
+	hdfs dfs -chown hadoop:hadoop /user/hadoop
+	// hdfs dfsadmin -setSpaceQuota 200g /user/<username> 
 
 
 ## (5) YARN
@@ -228,9 +218,7 @@ After issuing 'start-dfs.sh' and 'start-yarn.sh' commands run 'jps' to see if
 - datanode [http://136.243.78.39:50075](http://136.243.78.39:50075)   
 - resource manager [http://136.243.78.39:8088](http://136.243.78.39:8088)    
 - logs [http://136.243.78.39:50090/logs/](http://136.243.78.39:50090/logs/)  
-  (actually i'm not sure if logs are really accessible there. let's try! 
-  otherwise maybe read http://hortonworks.com/blog/simplifying-user-logs-management-and-access-in-yarn/)
-
+ 
 
 ## (7) HBase
 - download http://www.apache.org/dist/hbase/stable
