@@ -85,14 +85,16 @@ Name: mteam
       % sudo chown -R hadoop:hadoop hadoop-x.y.z
 
   
+  - karsten: change Java max heap size -Xmx to something sensible 
   - karsten: find out how to permit user t to sudo into hadoop user
-  - karsten: cp /usr/local/hadoop/etc/hadoop/mapred-site.xml.template 
+  - karsten: mv /usr/local/hadoop/etc/hadoop/mapred-site.xml.template 
   /usr/local/hadoop/etc/hadoop/mapred-site.xml
   - karsten: firewall?
   - karsten: install hbase, 
   - karsten: install spark
   - karsten: install drill
-  - karsten: answer t's mail
+  - karsten: install avro 
+  - karsten: install thrift
   - karsten: rename mteam to ...
   - t: prepare data ingestion
   

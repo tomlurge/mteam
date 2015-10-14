@@ -14,7 +14,8 @@ and [2](https://rstudio-pubs-static.s3.amazonaws.com/78508_abe89197267240dfb6f4f
 
 
 ## (1) Users
-Setup a user hadoop
+
+	adduser hadoop
 
 ## (2) Setup passphraseless ssh
 If you cannot ssh to localhost without a passphrase, execute the following 
@@ -182,7 +183,7 @@ Setting the space quota is optional. Here we do not set it to 200 GB.
 	hdfs dfs -mkdir /user
 	hdfs dfs -mkdir /user/hadoop
 	hdfs dfs -chown hadoop:hadoop /user/hadoop
-	// hdfs dfsadmin -setSpaceQuota 200g /user/<username> 
+	# hdfs dfsadmin -setSpaceQuota 200g /user/<username> 
 
 
 ## (5) YARN
@@ -222,10 +223,26 @@ After issuing 'start-dfs.sh' and 'start-yarn.sh' commands run 'jps' to see if
 
 ## (7) HBase
 - download http://www.apache.org/dist/hbase/stable
+- docs http://hbase.apache.org/book.html
+- installation http://hbase.apache.org/book.html#quickstart
 
+
+#### create user and tmp dir
+	
+	adduser hbase
+	mkdir -p /home/hbase/tmp
+	sudo chown hbase:hbase -R /home/hbase
+	sudo chmod 755 -R /home/hbase
+	
 #### conf/hbase-env.sh
 
 	JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
+	
+#### ~.bashrc
+
+	export HBASE_HOME=/usr/local/hbase
+	export PATH=$PATH:$HBASE_HOME/bin
+	# export HBASE_HEAPSIZE=4096 # hmmm
 
 #### conf/hbase-site.xml
 
@@ -233,6 +250,10 @@ After issuing 'start-dfs.sh' and 'start-yarn.sh' commands run 'jps' to see if
 	  <property>
 	    <name>hbase.rootdir</name>
 	    <value>hdfs://localhost:8020/hbase</value>
+	  </property>
+	  <property>
+	    <name>hbase.tmp.dir</name>
+	    <value>/home/hbase/tmp</value>
 	  </property>
 	  <property>
 	    <name>hbase.zookeeper.property.dataDir</name>
@@ -247,12 +268,13 @@ After issuing 'start-dfs.sh' and 'start-yarn.sh' commands run 'jps' to see if
 hbase will create the hbase dir in hdfs for you. do not interfer.   
 the following command will list the directory
 
-	hadoop fs -ls /hbase
+	hdfs dfs -ls /hbase
+
 
 #### start and stopping HBase
 
-	bin/start-hbase.sh 
-	bin/stop-hbase.sh
+	start-hbase.sh 
+	stop-hbase.sh
 
   
 ## (8) Spark 
@@ -266,6 +288,17 @@ Basically it's just download and verification
 Basically it's just download and verification
 - download http://www.apache.org/dist/drill/drill-1.1.0/
 - see also https://drill.apache.org/docs/installing-drill-on-linux-and-mac-os-x/
+
+## (10) Avro
+- python: https://avro.apache.org/docs/1.7.6/gettingstartedpython.html
+- for 'political' reasons java would be better, but it seems a lot more hassle:
+  java: https://avro.apache.org/docs/1.7.6/gettingstartedjava.html   
+  needs also jackson http://wiki.fasterxml.com/JacksonDownload
+
+## (11) Thrift
+- basic requirements https://thrift.apache.org/docs/install/
+- thrft itself https://thrift.apache.org/docs/install/debian
+- python support python-all python-all-dev python-all-dbg
 
 
 
