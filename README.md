@@ -80,6 +80,38 @@ Measurement team will set up a hosted server with 32 GB RAM and 5 TB storage (pa
 This is a test: we plan to keep the server running for at least the next 3 months or so. If it doesn’t prove useful we will probably shut it down afterwards, but we hope otherwise.
 
 
+# First steps
+
+We are no Big Data experts, this is our first foray into that crowded and confusing area. So please bear with us and (gently but mercylessly) point out mistakes and misconceptions you might very well find in our work.
+
+After sifting through the vast space of tools, formats and techniques of Big and not so big Data we came to a few conclusions. They are not all proven but we had to define a baseline from which to make our own experiences.
+
+## The plan
+
+We settled for the Hadoop ecosystem since it is mostly without alternative in the open source Big Data space. Hadoop in itself is a file system, HDFS, which everybody relies on, and a map reduce engine, which everybody tries to avoid. Hadoops map reduce engine is (or was) of course the core of its offering, the central algorithmical paradigm of Big Data, and the distributed file system only a necessary foundation for it. But Hadoops map reduce engine was difficult to program and soon tools emerged that wrapped it into a nicer interface, eg Hive and Pig. The filesystem though was okay (although not with very big clusters and in high availability environments which led to some frustrations, workarounds etc - but these should not concen us with our littel 2 TB dataset) and is the de facto standard which most Big Data solutions build on.
+
+Of all the tools that emerged on top of we settled for 2: Spark and Drill. Spark offers a lot of language interfaces to work with the underlying map reduce engine: Java, Python, Scala, R, even Clojure, and SQL, and some machine learning library. There should be something in it for everybody and since we offer this server as a service to the Tor community to do your own research we figured that this pletora of languages might be a compelling offer. All the better that Onionoo uses Spark too.
+Drill OTOH seems to be the most modern interface to Big Data. On the surface it offers SQl, real ANSI:2003 SQL, not only SQL-ish and SQL-like interfaces as the other map-reduce-wrappers before. And it works on any structured or unstructured data you throw at it without further ado, even fulltext and JSON. Thereby Drill promises to be the most approachable solutions of all. So far we can only hope that it will deliver but we'll certainly try.
+Then, since we have Hadoop we also have Hadoop Mapreduce and you're free to try that out, doin' it the old way without all those wrappers and niceties that only try to seperate you from the metal. Yeah.
+
+Storagewise we're still struggling. What we learned so far is that most of our data, as it is offered by collecTor, is indeed preaggregated and hierarchically structured. But contrary to what we first believed all storage solutions that seemed attractive for some reason also support hierarchical data structures, even HBase. The choices now boil down to a database - HBase - or a file system - Avro or Parquet, or both. The filesystems are more performant while HBase seems easier to intergrate. Maybe we'll do both since the also fit different purposes and use cases. That still needs to be worked out.
+
+## The data
+
+The plan here is to convert collecTor data into an intermediate JSON representation that can then be imported in all sorts of data crunchers: HBase, Parquet, Spark, and even PostgreSQL and MongoDB. Finding a JSON schema that represents the collecTor data thoroughly is easy. Importing that JSON into PostgreSQL, MongoDB and Drill should be easy too. We still have to work on HBase, Parquet/Avro and Spark.   
+We might store JSON in compressed .gz files that we can keep around for download. Drill can work on those files (https://drill.apache.org/docs/querying-plain-text-files/#querying-compressed-files) and generate Parquet files from them which then in turn might serve as the base from which Spark can work. 
+
+## Caveats
+
+One feedback that we got was a plea for PostgreSQL instead of a complicated Big Data setup that might just be not woth it for our kind of data volume. That may be right: we are dealing with roughly 2 TB, not with Petabytes and since PostgreSQL now offers metrialized views we could even do some aggregation with it. And everybody knows SQL. But OTOH we would be near to the limits of PostgreSQL already, we would not be able to easily scale out into the cloud on demand like we can with a Hadoop Map reduce job that's too big for our server and we don't get the seamless integration of statistically inclined toolsets and languages like R as we get it in the Hadoop eco system. Plus we learn something new :-)
+
+Another rather obvious approach would have been to go with MongoDB and its map reduce framework. We tried that but it doesn't scale like we want it to and it sometimes felt rather poorly engineered. We didn't want o go that road any further.
+
+We had reservations about Hadoop first since it has some weak points by design too but these mainly concern much bigger usecases than ours. There's still the problem of so many different moving parts in a Hadoop installation that not always work together as expected. That _is_ a problem and so far we can only hope that it won't hit us too badly.
+
+As mentioned above we will transform collecTor data to JSON before ingesting it into the Hadoop environment. That JSON data can easily be imported into PostgreSQL or MongoDB as well, so that route is not blocked - rather to the contrary.
+
+
 ---   
 [0] http://hadoop.apache.org/   
 [1] https://news.ycombinator.com/item?id=4298284 - see the 4. comment thread for a nice rundown on the cons of Hadoop.   

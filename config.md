@@ -29,7 +29,7 @@ Name: mteam
  - r-base (3.1.1-1)
  - mc (Midnight Commander)
  - ipython3
- - MongoDB 2.4.10
+ - mongodb (MongoDB 2.4.10)
  - sudo
 
 ### Manually installed software:
@@ -50,61 +50,94 @@ Name: mteam
 	Ctrl-a :multiuser on
 	Ctrl-a :acladd t
 	$ screen -r root/shared
+	
+### logging into hadoop
+	
+	log in    t@mteam:~$ sudo -s -H -u hadoop
+	log out   hadoop@mteam:/home/t$ exit
+	          t@mteam:~$ 
 
 ### Open tasks:
   
-  - karsten: about users
-  
-  
-	https://rstudio-pubs-static.s3.amazonaws.com/78508_abe89197267240dfb6f4facb361a20ed.html
-
-	  To avoid security issues, it’s a good practice to setup new Hadoop user 
-	  group and user account to deal with all Hadoop related activities. We will 
-	  create hadoop as system group and hduser as system user.
-	
-	    $ sudo addgroup hadoop
-	    $ sudo adduser --ingroup hadoop hduser
-	    $ sudo adduser hduser sudo
-      
-	oreilly hadoop definitive guide
-	
-		Creating Unix User Accounts
-    It’s good practice to create dedicated Unix user accounts to separate the 
-    Hadoop processes from each other, and from other services running on the 
-    same machine. The HDFS, MapReduce, and YARN services are usually run as 
-    separate users, named hdfs, mapred, and yarn, respectively. They all belong 
-    to the same hadoop group.
-    
-    Installing Hadoop
-    Download Hadoop from the Apache Hadoop releases page, and unpack the 
-    contents of the distribution in a sensible location, such as /usr/local 
-	    % cd /usr/local
-	    % sudo tar xzf hadoop-x.y.z.tar.gz
-    You also need to change the owner of the Hadoop files to be the hadoop user 
-    and group: 
-      % sudo chown -R hadoop:hadoop hadoop-x.y.z
-
-  
-  - karsten: change Java max heap size -Xmx to something sensible 
-  - karsten: find out how to permit user t to sudo into hadoop user
-  - karsten: mv /usr/local/hadoop/etc/hadoop/mapred-site.xml.template 
-  /usr/local/hadoop/etc/hadoop/mapred-site.xml
-  - karsten: firewall?
-  - karsten: install hbase, 
-  - karsten: install spark
-  - karsten: install drill
   - karsten: install avro 
   - karsten: install thrift
-  - karsten: rename mteam to ...
+
+	  
+	- t: check how to set max RAM for java on debian
+	     
+	     t@mteam:~$ free -m
+	                  total       used       free     shared    buffers     cached
+	     Mem:         32105       5260      26844          8        139       3172
+	     -/+ buffers/cache:       1947      30157
+	     Swap:        16383          0      16383
+       
+	     export _JAVA_OPTIONS="-Xmx8g"
+	     
+	- t: check if hadoop websites are only informational or make the installation 
+	vulnerable
+	
+		seems like they provide no admin functionality, only read-only information
+	  
+		to secure them with user-name (but no password) do edit core-site.xml
+				<property>
+        	<name>hadoop.http.filter.initializers</name>
+        	<value>org.apache.hadoop.security.AuthenticationFilterInitializer</value>
+        </property>
+				<property>
+        	<name>hadoop.http.authentication.type</name>
+        	<value>simple</value>
+        </property>
+				<property>
+        	<name>hadoop.http.authentication.token.validity</name>
+        	<value>36000</value>
+        </property>
+				<property>
+        	<name>hadoop.http.authentication.signature.secret.file</name>
+        	<value>$user.home/hadoop-http-auth-signature-secret</value>
+        </property>
+        	<!-- IMPORTANT: This file should be readable only by the Unix user running the daemons. -->
+				<property>
+        	<name>hadoop.http.authentication.simple.anonymous.allowed</name>
+        	<value>false</value>
+        	<!-- # defaults to true! why? -->
+        </property>
+				
+		more on hadoop security
+			http://hadoop.apache.org/docs/r2.7.1/hadoop-project-dist/hadoop-common/ClusterSetup.html
+			http://hadoop.apache.org/docs/r2.7.1/hadoop-project-dist/hadoop-common/SecureMode.html
+			https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/HttpAuthentication.html
+	  
+	- t: format interoperability matrix
+	
+	              json  hbase avro  parquet          
+		hadoop mr                      
+		spark             x (1)             
+		drill       x     x     x     x        (2)
+	
+		(1) http://www.vidyasource.com/blog/Programming/Scala/Java/Data/Hadoop/Analytics/2014/01/25/lighting-a-spark-with-hbase
+		(2) https://drill.apache.org/docs/drill-default-input-format/
+	  
+	  
+	- t: check if spark_1.5.1-hadoop_2.6 can run with hadoop 2.7.1
+	     
+		we will see. 
+		IF NOT http://spark.apache.org/docs/latest/hadoop-provided.html 
+	     
+	- t: check why hbase has no dir in hdfs
+	
+	- t: how2hadoop (start/stop commands, admin URLs, shell specifics etc)
+	
   - t: prepare data ingestion
   
     - schemata
     - scripts
-    - execution plan
+    - execution plan:
+      xz-dateien -> 
+      pachted metrics-lib -> 
+      export as (hopefully not hadoop-specific) JSON -> 
+      shell-script/hadoop command line tool ->
+      hadoop
 
-
-
-
-
-
+- t: do all the different datasets that collecTor offers have the same key?
+     e.g. timestamp?
 

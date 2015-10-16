@@ -215,8 +215,12 @@ After issuing 'start-dfs.sh' and 'start-yarn.sh' commands run 'jps' to see if
 
 ### summary of webinterfaces
 
-- namenode [http://136.243.78.39:50070](http://136.243.78.39:50070)   
-- datanode [http://136.243.78.39:50075](http://136.243.78.39:50075)   
+- HDFS namenode [http://136.243.78.39:50070](http://136.243.78.39:50070)   
+- HDFS datanode [http://136.243.78.39:50075](http://136.243.78.39:50075) 
+- HDFS secondary namenode [http://136.243.78.39:50090](http://136.243.78.39:50090) 
+- MR jobtracker [http://136.243.78.39:50030](http://136.243.78.39:50030) 
+- MR tasktracker [http://136.243.78.39:50060](http://136.243.78.39:50060) 
+- MR jobhistory [http://136.243.78.39:19888](http://136.243.78.39:19888) 
 - resource manager [http://136.243.78.39:8088](http://136.243.78.39:8088)    
 - logs [http://136.243.78.39:50090/logs/](http://136.243.78.39:50090/logs/)  
  
@@ -225,13 +229,14 @@ After issuing 'start-dfs.sh' and 'start-yarn.sh' commands run 'jps' to see if
 - download http://www.apache.org/dist/hbase/stable
 - docs http://hbase.apache.org/book.html
 - installation http://hbase.apache.org/book.html#quickstart
+- install to /usr/local/hbase
 
 
 #### create user and tmp dir
 	
 	adduser hbase
 	mkdir -p /home/hbase/tmp
-	sudo chown hbase:hbase -R /home/hbase
+	sudo chown hadoop:hadoop -R /home/hbase
 	sudo chmod 755 -R /home/hbase
 	
 #### conf/hbase-env.sh
@@ -271,7 +276,7 @@ the following command will list the directory
 	hdfs dfs -ls /hbase
 
 
-#### start and stopping HBase
+#### start and stop HBase
 
 	start-hbase.sh 
 	stop-hbase.sh
