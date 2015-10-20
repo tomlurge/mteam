@@ -105,6 +105,70 @@ instead.
 	reject                        *:*
 	router-signature              SIGNATURE
 
+JSON SERIALIZATION
+
+	legend: 
+		"" : string
+		# : number
+		boolean : true/false
+		[x,x,x...] : array of x
+		if no value write: null
+		
+	{"server-descriptor": {
+		"version": "1.0",
+		"router": {
+			"nickname": "",
+			"address": "",
+			"ORPort": #,
+			"Socksport": #,
+			"DirPort": #
+		},
+		"identity-ed25519": "",
+		"master-key-ed25519". "",
+		"bandwidth": {
+			"bandwidth-avg": #,
+			 "bandwidth-burst": #,
+			 "bandwidth-observed": #
+		},
+		"platform": "",
+		"published": "",
+		"fingerprint": "",
+		"hibernating": boolean,
+		"uptime": #,
+		"onion-key": "",
+		"onion-key-crosscert": "",
+		"ntor-onion-key": "",
+		"ntor-onion-key-crosscert": "",
+		"signing-key": "",
+		"accept": "";
+		"reject": "",
+		"ipv6-policy": "",
+		"router-sig-ed25519": "",
+		"router-signature": "",
+		"contact": "",
+		"family": "",
+		"read-history": {
+			"date": "",
+			"value": [#,#,#...]
+		},
+		"write-history":  {
+			"date": "",
+			"value": [#,#,#...]
+		},
+		"eventdns": boolean,
+		"caches-extra-info": "",
+		"extra-info-digest": "",
+		"hidden-service-dir": "",
+		"protocols": "",
+		"allow-single-hop-exits": boolean, // false if absent
+		"or-address": [
+			{
+				"adress": "",
+				"port": #
+			}
+			...
+		]
+	}
 
 ###### extra-info 1.0
 
