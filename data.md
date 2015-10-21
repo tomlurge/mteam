@@ -37,20 +37,20 @@ See also the two parsers:
 Most of the documents have nested data structures. Some get quite large.
 
                                       
-	name                                spec
-	          
-	server-descriptor                   spec v3 2.1.1. Sever description format
-	extra-info                          spec v3 2.1.2. Extra-info document format
-	network-status-consensus            
-	network-status-vote                 
-	dir-key-certificate                 
-	network-status-microdesc-consensus  
-	bridge-network-status               
-	bridge-server-descriptor            
-	bridge-extra-info                   
-	bridge-pool-assignment              
-	tordnsel                            
-	torperf                             
+	name                                 json spec
+	            
+	server-descriptor                    x    v3 2.1.1. Sever description format
+	extra-info                           x    v3 2.1.2. Extra-info document format  
+	network-status-consensus                  v3 3.4.1. 
+	network-status-vote                       v3 3.4.1.
+	dir-key-certificate                       v3 3.1.   Creating key certificates
+	network-status-microdesc-consensus        v3 3.9.2. Microsescriptor consensus
+	bridge-network-status                  
+	bridge-server-descriptor               
+	bridge-extra-info                      
+	bridge-pool-assignment                 
+	tordnsel                               
+	torperf                                
 
 
 JSON Serializations legend:
@@ -59,7 +59,8 @@ JSON Serializations legend:
 		# : number
 		boolean : true/false
 		[x,x,x...] : array of x
-		if no value write: null
+		if entry contains no value and no default is given in comment write: null
+		if entry is absent write: null
 
 
 #### collecTor examples
@@ -274,6 +275,170 @@ downloaded by clients by default.
 	router-signature              SIGNATURE
 
 
+JSON SERIALIZATION
+		
+	"extra-info": {
+		"nickname": "",
+		"fingerprint": "",
+		"identity-ed25519": "",
+		"published": "",
+		"read-history": {
+			"date": "",
+			"interval": #,   // default: 86400
+			"bytes": [#,#,#...]
+		},
+		"write-history":  {
+			"date": "",
+			"interval": #,   // default: 86400
+			"bytes": [#,#,#...]
+		},
+		"geoip-db-digest": "",
+		"geoip6-db-digest": "",
+		"geoip-start-time": "",
+		"geoip-client-origins": {
+			"": #   //  country code : number
+			...
+		},
+		"bridge-stats-end":  {
+			"date": "",
+			"interval": #   // default: 86400
+		},
+		"bridge-ips": {
+			"": #   //  country code : number
+			...
+		},
+		"bridge-ip-versions": {
+			"": #   //  family : number
+			...
+		},
+		"bridge-ip-transports": {
+			"": #   //  pluggable transport : number
+			...
+		},
+		"dirreq-stats-end":  {
+			"date": "",
+			"interval": #   // default: 86400
+		},
+		"dirreq-v2-ips": {
+			"": #   //  country code : number
+			...
+		},
+		"dirreq-v3-ips": {
+			"": #   //  country code : number
+			...
+		},
+		"dirreq-v2-reqs": {
+			"": #   //  country code : number
+			...
+		},
+		"dirreq-v3-reqs": {
+			"": #   //  country code : number
+			...
+		},
+		"dirreq-v2-share": "",
+    "dirreq-v3-share": "",
+		"dirreq-v2-resp": {
+			"": #   //  status : number
+			...
+		},
+		"dirreq-v3-resp": {
+			"": #   //  status : number
+			...
+		},
+		
+		"dirreq-v2-direct-dl": {
+			"": #   //  key : number
+			...
+		},
+		"dirreq-v3-direct-dl": {
+			"": #   //  key : number
+			...
+		},
+		"dirreq-v2-tunneled-dl": {
+			"": #   //  key : number
+			...
+		},
+		"dirreq-v3-tunneled-dl": {
+			"": #   //  key : number
+			...
+		},
+		"dirreq-read-history": {
+			"date": "",
+			"interval": #,
+			"bytes": [#,#,#...]
+		},
+		"dirreq-write-history": {
+			"date": "",
+			"interval": #,
+			"bytes": [#,#,#...]
+		},
+		"entry-stats-end": {
+			"date": "",
+			"interval": #   // default: 86400
+		},
+		"entry-ips": {
+			"": #   //  country code : number
+			...
+		},
+		"cell-stats-end": {
+			"date": "",
+			"interval": #   // default: 86400
+		},
+		"cell-processed-cells": [#,#,#...],
+		"cell-queued-cells": [#,#,#...],
+		"cell-time-in-queue": [#,#,#...],
+		"cell-circuits-per-decile": #,
+		"conn-bi-direct"::  {
+			"date": "",
+			"interval": #,   // default: 86400
+			"below": #,
+			"read": #,
+			"write": #,
+			"both": #
+		},
+		"exit-stats-end"::  {
+			"date": "",
+			"interval": #   // default: 86400
+		},
+		"exit-kibibytes-written": {
+			"": #    // port : number
+			...
+		},
+		"exit-kibibytes-read": {
+			"": #    // port : number
+			...
+		},
+		"exit-streams-opened": {
+			"": #    // port : number
+			...
+		},
+		"hidserv-stats-end"::  {
+			"date": "",
+			"interval": #   // default: 86400
+		},
+		"hidserv-rend-relayed-cells": {
+			"cells": #,
+			"": #,    // key : number
+			...       // more key:number pairs
+		},
+		"hidserv-dir-onions-seen": {
+			"cells": #,
+			"": #,    // key : number
+			...       // more key:number pairs
+		},
+		"transport": {
+			"": {    // transportname
+				"adress": "",
+				"port": #,
+				"args": ""
+			}
+			...
+		},
+		"router-sig-ed25519":   // TODO spec says "[As in router descriptors]" wtf??
+		"router-signature": ""
+	}
+		
+
 ###### network-status-consensus-3 1.0
 
 Though Tor relays are decentralized, the directories that track the overall 
@@ -368,6 +533,57 @@ flags, heuristics used for relay selection, etc.
 	[[ and so forth ]]
 
 
+
+JSON SERIALIZATION
+
+	"network-status-consensus": {
+		"version": "",
+		"vote-status": "",
+    "consensus-method": #,
+		"valid-after": "",
+		"fresh-until": "",
+		"valid-until": "",
+		"voting-delay": {
+			"VoteSeconds": #,
+			"DistSeconds": #
+		},
+		"client-versions": ["","",""...],
+		"server-versions": ["","",""...],
+		"package": [
+			{
+				"packagename": "",
+				"version": "",
+				"url": "",
+				"digests": {
+					"digest": ""
+					...
+				}
+			}
+			...
+		],
+		"known-flags": ["","",""...],
+		"params": {
+			"": #     // paramter : number
+			...
+		},
+		"authority": [
+			{
+				"dir-source": {
+					"nickname": "",
+					"identity": "",
+					"adress": "",
+					"ip": "",
+					"dirport": #,
+					"orport": #
+				},
+				"contact": "",
+				"vote-digest": ""
+			}
+			...
+		]
+	}
+
+
 ######  network-status-vote-3 1.0
 
 The directory authorities exchange votes every hour to come up with a common 
@@ -437,7 +653,8 @@ consensus. Vote documents are by far the largest documents provided here.
 	                              enough-mtbf=1 
 	                              ignoring-advertised-bws=0
 	params                        CircuitPriorityHalflifeMsec=30000 
-	                              NumDirectoryGuards=3 NumEntryGuards=1 
+	                              NumDirectoryGuards=3
+	                              NumEntryGuards=1 
 	                              NumNTorsPerTAP=100 
 	                              Support022HiddenServices=0 
 	                              UseNTorHandshake=1 
@@ -491,6 +708,76 @@ consensus. Vote documents are by far the largest documents provided here.
 	
 	[[ and so forth ]]
 
+
+JSON SERIALIZATION
+
+	"network-status-vote" {
+		"version": "",
+		"vote-status": "",
+		"consensus-methods": [#,#,#...],
+		"published": "",
+		"valid-after": "",
+		"flag-thresholds": {
+			"": #,    // treshold : number  // TODO make it string because can be '%'? 
+			...       // more treshold:number pairs
+		},
+		"fresh-until": "",
+		"valid-until": "",
+		"voting-delay": {
+			"VoteSeconds": #,
+			"DistSeconds": #
+		},
+		"client-versions": ["","",""...],
+		"server-versions": ["","",""...],
+		"package": [
+			{
+				"packagename": "",
+				"version": "",
+				"url": "",
+				"digests": {
+					"digest": ""
+					...
+				}
+			}
+			...
+		],
+		"known-flags": ["","",""...],
+		"params": {
+			"": #     // paramter : number
+			...
+		},
+		authority: [
+			{
+				"dir-source": {
+					"nickname": "",
+					"identity": "",
+					"adress": "",
+					"ip": "",
+					"dirport": #,
+					"orport": #
+				},
+				"contact": "",
+				
+				"legacy-dir-key": {
+					"dir-source": "",
+					"nickname": "",
+					"identity": "",
+					"adress": "",
+					"ip": "",
+					"dirport": #,
+					"orport": #
+				}
+			}
+			...
+		],
+		
+		
+		
+		
+		
+	}
+	
+	
 	
 #### dir-key-certificate-3 1.0
      
