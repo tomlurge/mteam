@@ -995,6 +995,44 @@ month, not just network statuses.
 	[[ and so forth ]]
 
 
+
+JSON SERIALIZATION
+
+	"bridge-network-status": {
+		"published": "",
+		"flag-tresholds": {
+			"": #,     // flag : treshold
+			...
+		},
+		"bridge": [
+			{
+				"r": {
+					"nickname": "",,
+		 			"identity-key": "",
+		 			"descriptor": "",
+		 			"date": "",
+		 			"adress": "",
+		 			"ORPort": #,
+		 			"DirPort": #
+				},
+				"s": ["","",""...],
+				"w": {
+					"bandwidth": #
+				},
+				"p": ""
+			}
+			...
+		]
+	}
+	
+TODO 
+https://collector.torproject.org/index2.html says that bridges network 
+status is modeled after https://gitweb.torproject.org/torspec
+.git/tree/attic/dir-spec-v2.txt, but the example above and the network 
+status format as defined in spec_v2 chapter 3. don't match. the spec v2 
+chapter 3.0 doesn't contain a field "flag-treshold" nor the fields "w" and "p".
+
+
 ######  bridge-server-descriptor 1.1
 
 Bridge server descriptors follow the same format as relay server descriptors, 
@@ -1033,6 +1071,38 @@ master key.
 	router-digest                 00A0A2F7AA65DBDE7CE7A3FEF659368792FAAB2B
 
 
+JSON SERIALIZATION
+
+	"bridge-server-descriptor": {
+		"router": {
+			"nickname": "",
+			"adress": "",
+			"ORPort": #,
+			"SocksPort": #,
+			"DirPort": #
+		},
+		"protocols": "",
+		"bandwidth": {
+			"bandwidth-avg": #,
+			"bandwidth-burst": #,
+			"bandwidth-observed": #
+		},
+		"platform": "",
+		"published": "",
+		"fingerprint": "",
+		"hibernating": boolean,
+		"uptime": #,
+		"ntor-onion-key": "",
+		"accept": "",
+		"reject": "",
+		"router-digest": "",
+		"extra-info-digest": "",
+		"hidden-service-dir": ""
+	}
+	
+TODO this needs to be checked!
+	
+	
 ###### bridge-extra-info 1.3
 
 Bridge extra-info descriptors follow the same format as relay extra-info 
@@ -1156,14 +1226,24 @@ instance.
 
 ###### bridge-pool-assignment 1.0
 
-The document below shows a BridgeDB pool assignment file from March 13, 2011. Every such file begins with a line containing the timestamp when BridgeDB wrote this file. Subsequent lines start with the SHA-1 hash of a bridge fingerprint, followed by ring, subring, and/or file bucket information. There are currently three distributor ring types in BridgeDB:
+The document below shows a BridgeDB pool assignment file from March 13, 2011. 
+Every such file begins with a line containing the timestamp when BridgeDB wrote 
+this file. Subsequent lines start with the SHA-1 hash of a bridge fingerprint, 
+followed by ring, subring, and/or file bucket information. There are currently 
+three distributor ring types in BridgeDB:
 
   1. unallocated: These bridges are not distributed by BridgeDB, but are either
-   reserved for manual distribution or are written to file buckets for distribution via an external tool. If a bridge in the unallocated ring is assigned to a file bucket, this is noted by bucket=$bucketname.
+   reserved for manual distribution or are written to file buckets for 
+   distribution via an external tool. If a bridge in the unallocated ring is 
+   assigned to a file bucket, this is noted by bucket=$bucketname.
   2. email: These bridges are distributed via an e-mail autoresponder. Bridges 
-  can be assigned to subrings by their OR port or relay flag which is defined by port=$port and/or flag=$flag.
+  can be assigned to subrings by their OR port or relay flag which is defined by 
+  port=$port and/or flag=$flag.
   3. https: These bridges are distributed via https server. There are multiple 
-  https rings to further distribute bridges by IP address ranges, which is denoted by ring=$ring. Bridges in the https ring can also be assigned to subrings by OR port or relay flag which is defined by port=$port and/or flag=$flag.
+  https rings to further distribute bridges by IP address ranges, which is 
+  denoted by ring=$ring. Bridges in the https ring can also be assigned to 
+  subrings by OR port or relay flag which is defined by port=$port and/or 
+  flag=$flag.
 
 
 	bridge-pool-assignment 2011-03-13 14:38:03

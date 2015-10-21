@@ -35,7 +35,23 @@ tbd
 
 ## HBase schema
 
+### principals of HBase schema design
+HBase is a semi-structured DBMS whereas the wellknown RDBMS are structured 
+DBMS. This provides certain freedoms that can be used to make up for its 
+deficiences compared to RDBMS particularily that HBase doesn't offer joins 
+and only limited indices.
 
+- put any "critical" information - that is: anything that you'll query for - in
+ the key (on retrieval filter for the stuff you want to know)
+- substitute joins by data duplication in nested columns
+- do not fear de-normalization since a) or data is write-once and 
+inconsistencies can't arise later and b) columns can be compressed (and we don't need space for indices (since we dont have them ;-))
+- use column families to group related columns   
+  eg from the same input sources
+- do not fear wide rows. thousands of columns are totally okay
+- do not fear sparsly populated rows. NULL values use up zero space
+
+### design goals
 :man könnte zum beispiel consensus-einträge und bridge-status-einträge in eine tabelle packen.
 und dazu noch version-2-relay-network-status-einträge und version-1-relay-network-status-einträge.
 das wäre vielleicht auch sinnvoll, um vergleiche über die letzten 10+ jahre anzustellen.
