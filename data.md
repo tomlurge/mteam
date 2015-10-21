@@ -45,12 +45,12 @@ Most of the documents have nested data structures. Some get quite large.
 	network-status-vote                  x    v3 3.4.1.
 	dir-key-certificate                  x    v3 3.1.   Creating key certificates
 	network-status-microdesc-consensus        v3 3.9.2. Microsescriptor consensus
-	bridge-network-status                  
-	bridge-server-descriptor               
-	bridge-extra-info                      
-	bridge-pool-assignment                 
-	tordnsel                               
-	torperf                                
+	bridge-network-status                x (sort of)
+	bridge-server-descriptor             x (sort of)
+	bridge-extra-info                    x (sort of)               
+	bridge-pool-assignment               x (sort of)
+	tordnsel                             x 
+	torperf                              x 
 
 
 JSON Serializations legend:
@@ -1090,7 +1090,7 @@ JSON SERIALIZATION
 		"platform": "",
 		"published": "",
 		"fingerprint": "",
-		"hibernating": boolean,
+		"hibernating": boolean, 
 		"uptime": #,
 		"ntor-onion-key": "",
 		"accept": "",
@@ -1123,14 +1123,6 @@ Ed25519 master key.
 	extra-info                    Unnamed 
 	                              D38A157492E3F4CDAAFD6BDAFC5908CFF7255806
 	published                     2015-09-27 23:04:01
-	write-history                 2015-09-27 19:16:46 
-	                              (14400 s) 
-	                              46851072,
-	                              1771520,
-	                              9085952,
-	                              2136064,
-	                              85985280,
-	                              64917504
 	read-history                  2015-09-27 19:16:46 
 	                              (14400 s) 
 	                              50480128,
@@ -1139,6 +1131,30 @@ Ed25519 master key.
 	                              6256640,
 	                              89082880,
 	                              66740224
+	write-history                 2015-09-27 19:16:46 
+	                              (14400 s) 
+	                              46851072,
+	                              1771520,
+	                              9085952,
+	                              2136064,
+	                              85985280,
+	                              64917504
+	geoip-db-digest               D095D62E8A1607C2C3AF61366929BCAD0E6D3184
+	geoip6-db-digest              AC1BE3D0707D16AB04092FE00C9732658C926CD8
+	bridge-stats-end              2015-09-27 08:41:48 
+	                              (86400 s)
+	bridge-ips                    us=24,
+	                              cz=8,
+	                              fr=8,
+	                              gb=8,
+	                              ir=8,
+	                              ru=8,
+	                              sv=8
+	bridge-ip-versions            v4=32,
+	                              v6=0
+	bridge-ip-transports          <OR>=8,
+	                              obfs3=8,
+	                              obfs4=32
 	dirreq-write-history          2015-09-27 19:16:46 
 	                              (14400 s) 
 	                              1113088,
@@ -1155,8 +1171,6 @@ Ed25519 master key.
 	                              8192,
 	                              7168,
 	                              135168
-	geoip-db-digest               D095D62E8A1607C2C3AF61366929BCAD0E6D3184
-	geoip6-db-digest              AC1BE3D0707D16AB04092FE00C9732658C926CD8
 	dirreq-stats-end              2015-09-27 04:47:05 
 	                              (86400 s)
 	dirreq-v3-ips                 cz=8,
@@ -1186,7 +1200,7 @@ Ed25519 master key.
 	                              md=387808,
 	                              d6=446494,
 	                              d7=1730520,
-	                              q3=5403163,
+	                             q3=5403163,
 	                              d8=5586742,
 	                              d9=5687171,
 	                              max=5795541
@@ -1194,21 +1208,163 @@ Ed25519 master key.
 	transport                     obfs3
 	transport                     obfs4
 	transport                     fte
-	bridge-stats-end              2015-09-27 08:41:48 
-	                              (86400 s)
-	bridge-ips                    us=24,
-	                              cz=8,
-	                              fr=8,
-	                              gb=8,
-	                              ir=8,
-	                              ru=8,
-	                              sv=8
-	bridge-ip-versions            v4=32,
-	                              v6=0
-	bridge-ip-transports          <OR>=8,
-	                              obfs3=8,
-	                              obfs4=32
 	router-digest                 00A0BC18393D1CC4162998A06CE5B4FD606F268E
+
+
+JSON SERIALIZATION
+		
+	"extra-info": {
+		"nickname": "",
+		"fingerprint": "",
+		"published": "",
+		"read-history": {
+			"date": "",
+			"interval": #,   // default: 86400
+			"bytes": [#,#,#...]
+		},
+		"write-history":  {
+			"date": "",
+			"interval": #,   // default: 86400
+			"bytes": [#,#,#...]
+		},
+		"geoip-db-digest": "",
+		"geoip6-db-digest": "",
+		"geoip-start-time": "",                      // TODO not sure about this one
+		"geoip-client-origins": {                    // TODO not sure about this one
+			"": #   //  country code : number
+			...
+		},
+		"bridge-stats-end":  {
+			"date": "",
+			"interval": #   // default: 86400
+		},
+		"bridge-ips": {
+			"": #   //  country code : number
+			...
+		},
+		"bridge-ip-versions": {
+			"": #   //  family : number
+			...
+		},
+		"bridge-ip-transports": {
+			"": #   //  pluggable transport : number
+			...
+		},
+		"dirreq-stats-end":  {
+			"date": "",
+			"interval": #   // default: 86400
+		},
+		"dirreq-v2-ips": {                           // TODO not sure about this one
+			"": #   //  country code : number
+			...
+		},
+		"dirreq-v3-ips": {
+			"": #   //  country code : number
+			...
+		},
+		"dirreq-v2-reqs": {                          // TODO not sure about this one
+			"": #   //  country code : number
+			...
+		},
+		"dirreq-v3-reqs": {
+			"": #   //  country code : number
+			...
+		},
+		"dirreq-v2-share": "",                      // TODO not sure about this one
+    "dirreq-v3-share": "",                      // TODO not sure about this one
+		"dirreq-v2-resp": {                         // TODO not sure about this one
+			"": #   //  status : number
+			...
+		},
+		"dirreq-v3-resp": {
+			"": #   //  status : number
+			...
+		},
+		
+		"dirreq-v2-direct-dl": {                    // TODO not sure about this one 
+			"": #   //  key : number
+			...
+		},
+		"dirreq-v3-direct-dl": {
+			"": #   //  key : number
+			...
+		},
+		"dirreq-v2-tunneled-dl": {                   // TODO not sure about this one
+			"": #   //  key : number
+			...
+		},
+		"dirreq-v3-tunneled-dl": {
+			"": #   //  key : number
+			...
+		},
+		"dirreq-read-history": {
+			"date": "",
+			"interval": #,
+			"bytes": [#,#,#...]
+		},
+		"dirreq-write-history": {
+			"date": "",
+			"interval": #,
+			"bytes": [#,#,#...]
+		},
+		"entry-stats-end": {                         // TODO not sure about this one
+			"date": "",
+			"interval": #   // default: 86400
+		},
+		"entry-ips": {                               // TODO not sure about this one
+			"": #   //  country code : number
+			...
+		},
+		"cell-stats-end": {                          // TODO not sure about this one
+			"date": "",
+			"interval": #   // default: 86400
+		},
+		"cell-processed-cells": [#,#,#...],          // TODO not sure about this one
+		"cell-queued-cells": [#,#,#...],             // TODO not sure about this one
+		"cell-time-in-queue": [#,#,#...],            // TODO not sure about this one
+		"cell-circuits-per-decile": #,               // TODO not sure about this one
+		"conn-bi-direct"::  {                        // TODO not sure about this one
+			"date": "",
+			"interval": #,   // default: 86400
+			"below": #,
+			"read": #,
+			"write": #,
+			"both": #
+		},
+		"exit-stats-end"::  {                        // TODO not sure about this one
+			"date": "",
+			"interval": #   // default: 86400
+		},
+		"exit-kibibytes-written": {                  // TODO not sure about this one
+			"": #    // port : number
+			...
+		},
+		"exit-kibibytes-read": {                     // TODO not sure about this one
+			"": #    // port : number
+			...
+		},
+		"exit-streams-opened": {                     // TODO not sure about this one
+			"": #    // port : number
+			...
+		},
+		"hidserv-stats-end"::  {                     // TODO not sure about this one
+			"date": "",
+			"interval": #   // default: 86400
+		},
+		"hidserv-rend-relayed-cells": {              // TODO not sure about this one
+			"cells": #,
+			"": #,    // key : number
+			...       // more key:number pairs
+		},
+		"hidserv-dir-onions-seen": {                 // TODO not sure about this one
+			"cells": #,
+			"": #,    // key : number
+			...       // more key:number pairs
+		},
+		"transport": ["","",""...],
+		"router-digest": ""
+	}
+
 
 
 ##### other 
@@ -1223,6 +1379,8 @@ clients. Hidden service descriptors are not formally archived, but some librarie
 support parsing these descriptors when obtaining them from a locally running Tor 
 instance. 
 
+
+TODO what about them?
 
 ###### bridge-pool-assignment 1.0
 
@@ -1274,8 +1432,11 @@ As of December 8, 2014, bridge pool assignment files are no longer archived.
 	                              transport=fte,
 	                                        obfs3,
 	                                        scramblesuit
-	                                        
-	                              
+
+
+TODO what about them?                            
+                            
+                            
 ###### tordnsel 1.0
 
 The exit list service TorDNSEL publishes exit lists containing the IP addresses 
@@ -1314,7 +1475,27 @@ the relay also uses IP address 91.102.152.227 for exiting.
 	ExitAddress                   162.248.160.151 2015-08-31 15:07:27
 	
 	[[ and so forth ]]
-	
+
+
+JSON SERIALIZATION
+
+	"tordnsel": {
+		"Downloaded": "",
+		"relays": [
+			{
+				"ExitNode": "",
+				"Published": "",
+				"LastStatus": "",
+				"ExitAddress": {
+				"adress": "",
+				"date": ""
+			}
+			...
+		]
+	}
+
+
+
 	
 ######  torperf 1.0
 
@@ -1360,32 +1541,44 @@ long substeps take.
 	USED_BY=2475 
 
 
-	Configuration
-	    SOURCE: Configured name of the data source; required.
-	    FILESIZE: Configured file size in bytes; required.
-	    Other meta data describing the Tor or Torperf configuration, e.g., GUARD for a custom guard choice; optional.
-	Measurement results
-	    START: Time when the connection process starts; required.
-	    SOCKET: Time when the socket was created; required.
-	    CONNECT: Time when the socket was connected; required.
-	    NEGOTIATE: Time when SOCKS 5 authentication methods have been negotiated; required.
-	    REQUEST: Time when the SOCKS request was sent; required.
-	    RESPONSE: Time when the SOCKS response was received; required.
-	    DATAREQUEST: Time when the HTTP request was written; required.
-	    DATARESPONSE: Time when the first response was received; required.
-	    DATACOMPLETE: Time when the payload was complete; required.
-	    WRITEBYTES: Total number of bytes written; required.
-	    READBYTES: Total number of bytes read; required.
-	    DIDTIMEOUT: 1 if the request timed out, 0 otherwise; optional.
-	    DATAPERCx: Time when x% of expected bytes were read for x = { 10, 20, 30, 40, 50, 60, 70, 80, 90 }; optional.
-	    Other measurement results, e.g., START_RENDCIRC, GOT_INTROCIRC, etc. for hidden-service measurements; optional.
-	Additional information
-	    LAUNCH: Time when the circuit was launched; optional.
-	    USED_AT: Time when this circuit was used; optional.
-	    PATH: List of relays in the circuit, separated by commas; optional.
-	    BUILDTIMES: List of times when circuit hops were built, separated by commas; optional.
-	    TIMEOUT: Circuit build timeout in milliseconds that the Tor client used when building this circuit; optional.
-	    QUANTILE: Circuit build time quantile that the Tor client uses to determine its circuit-build timeout; optional.
-	    CIRC_ID: Circuit identifier of the circuit used for this measurement; optional.
-	    USED_BY: Stream identifier of the stream used for this measurement; optional.
-	    Other fields containing additional information; optional.
+JSON SERIALIZATION
+
+	"torperf": {
+		"configuration": {
+			"SOURCE": "",
+			"FILESIZE": #
+		},
+		"measurements": {
+			"START": #,
+			"SOCKET": #,
+			"CONNECT": #,
+			"NEGOTIATE": #,
+			"REQUEST": #,
+			"RESPONSE": #,
+			"DATAREQUEST": #,
+			"DATARESPONSE": #,
+			"DATACOMPLETE": #,
+			"WRITEBYTES": #,
+			"READBYTES": #,
+			"DIDTIMEOUT": #,
+			"DATAPERC10": #,
+			"DATAPERC20": #,
+			"DATAPERC30": #,
+			"DATAPERC40": #,
+			"DATAPERC50": #,
+			"DATAPERC60": #,
+			"DATAPERC70": #,
+			"DATAPERC80": #,
+			"DATAPERC90": #
+		},
+		"additional": {
+			"LAUNCH": #,
+			"USED_AT": #,
+			"PATH": ["","",""...],
+			"BUILDTIMES": [#,#,#...],
+			"TIMEOUT": #,
+			"QUANTILE": #,
+			"CIRC_ID": #,
+			"USED_BY": #
+		}
+	}
