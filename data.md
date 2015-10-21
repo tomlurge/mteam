@@ -29,29 +29,37 @@ Pre-aggregated versions for common usecases may be added.
 The [collecTor website](https://collector.torproject.org) 
 documents the different types of [formats](https://collector.torproject.org/formats.html).
 - [Tor directory protocol, version 3 SPEC](https://gitweb.torproject.org/torspec.git/tree/dir-spec.txt)
-
-Another type of specification is probably the two parsers:
+- although some are based on [version 2](https://gitweb.torproject.org/torspec.git/tree/attic/dir-spec-v2.txt)
+See also the two parsers:
 - [metrics-lib](https://gitweb.torproject.org/metrics-lib.git) (Java)
 - [Stem](https://stem.torproject.org/) (Python)
 
+Most of the documents have nested data structures. Some get quite large.
 
-Most of the documents have nested data structures.
-
-                                      head        body 
-	name                                flat nested flat nested
+                                      
+	name                                spec
 	          
-	server-descriptor                               x
-	extra-info                                           x
-	network-status-consensus                 x      x
-	network-status-vote                      x           x
-	dir-key-certificate                             x
-	network-status-microdesc-consensus       x      x
-	bridge-network-status               x           x
-	bridge-server-descriptor                             x
-	bridge-extra-info                                    x
-	bridge-pool-assignment                               x
-	tordnsel                                 x           x
-	torperf                                              x
+	server-descriptor                   spec v3 2.1.1. Sever description format
+	extra-info                          spec v3 2.1.2. Extra-info document format
+	network-status-consensus            
+	network-status-vote                 
+	dir-key-certificate                 
+	network-status-microdesc-consensus  
+	bridge-network-status               
+	bridge-server-descriptor            
+	bridge-extra-info                   
+	bridge-pool-assignment              
+	tordnsel                            
+	torperf                             
+
+
+JSON Serializations legend:
+
+		"" : string
+		# : number
+		boolean : true/false
+		[x,x,x...] : array of x
+		if no value write: null
 
 
 #### collecTor examples
@@ -59,7 +67,8 @@ Most of the documents have nested data structures.
 CollecTor provides 12 types of documents. The following examples each contain
 - either the full document 
 - or the header and one or entries plus the note "[[ and so forth ]]", separated by
- blank lines.
+ blank lines.    
+ TODO Sometimes the footer is missing.   
 There's no guarantee that these examples cover all possible cases. They should
 rather be considered a cursory overview.
 
@@ -106,15 +115,8 @@ instead.
 	router-signature              SIGNATURE
 
 JSON SERIALIZATION
-
-	legend: 
-		"" : string
-		# : number
-		boolean : true/false
-		[x,x,x...] : array of x
-		if no value write: null
 		
-	{"server-descriptor": {
+	"server-descriptor": {
 		"version": "1.0",
 		"router": {
 			"nickname": "",
@@ -127,8 +129,8 @@ JSON SERIALIZATION
 		"master-key-ed25519". "",
 		"bandwidth": {
 			"bandwidth-avg": #,
-			 "bandwidth-burst": #,
-			 "bandwidth-observed": #
+			"bandwidth-burst": #,
+			"bandwidth-observed": #
 		},
 		"platform": "",
 		"published": "",
@@ -138,34 +140,40 @@ JSON SERIALIZATION
 		"onion-key": "",
 		"onion-key-crosscert": "",
 		"ntor-onion-key": "",
-		"ntor-onion-key-crosscert": "",
+		"ntor-onion-key-crosscert": {
+			"bit": boolean,
+			"sig": ""
+		},
 		"signing-key": "",
-		"accept": "";
-		"reject": "",
-		"ipv6-policy": "",
+		"accept": ["","",""...],
+		"reject": ["","",""...],
+		"ipv6-policy": "",   // "reject 1-65535" if absent
+		                     // TODO or as 2-line object instead of string?
 		"router-sig-ed25519": "",
 		"router-signature": "",
 		"contact": "",
-		"family": "",
+		"family": ["","",""...],
 		"read-history": {
 			"date": "",
-			"value": [#,#,#...]
+			"interval": #,
+			"bytes": [#,#,#...]
 		},
 		"write-history":  {
 			"date": "",
-			"value": [#,#,#...]
+			"interval": #,
+			"bytes": [#,#,#...]
 		},
 		"eventdns": boolean,
 		"caches-extra-info": "",
 		"extra-info-digest": "",
 		"hidden-service-dir": "",
 		"protocols": "",
-		"allow-single-hop-exits": boolean, // false if absent
+		"allow-single-hop-exits": boolean,   // false if absent
 		"or-address": [
 			{
 				"adress": "",
 				"port": #
-			}
+			},
 			...
 		]
 	}
