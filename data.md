@@ -41,9 +41,9 @@ Most of the documents have nested data structures. Some get quite large.
 	            
 	server-descriptor                    x    v3 2.1.1. Sever description format
 	extra-info                           x    v3 2.1.2. Extra-info document format  
-	network-status-consensus                  v3 3.4.1. 
-	network-status-vote                       v3 3.4.1.
-	dir-key-certificate                       v3 3.1.   Creating key certificates
+	network-status-consensus             x    v3 3.4.1. 
+	network-status-vote                  x    v3 3.4.1.
+	dir-key-certificate                  x    v3 3.1.   Creating key certificates
 	network-status-microdesc-consensus        v3 3.9.2. Microsescriptor consensus
 	bridge-network-status                  
 	bridge-server-descriptor               
@@ -126,8 +126,8 @@ JSON SERIALIZATION
 			"Socksport": #,
 			"DirPort": #
 		},
-		"identity-ed25519": "",
-		"master-key-ed25519". "",
+		"identity-ed25519": boolean,
+		"master-key-ed25519": boolean,
 		"bandwidth": {
 			"bandwidth-avg": #,
 			"bandwidth-burst": #,
@@ -138,20 +138,20 @@ JSON SERIALIZATION
 		"fingerprint": "",
 		"hibernating": boolean,
 		"uptime": #,
-		"onion-key": "",
-		"onion-key-crosscert": "",
+		"onion-key": boolean,
+		"onion-key-crosscert": boolean,
 		"ntor-onion-key": "",
 		"ntor-onion-key-crosscert": {
 			"bit": boolean,
-			"sig": ""
+			"sig": boolean
 		},
-		"signing-key": "",
+		"signing-key": boolean,
 		"accept": ["","",""...],
 		"reject": ["","",""...],
 		"ipv6-policy": "",   // "reject 1-65535" if absent
 		                     // TODO or as 2-line object instead of string?
-		"router-sig-ed25519": "",
-		"router-signature": "",
+		"router-sig-ed25519": boolean,
+		"router-signature": boolean,
 		"contact": "",
 		"family": ["","",""...],
 		"read-history": {
@@ -280,7 +280,7 @@ JSON SERIALIZATION
 	"extra-info": {
 		"nickname": "",
 		"fingerprint": "",
-		"identity-ed25519": "",
+		"identity-ed25519": boolean,
 		"published": "",
 		"read-history": {
 			"date": "",
@@ -434,8 +434,8 @@ JSON SERIALIZATION
 			}
 			...
 		},
-		"router-sig-ed25519":   // TODO spec says "[As in router descriptors]" wtf??
-		"router-signature": ""
+		"router-sig-ed25519": boolean
+		"router-signature": boolean
 	}
 		
 
@@ -555,7 +555,7 @@ JSON SERIALIZATION
 				"version": "",
 				"url": "",
 				"digests": {
-					"digest": ""
+					"": ""    // digest-type : digest-value
 					...
 				}
 			}
@@ -735,7 +735,7 @@ JSON SERIALIZATION
 				"version": "",
 				"url": "",
 				"digests": {
-					"digest": ""
+					"": ""    // digest-type : digest-value
 					...
 				}
 			}
@@ -757,7 +757,6 @@ JSON SERIALIZATION
 					"orport": #
 				},
 				"contact": "",
-				
 				"legacy-dir-key": {
 					"dir-source": "",
 					"nickname": "",
@@ -766,15 +765,65 @@ JSON SERIALIZATION
 					"ip": "",
 					"dirport": #,
 					"orport": #
+				},
+				"key-certificate": {
+					"version": #,
+					"fingerprint": "",
+					"dir-key-published": "",   
+					"dir-key-expires": "",
+					"dir-identity-key": boolean,
+					"dir-signing-key": boolean,
+					"dir-key-crosscert": boolean,
+					"dir-key-certification": boolean
 				}
 			}
 			...
 		],
-		
-		
-		
-		
-		
+		"router-status": [
+			{
+				"r": {
+					"nickname": "",
+					"identity": "",
+					"digest": "",
+					"publication": "",
+					"ip": "",
+					"ORPort": #,
+					"DirPort": #
+				},
+				"a": ["","",""...],
+				"s": ["","",""...],
+				"v": "",
+				"w": {
+					"bandwidth": #,
+					"measured": #,
+					"unmeasured": #
+				},
+				"p": "",
+				"m": [
+					{
+						"methods": [#,#,#...],
+						"algorithm": "",
+						"digest": ""
+					}
+					...
+				]
+			}
+			...
+		],
+		"id": {
+			"ed25519": ""    // TODO I'm not sure I understand the spec correctly
+		},
+		"directory-footer": {
+			"bandwidth-weights": {
+				"": #    // weight-keyword : number
+			},
+			"directory-signature": {
+				"algorithm": "",
+				"identity": "",
+				"signing-key-digest": "",
+				"signature": boolean
+			}
+		}
 	}
 	
 	
@@ -793,7 +842,23 @@ months, so they are only available in the archive.
 	dir-signing-key               RSA PUBLIC KEY
 	dir-key-certification         SIGNATURE
 
-	
+
+JSON SERIALIZATION
+
+	"dir-key-certificate": {
+		"version": #,
+		"dir-address": "",
+		"fingerprint": "",
+		"dir-identity-key": boolean,
+		"dir-key-published": "",
+		"dir-key-expires": "",
+		"dir-signing-key": boolean,
+		"dir-key-crosscert": boolean,
+		"dir-key-certification": boolean
+	}
+
+
+
 ######  network-status-microdesc-consensus-3 1.0
 
 Tor clients used to download all server descriptors of active relays, but now 
