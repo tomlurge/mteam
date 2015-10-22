@@ -25,7 +25,6 @@ Pre-aggregated versions for common usecases may be added.
 ### types
 
 
- 
 The [collecTor website](https://collector.torproject.org) 
 documents the different types of [formats](https://collector.torproject.org/formats.html).
 - [Tor directory protocol, version 3 SPEC](https://gitweb.torproject.org/torspec.git/tree/dir-spec.txt)
@@ -48,9 +47,27 @@ Most of the documents have nested data structures. Some get quite large.
 	bridge-network-status                x (sort of)
 	bridge-server-descriptor             x (sort of)
 	bridge-extra-info                    x (sort of)               
-	bridge-pool-assignment               x (sort of)
+	bridge-pool-assignment               (*)
 	tordnsel                             x 
 	torperf                              x 
+	
+	(*) needs a decision
+
+common attributes (from which to construct a key)
+
+	name                                published  fingerprint
+	server-descriptor                   x          x                      
+	extra-info                          x          x                          
+	network-status-consensus            -          -                       
+	network-status-vote                 x          x                       
+	dir-key-certificate                 x          x                        
+	network-status-microdesc-consensus                                    
+	bridge-network-status               x          -         
+	bridge-server-descriptor            x          x              
+	bridge-extra-info                   x          x                        
+	bridge-pool-assignment              x          x                       
+	tordnsel                            x          x                        
+	torperf                             -          -                        
 
 
 JSON Serializations legend:
@@ -531,8 +548,30 @@ flags, heuristics used for relay selection, etc.
 	vote-digest                   09818950D27BBB6CC4D25D3287A6D17584A25808
 	
 	[[ and so forth ]]
+	
+	r PDrelay1 AAFJ5u9xAqrKlpDW6N0pMhJLlKs 0f0NYCcVKbQkJCK2ZdZRfxFXtVU 2015-08-31 10:53:35 95.215.44.189 8080 0
+	a [2a02:7aa0:1619::9847:f57c]:8080
+	s Fast Running Stable Valid
+	v Tor 0.2.7.2-alpha-dev
+	w Bandwidth=480
+	p reject 1-65535
+	r seele AAoQ1DAR6kkoo19hBAX5K0QztNw B19hzXUIOTzrKQHU33e9ZL76wZo 2015-08-31 12:27:15 73.15.150.172 9001 0
+	s Running Stable Valid
+	v Tor 0.2.6.10
+	w Bandwidth=27
+	p reject 1-65535
+	r TorNinurtaName AA8YrCza5McQugiY3J4h5y4BF9g WYdCSTrgy1lV9UlMjguwOXTiB9E 2015-08-31 14:32:39 151.236.6.198 443 80
+	a [2a03:f80:ed15:ca7:ea75:b12d:7d0:1110]:443
+	s Fast Running Stable V2Dir Valid
+	v Tor 0.2.6.10
+	w Bandwidth=1530
+	p reject 1-65535
 
+	[[ and so forth ]]
 
+	directory-footer
+	
+	[[ and so forth ]]
 
 JSON SERIALIZATION
 
@@ -580,9 +619,50 @@ JSON SERIALIZATION
 				"vote-digest": ""
 			}
 			...
-		]
+		],
+		"router-status": [
+			{
+				"r": {
+					"nickname": "",
+					"identity": "",
+					"digest": "",
+					"publication": "",
+					"ip": "",
+					"QRPort": #,
+					"DirPort": #
+				},
+				"a": ["","",""...],
+				"s": ["","",""...],
+				"v": "",
+				"w": {
+					"bandwidth": #,
+					"unmeasured": #
+				},
+				"p": {
+					"accept": boolean,
+					"portlist": [#,#,#...]
+				}
+			}
+			...
+		],
+		"directory-footer": {
+			"bandwidth-weights": {
+				"": #    //  weight-keyword : number
+				...
+			},
+			"directory-signature": [
+				{
+					"algorithm": "",
+					"identity": "",
+					"signing-key-digest": "",
+					"signature": boolean
+				}
+				...
+			]
+		}
 	}
-
+	
+	
 
 ######  network-status-vote-3 1.0
 
@@ -796,9 +876,11 @@ JSON SERIALIZATION
 				"w": {
 					"bandwidth": #,
 					"measured": #,
-					"unmeasured": #
 				},
-				"p": "",
+				"p": {
+					"accept": boolean,
+					"portlist": [#,#,#...]
+				},
 				"m": [
 					{
 						"methods": [#,#,#...],
@@ -1030,7 +1112,8 @@ https://collector.torproject.org/index2.html says that bridges network
 status is modeled after https://gitweb.torproject.org/torspec
 .git/tree/attic/dir-spec-v2.txt, but the example above and the network 
 status format as defined in spec_v2 chapter 3. don't match. the spec v2 
-chapter 3.0 doesn't contain a field "flag-treshold" nor the fields "w" and "p".
+chapter 3.0 doesn't contain a field "flag-treshold" nor the fields "w" and 
+"p". it does however include a field "v".
 
 
 ######  bridge-server-descriptor 1.1
@@ -1200,7 +1283,7 @@ Ed25519 master key.
 	                              md=387808,
 	                              d6=446494,
 	                              d7=1730520,
-	                             q3=5403163,
+	                              q3=5403163,
 	                              d8=5586742,
 	                              d9=5687171,
 	                              max=5795541
