@@ -76,10 +76,14 @@ JSON Serializations legend:
 
 		"" : string
 		# : number
+		no "%" : "network status vote" and "bridge network status" collector entries 
+		          can contain one percentage value each. these values shall be 
+		          imported as numbers, omitting the "%" sign
 		boolean : true/false
 		[x,x,x...] : array of x
 		if entry contains no value and no default is given in comment write: null
 		if entry is absent write: null
+		
 
 
 #### collecTor examples
@@ -800,8 +804,8 @@ JSON SERIALIZATION
 		"published": "",
 		"valid-after": "",
 		"flag-thresholds": {
-			"": #,    // treshold : number  // TODO make it string because can be '%'? 
-			...       // more treshold:number pairs
+			"": #, 
+			...   
 		},
 		"fresh-until": "",
 		"valid-until": "",
