@@ -43,7 +43,7 @@ Most of the documents have nested data structures. Some get quite large.
 	network-status-consensus             x    v3 3.4.1. 
 	network-status-vote                  x    v3 3.4.1.
 	dir-key-certificate                  x    v3 3.1.   Creating key certificates
-	network-status-microdesc-consensus        v3 3.9.2. Microsescriptor consensus
+	network-status-microdesc-consensus   (*)  v3 3.9.2. Microsescriptor consensus
 	bridge-network-status                x (sort of)
 	bridge-server-descriptor             x (sort of)
 	bridge-extra-info                    x (sort of)               
@@ -53,7 +53,7 @@ Most of the documents have nested data structures. Some get quite large.
 	
 	(*) needs a decision
 
-common attributes (from which to construct a key)
+common attributes (from which to construct a key in HBase, eventually)
 
 	name                                published  fingerprint
 	server-descriptor                   x          x                      
