@@ -72,19 +72,27 @@ common attributes (from which to construct a key in HBase, eventually)
 	torperf                             -          -                        
 
 
-JSON Serializations legend:
+#### JSON serialization legend
 
 		"" : string
 		# : number
-		no "%" : "network status vote" and "bridge network status" collector entries 
-		          can contain one percentage value each. these values shall be 
-		          imported as numbers, omitting the "%" sign
 		boolean : true/false
 		[x,x,x...] : array of x
 		if entry contains no value and no default is given in comment write: null
 		if entry is absent write: null
 		
+#### JSON serialization caveat
 
+	a collection of documents has to be saved 
+	- as objects (with curly braces)
+	- each on a new row
+	- without commas between them
+	- and without a surrounding array
+	
+		no "%"
+		- "network status vote" and "bridge network status" collector entries can 
+		  contain one percentage value each. these values shall be imported as 
+		  numbers, omitting the "%" sign
 
 #### collecTor examples
 
@@ -140,7 +148,8 @@ instead.
 
 JSON SERIALIZATION
 		
-	"server-descriptor": {
+	{
+		"descriptor_type": "server-descriptor 1.0",
 		"version": "1.0",
 		"router": {
 			"nickname": "",
@@ -191,7 +200,8 @@ JSON SERIALIZATION
 		"caches-extra-info": "",
 		"extra-info-digest": "",
 		"hidden-service-dir": "",
-		"protocols": "",
+		"link_protocol_versions": [#,#,#...],
+		"circuit_protocol_versions": [#,#,#...],
 		"allow-single-hop-exits": boolean,   // false if absent
 		"or-address": [
 			{
@@ -300,7 +310,8 @@ downloaded by clients by default.
 
 JSON SERIALIZATION
 		
-	"extra-info": {
+	{
+		"descriptor_type": "extra-info 1.0",
 		"nickname": "",
 		"fingerprint": "",
 		"identity-ed25519": boolean,
@@ -581,7 +592,8 @@ flags, heuristics used for relay selection, etc.
 
 JSON SERIALIZATION
 
-	"network-status-consensus": {
+	{
+		"descriptor_type": "network-status-consensus-3 1.0",
 		"version": "",
 		"vote-status": "",
     "consensus-method": #,
@@ -797,7 +809,8 @@ consensus. Vote documents are by far the largest documents provided here.
 
 JSON SERIALIZATION
 
-	"network-status-vote" {
+	{
+		"descriptor_type": "network-status-vote-3 1.0",
 		"version": "",
 		"vote-status": "",
 		"consensus-methods": [#,#,#...],
@@ -899,7 +912,7 @@ JSON SERIALIZATION
 			...
 		],
 		"id": {
-			"ed25519": ""    // TODO I'm not sure I understand the spec correctly
+			"ed25519": ""    // TODO this is not properly specified
 		},
 		"directory-footer": {
 			"bandwidth-weights": {
@@ -922,18 +935,12 @@ The directory authorities sign their votes and the consensus with their key that
 they publish in a key certificate. These key certificates change once every few 
 months, so they are only available in the archive. 
 
-	dir-key-certificate-version   3
-	fingerprint                   0D95B91896E6089AB9A3C6CB56E724CAF898C43F
-	dir-key-published             2007-12-02 21:24:31
-	dir-key-expires               2008-12-02 21:24:31
-	dir-identity-key              RSA PUBLIC KEY
-	dir-signing-key               RSA PUBLIC KEY
-	dir-key-certification         SIGNATURE
-
+…
 
 JSON SERIALIZATION
 
-	"dir-key-certificate": {
+	{
+		"descriptor_type": "dir-key-certificate-3 1.0",
 		"version": #,
 		"dir-address": "",
 		"fingerprint": "",
@@ -1011,8 +1018,8 @@ The microdescriptors in archive contain one descriptor per file, whereas the
 files in recent contain all descriptors collected in an hour concatenated into 
 a single file. 
 	
-They should not be included in the analytics server. 
-TODO okay?
+NOTE: Microdescriptors will not be included. They're terribly hard to analyze, 
+and their content is already contained in server descriptors and consensuses
 
 	
 ##### network-status-2 1.0
@@ -1023,7 +1030,8 @@ directory authority published their own authoritative view on the network, and
 clients combined these documents locally. We stopped archiving version 2 network 
 statuses in 2012.
 
-TODO should we include these?
+NOTE: they should be included at a later point. It's the only way to get 
+statistics from when version 3 statuses were not around. 
 
 
 ##### directory 1.0
@@ -1031,8 +1039,9 @@ TODO should we include these?
 The first directory protocol version combined the list of active relays with 
 server descriptors in a single directory document. We stopped archiving 
 version 1 directories in 2007. 
-	
-TODO should we include these?
+
+NOTE: they should be included at a later point. It's the only way to get 
+statistics from when version 3 statuses were not around. 
 
 
 ##### bridge descriptors
@@ -1054,39 +1063,12 @@ Sanitized bridge network statuses are similar to version 2 relay network
 statuses, but with only a published line in the header and without any lines in 
 the footer. The tarballs in archive contain all bridge descriptors of a given 
 month, not just network statuses. 
-	
-	published                     2015-09-01 00:02:08
-	flag-thresholds               stable-uptime=1813852 
-	                              stable-mtbf=2008701 
-	                              fast-speed=55000 
-	                              guard-wfu=98.000% 
-	                              guard-tk=691200 
-	                              guard-bw-inc-exits=332000 
-	                              guard-bw-exc-exits=336000 
-	                              enough-mtbf=1 
-	                              ignoring-advertised-bws=0
-	                              
-	r                             Unnamed 
-	                              ABk0wg4j6BLCdZKleVtmNrfzJGI
-	                              UMbJcOARWHvYAdhn590RvN5CCMw 
-	                              2015-08-31 23:47:06 
-	                              10.63.118.188 
-	                              443 
-	                              0
-	s                             Fast 
-	                              Running 
-	                              Valid
-	w                             Bandwidth=114
-	p                             reject 
-	                              1-65535
-	
-	[[ and so forth ]]
-
-
+…
 
 JSON SERIALIZATION
 
-	"bridge-network-status": {
+	{
+		"descriptor_type": "bridge-network-status 1.0",
 		"published": "",
 		"flag-tresholds": {
 			"": #,     // flag : treshold
@@ -1158,38 +1140,88 @@ master key.
 	ntor-onion-key                cjj99BMgt2DdqglDgQgZyM0HSW4ZUzvYeL3s0IG+tzE=
 	reject                        *:*
 	router-digest                 00A0A2F7AA65DBDE7CE7A3FEF659368792FAAB2B
-
+	
+KL docs
+	
+	String                descriptor_type; // required, set to bridge-server-descriptor $VERSION
+	Router                router; // required
+	Bandwidth             bandwidth; // required
+	List<AddressAndPort>  or_addresses; // addresses sanitized!
+	String                platform; // optional, though usually set
+	String                published; // format YYYY-MM-DD HH:MM:SS
+	String                fingerprint; // always upper-case hex
+	Boolean               hibernating; // optional
+	Long                  uptime; // optional, though usually set
+	Boolean               onion_key; // required; usually false b/c sanitization
+	Boolean               signing_key; // required; usually false b/c sanitization
+	// TODO exit policy summary
+	String                contact; // optional
+	List<String>          family; // optional, apparently not used at all
+	// TODO read and write history
+	Boolean               eventdns;
+	Boolean               caches_extra_info;
+	String                extra_info_digest; // upper-case hex
+	List<Integer>         hidden_service_dir_versions;
+	List<Integer>         link_protocol_versions;
+	List<Integer>         circuit_protocol_versions;
+	Boolean               allow_single_hop_exits;
+	Boolean               ntor_onion_key;
+	String                router_digest; // upper-case hex
 
 JSON SERIALIZATION
-
-	"bridge-server-descriptor": {
-		"router": {
-			"nickname": "",
-			"adress": "",
-			"ORPort": #,
-			"SocksPort": #,
-			"DirPort": #
-		},
-		"protocols": "",
-		"bandwidth": {
-			"bandwidth-avg": #,
-			"bandwidth-burst": #,
-			"bandwidth-observed": #
-		},
-		"platform": "",
-		"published": "",
-		"fingerprint": "",
-		"hibernating": boolean, 
-		"uptime": #,
-		"ntor-onion-key": "",
-		"accept": "",
-		"reject": "",
-		"router-digest": "",
-		"extra-info-digest": "",
-		"hidden-service-dir": ""
+ 
+	                                      code    tor v2  tor v3  kl      example
+	{
+	  "descriptor_type":                                    
+		  "bridge-server-descriptor 1.1",   x       x       x       x       x
+		"router": {                         x       x       x       x       x     
+			"nickname": "",                   x       x       x       ?       x  
+			"adress": "",                     x       x       x       ?       x  
+			"ORPort": #,                      x       x       x       ?       x  
+			"SocksPort": #,                   x       x       x       ?       x  
+			"DirPort": #                      x       x       x       ?       x  
+		},                                                                 
+		"bandwidth": {                      x       x       x       x       x  
+			"bandwidth-avg": #,               x       x       x       ?       x   
+			"bandwidth-burst": #,             x       x       x       ?       x   
+			"bandwidth-observed": #           x       x       x       ?       x   
+		},                                                    
+		"platform": "",                     x       x       x       x       
+		"published": "",                    x       x       x       x       
+		"fingerprint": "",                  x       x       x       x       
+		"hibernating": boolean,             x       x       x       x       
+		"uptime": #,                        x       x       x       x       
+		"onion-key": boolean,               x       x       x       x       
+		"signing-key": boolean,             x       x       x       x       
+		"exit_policy": ["","",""...],       x       x       x       x       
+		"router-signature": boolean,                x       x               
+		"contact": "",                      x       x       x       x        
+		"family": ["","",""...],            x       x       x       x        
+		"read-history":                     x       x       x       x        
+		"write-history":                    x       x       x       x        
+		"eventdns": boolean                 x       x       x       x                                                       
+		"link_protocol_versions": [#],      x       x       x       x
+		"circuit_protocol_versions": [#],   x       x       x       x
+		"extra-info-digest": "",            x               x       x      x
+		"hidden-service-dir": "",           x*              x       x*     x
+		"ntor-onion-key": boolean,          x               x       x      x
+		"router-digest": "",                x                       x      x
+		"identity-ed25519": boolean,                        x               
+		"master-key-ed25519": boolean,                      x               
+		"onion-key-crosscert": boolean,                     x               
+		"ntor-onion-key-crosscert": boolean,                x               
+		"router-sig-ed25519": boolean,                      x               
+		"ipv6-policy": ["","",""...],                       x       x
+		"caches-extra-info": boolean,       x               x       x            
+		"allow-single-hop-exits": boolean,  x               x       x         
+		"or-address": ["","",""...]         x               x       x
 	}
 	
-TODO this needs to be checked!
+	  * named hideen-service-dir-versions
+	  
+	  
+	  
+TODO spec says "router-signature" ?!
 	
 	
 ###### bridge-extra-info 1.3
@@ -1301,8 +1333,9 @@ Ed25519 master key.
 
 
 JSON SERIALIZATION
-		
-	"extra-info": {
+
+	{
+		"descriptor_type": "bridge-extra-info 1.3",
 		"nickname": "",
 		"fingerprint": "",
 		"published": "",
@@ -1468,8 +1501,8 @@ clients. Hidden service descriptors are not formally archived, but some librarie
 support parsing these descriptors when obtaining them from a locally running Tor 
 instance. 
 
+NOTE: We don't have these, so there's no way to analyze them. 
 
-TODO what about them?
 
 ###### bridge-pool-assignment 1.0
 
@@ -1523,8 +1556,8 @@ As of December 8, 2014, bridge pool assignment files are no longer archived.
 	                                        scramblesuit
 
 
-TODO what about them?                            
-                            
+NOTE: they may be included at a later point. They will be at least 1 year 
+old, so they are not terribly important.
                             
 ###### tordnsel 1.0
 
@@ -1568,7 +1601,8 @@ the relay also uses IP address 91.102.152.227 for exiting.
 
 JSON SERIALIZATION
 
-	"tordnsel": {
+	{
+		"descriptor_type": "tordnsel 1.0",
 		"Downloaded": "",
 		"relays": [
 			{
@@ -1632,7 +1666,8 @@ long substeps take.
 
 JSON SERIALIZATION
 
-	"torperf": {
+	{
+		"descriptor_type": "torperf 1.0",
 		"configuration": {
 			"SOURCE": "",
 			"FILESIZE": #
