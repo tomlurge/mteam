@@ -14,12 +14,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
+
 /* Import classes from metrics-lib. */
 import org.torproject.descriptor.Descriptor;
 import org.torproject.descriptor.DescriptorFile;
 import org.torproject.descriptor.DescriptorReader;
 import org.torproject.descriptor.DescriptorSourceFactory;
 import org.torproject.descriptor.ServerDescriptor;
+
 
 /* Import classes from Google's Gson library. */
 import com.google.gson.Gson;
@@ -108,6 +110,7 @@ public class ConvertToJson {
     Boolean onion_key; // required; usually false b/c sanitization
     Boolean signing_key; // required; usually false b/c sanitization
     List<String> exit_policy; // required
+    String ipv6_policy; // optional
     String contact; // optional
     List<String> family; // optional, apparently not used at all
     BandwidthHistory read_history; // optional
@@ -208,6 +211,11 @@ public class ConvertToJson {
     if (desc.getExitPolicyLines() != null &&
         !desc.getExitPolicyLines().isEmpty()) {
       json.exit_policy = desc.getExitPolicyLines();
+    }
+
+    if (desc.getIpv6DefaultPolicy() != null &&
+            !desc.getIpv6DefaultPolicy().isEmpty()) {
+        json.ipv6_policy = desc.getIpv6DefaultPolicy();
     }
 
     /* Include bandwidth histories using their own helper method. */
