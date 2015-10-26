@@ -158,52 +158,52 @@ JSON SERIALIZATION
 			"Socksport": #,
 			"DirPort": #
 		},
-		"identity-ed25519": boolean,
-		"master-key-ed25519": boolean,
+		"identity_ed25519": boolean,
+		"master_key_ed25519": boolean,
 		"bandwidth": {
-			"bandwidth-avg": #,
-			"bandwidth-burst": #,
-			"bandwidth-observed": #
+			"bandwidth_avg": #,
+			"bandwidth_burst": #,
+			"bandwidth_observed": #
 		},
 		"platform": "",
 		"published": "",
 		"fingerprint": "",
 		"hibernating": boolean,
 		"uptime": #,
-		"onion-key": boolean,
-		"onion-key-crosscert": boolean,
-		"ntor-onion-key": "",
-		"ntor-onion-key-crosscert": {
+		"onion_key": boolean,
+		"onion_key_crosscert": boolean,
+		"ntor_onion_key": "",
+		"ntor_onion_key_crosscert": {
 			"bit": boolean,
 			"sig": boolean
 		},
-		"signing-key": boolean,
+		"signing_key": boolean,
 		"accept": ["","",""...],
 		"reject": ["","",""...],
-		"ipv6-policy": "",   // "reject 1-65535" if absent
-		                     // TODO or as 2-line object instead of string?
-		"router-sig-ed25519": boolean,
-		"router-signature": boolean,
+		"ipv6_policy": "",   // "reject 1_65535" if absent
+		                     // TODO or as 2_line object instead of string?
+		"router_sig_ed25519": boolean,
+		"router_signature": boolean,
 		"contact": "",
 		"family": ["","",""...],
-		"read-history": {
+		"read_history": {
 			"date": "",
 			"interval": #,
 			"bytes": [#,#,#...]
 		},
-		"write-history":  {
+		"write_history":  {
 			"date": "",
 			"interval": #,
 			"bytes": [#,#,#...]
 		},
 		"eventdns": boolean,
-		"caches-extra-info": "",
-		"extra-info-digest": "",
-		"hidden-service-dir": "",
+		"caches_extra_info": "",
+		"extra_info_digest": "",
+		"hidden_service_dir": "",
 		"link_protocol_versions": [#,#,#...],
 		"circuit_protocol_versions": [#,#,#...],
-		"allow-single-hop-exits": boolean,   // false if absent
-		"or-address": [
+		"allow_single_hop_exits": boolean,   // false if absent
+		"or_address": [
 			{
 				"adress": "",
 				"port": #
@@ -314,115 +314,115 @@ JSON SERIALIZATION
 		"descriptor_type": "extra-info 1.0",
 		"nickname": "",
 		"fingerprint": "",
-		"identity-ed25519": boolean,
+		"identity_ed25519": boolean,
 		"published": "",
-		"read-history": {
+		"read_history": {
 			"date": "",
 			"interval": #,   // default: 86400
 			"bytes": [#,#,#...]
 		},
-		"write-history":  {
+		"write_history":  {
 			"date": "",
 			"interval": #,   // default: 86400
 			"bytes": [#,#,#...]
 		},
-		"geoip-db-digest": "",
-		"geoip6-db-digest": "",
-		"geoip-start-time": "",
-		"geoip-client-origins": {
+		"geoip_db_digest": "",
+		"geoip6_db_digest": "",
+		"geoip_start_time": "",
+		"geoip_client_origins": {
 			"": #   //  country code : number
 			...
 		},
-		"bridge-stats-end":  {
+		"bridge_stats_end":  {
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"bridge-ips": {
+		"bridge_ips": {
 			"": #   //  country code : number
 			...
 		},
-		"bridge-ip-versions": {
+		"bridge_ip_versions": {
 			"": #   //  family : number
 			...
 		},
-		"bridge-ip-transports": {
+		"bridge_ip_transports": {
 			"": #   //  pluggable transport : number
 			...
 		},
-		"dirreq-stats-end":  {
+		"dirreq_stats_end":  {
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"dirreq-v2-ips": {
+		"dirreq_v2_ips": {
 			"": #   //  country code : number
 			...
 		},
-		"dirreq-v3-ips": {
+		"dirreq_v3_ips": {
 			"": #   //  country code : number
 			...
 		},
-		"dirreq-v2-reqs": {
+		"dirreq_v2_reqs": {
 			"": #   //  country code : number
 			...
 		},
-		"dirreq-v3-reqs": {
+		"dirreq_v3_reqs": {
 			"": #   //  country code : number
 			...
 		},
-		"dirreq-v2-share": "",
-    "dirreq-v3-share": "",
-		"dirreq-v2-resp": {
+		"dirreq_v2_share": "",
+    "dirreq_v3_share": "",
+		"dirreq_v2_resp": {
 			"": #   //  status : number
 			...
 		},
-		"dirreq-v3-resp": {
+		"dirreq_v3_resp": {
 			"": #   //  status : number
 			...
 		},
 		
-		"dirreq-v2-direct-dl": {
+		"dirreq_v2_direct_dl": {
 			"": #   //  key : number
 			...
 		},
-		"dirreq-v3-direct-dl": {
+		"dirreq_v3_direct_dl": {
 			"": #   //  key : number
 			...
 		},
-		"dirreq-v2-tunneled-dl": {
+		"dirreq_v2_tunneled_dl": {
 			"": #   //  key : number
 			...
 		},
-		"dirreq-v3-tunneled-dl": {
+		"dirreq_v3_tunneled_dl": {
 			"": #   //  key : number
 			...
 		},
-		"dirreq-read-history": {
+		"dirreq_read_history": {
 			"date": "",
 			"interval": #,
 			"bytes": [#,#,#...]
 		},
-		"dirreq-write-history": {
+		"dirreq_write_history": {
 			"date": "",
 			"interval": #,
 			"bytes": [#,#,#...]
 		},
-		"entry-stats-end": {
+		"entry_stats_end": {
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"entry-ips": {
+		"entry_ips": {
 			"": #   //  country code : number
 			...
 		},
-		"cell-stats-end": {
+		"cell_stats_end": {
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"cell-processed-cells": [#,#,#...],
-		"cell-queued-cells": [#,#,#...],
-		"cell-time-in-queue": [#,#,#...],
-		"cell-circuits-per-decile": #,
-		"conn-bi-direct"::  {
+		"cell_processed_cells": [#,#,#...],
+		"cell_queued_cells": [#,#,#...],
+		"cell_time_in_queue": [#,#,#...],
+		"cell_circuits_per_decile": #,
+		"conn_bi_direct"::  {
 			"date": "",
 			"interval": #,   // default: 86400
 			"below": #,
@@ -430,32 +430,32 @@ JSON SERIALIZATION
 			"write": #,
 			"both": #
 		},
-		"exit-stats-end"::  {
+		"exit_stats_end"::  {
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"exit-kibibytes-written": {
+		"exit_kibibytes_written": {
 			"": #    // port : number
 			...
 		},
-		"exit-kibibytes-read": {
+		"exit_kibibytes_read": {
 			"": #    // port : number
 			...
 		},
-		"exit-streams-opened": {
+		"exit_streams_opened": {
 			"": #    // port : number
 			...
 		},
-		"hidserv-stats-end"::  {
+		"hidserv_stats_end"::  {
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"hidserv-rend-relayed-cells": {
+		"hidserv_rend_relayed_cells": {
 			"cells": #,
 			"": #,    // key : number
 			...       // more key:number pairs
 		},
-		"hidserv-dir-onions-seen": {
+		"hidserv_dir_onions_seen": {
 			"cells": #,
 			"": #,    // key : number
 			...       // more key:number pairs
@@ -468,8 +468,8 @@ JSON SERIALIZATION
 			}
 			...
 		},
-		"router-sig-ed25519": boolean
-		"router-signature": boolean
+		"router_sig_ed25519": boolean
+		"router_signature": boolean
 	}
 		
 
@@ -595,37 +595,37 @@ JSON SERIALIZATION
 	{
 		"descriptor_type": "network-status-consensus-3 1.0",
 		"version": "",
-		"vote-status": "",
-    "consensus-method": #,
-		"valid-after": "",
-		"fresh-until": "",
-		"valid-until": "",
-		"voting-delay": {
+		"vote_status": "",
+    "consensus_method": #,
+		"valid_after": "",
+		"fresh_until": "",
+		"valid_until": "",
+		"voting_delay": {
 			"VoteSeconds": #,
 			"DistSeconds": #
 		},
-		"client-versions": ["","",""...],
-		"server-versions": ["","",""...],
+		"client_versions": ["","",""...],
+		"server_versions": ["","",""...],
 		"package": [
 			{
 				"packagename": "",
 				"version": "",
 				"url": "",
 				"digests": {
-					"": ""    // digest-type : digest-value
+					"": ""    // digest_type : digest_value
 					...
 				}
 			}
 			...
 		],
-		"known-flags": ["","",""...],
+		"known_flags": ["","",""...],
 		"params": {
 			"": #     // paramter : number
 			...
 		},
 		"authority": [
 			{
-				"dir-source": {
+				"dir_source": {
 					"nickname": "",
 					"identity": "",
 					"adress": "",
@@ -634,11 +634,11 @@ JSON SERIALIZATION
 					"orport": #
 				},
 				"contact": "",
-				"vote-digest": ""
+				"vote_digest": ""
 			}
 			...
 		],
-		"router-status": [
+		"router_status": [
 			{
 				"r": {
 					"nickname": "",
@@ -663,16 +663,16 @@ JSON SERIALIZATION
 			}
 			...
 		],
-		"directory-footer": {
-			"bandwidth-weights": {
-				"": #    //  weight-keyword : number
+		"directory_footer": {
+			"bandwidth_weights": {
+				"": #    //  weight_keyword : number
 				...
 			},
-			"directory-signature": [
+			"directory_signature": [
 				{
 					"algorithm": "",
 					"identity": "",
-					"signing-key-digest": "",
+					"signing_key_digest": "",
 					"signature": boolean
 				}
 				...
@@ -812,42 +812,42 @@ JSON SERIALIZATION
 	{
 		"descriptor_type": "network-status-vote-3 1.0",
 		"version": "",
-		"vote-status": "",
-		"consensus-methods": [#,#,#...],
+		"vote_status": "",
+		"consensus_methods": [#,#,#...],
 		"published": "",
-		"valid-after": "",
-		"flag-thresholds": {
+		"valid_after": "",
+		"flag_thresholds": {
 			"": #, 
 			...   
 		},
-		"fresh-until": "",
-		"valid-until": "",
-		"voting-delay": {
+		"fresh_until": "",
+		"valid_until": "",
+		"voting_delay": {
 			"VoteSeconds": #,
 			"DistSeconds": #
 		},
-		"client-versions": ["","",""...],
-		"server-versions": ["","",""...],
+		"client_versions": ["","",""...],
+		"server_versions": ["","",""...],
 		"package": [
 			{
 				"packagename": "",
 				"version": "",
 				"url": "",
 				"digests": {
-					"": ""    // digest-type : digest-value
+					"": ""    // digest_type : digest_value
 					...
 				}
 			}
 			...
 		],
-		"known-flags": ["","",""...],
+		"known_flags": ["","",""...],
 		"params": {
 			"": #     // paramter : number
 			...
 		},
 		authority: [
 			{
-				"dir-source": {
+				"dir_source": {
 					"nickname": "",
 					"identity": "",
 					"adress": "",
@@ -856,8 +856,8 @@ JSON SERIALIZATION
 					"orport": #
 				},
 				"contact": "",
-				"legacy-dir-key": {
-					"dir-source": "",
+				"legacy_dir_key": {
+					"dir_source": "",
 					"nickname": "",
 					"identity": "",
 					"adress": "",
@@ -865,20 +865,20 @@ JSON SERIALIZATION
 					"dirport": #,
 					"orport": #
 				},
-				"key-certificate": {
+				"key_certificate": {
 					"version": #,
 					"fingerprint": "",
-					"dir-key-published": "",   
-					"dir-key-expires": "",
-					"dir-identity-key": boolean,
-					"dir-signing-key": boolean,
-					"dir-key-crosscert": boolean,
-					"dir-key-certification": boolean
+					"dir_key_published": "",   
+					"dir_key_expires": "",
+					"dir_identity_key": boolean,
+					"dir_signing_key": boolean,
+					"dir_key_crosscert": boolean,
+					"dir_key_certification": boolean
 				}
 			}
 			...
 		],
-		"router-status": [
+		"router_status": [
 			{
 				"r": {
 					"nickname": "",
@@ -912,16 +912,16 @@ JSON SERIALIZATION
 			...
 		],
 		"id": {
-			"ed25519": ""    // TODO this is not properly specified
+			"ed25519": ""    // TODO this is so far not implemented in collecTor
 		},
-		"directory-footer": {
-			"bandwidth-weights": {
-				"": #    // weight-keyword : number
+		"directory_footer": {
+			"bandwidth_weights": {
+				"": #    // weight_keyword : number
 			},
-			"directory-signature": {
+			"directory_signature": {
 				"algorithm": "",
 				"identity": "",
-				"signing-key-digest": "",
+				"signing_key_digest": "",
 				"signature": boolean
 			}
 		}
@@ -942,14 +942,14 @@ JSON SERIALIZATION
 	{
 		"descriptor_type": "dir-key-certificate-3 1.0",
 		"version": #,
-		"dir-address": "",
+		"dir_address": "",
 		"fingerprint": "",
-		"dir-identity-key": boolean,
-		"dir-key-published": "",
-		"dir-key-expires": "",
-		"dir-signing-key": boolean,
-		"dir-key-crosscert": boolean,
-		"dir-key-certification": boolean
+		"dir_identity_key": boolean,
+		"dir_key_published": "",
+		"dir_key_expires": "",
+		"dir_signing_key": boolean,
+		"dir_key_crosscert": boolean,
+		"dir_key_certification": boolean
 	}
 
 
@@ -962,9 +962,7 @@ descriptors. The microdescriptor consensus lists all active relays and
 references their currently used microdescriptor. The tarballs in archive contain 
 both microdescriptor consensuses and referenced microdescriptors together. 
 
-They should not be included in the analytics server.   
-Or only the header.  
-TODO what to do?
+They will not be included in the analytics server.   
   
 	network-status-version        3 microdesc
 	vote-status                   consensus
@@ -1070,7 +1068,7 @@ JSON SERIALIZATION
 	{
 		"descriptor_type": "bridge-network-status 1.0",
 		"published": "",
-		"flag-tresholds": {
+		"flag_tresholds": {
 			"": #,     // flag : treshold
 			...
 		},
@@ -1078,7 +1076,7 @@ JSON SERIALIZATION
 			{
 				"r": {
 					"nickname": "",,
-		 			"identity-key": "",
+		 			"identity_key": "",
 		 			"descriptor": "",
 		 			"date": "",
 		 			"adress": "",
@@ -1170,59 +1168,76 @@ KL docs
 
 JSON SERIALIZATION
  
-	                                      code    tor v2  tor v3  kl      example
+	                                      
 	{
-	  "descriptor_type":                                    
-		  "bridge-server-descriptor 1.1",   x       x       x       x       x
-		"router": {                         x       x       x       x       x     
-			"nickname": "",                   x       x       x       ?       x  
-			"adress": "",                     x       x       x       ?       x  
-			"ORPort": #,                      x       x       x       ?       x  
-			"SocksPort": #,                   x       x       x       ?       x  
-			"DirPort": #                      x       x       x       ?       x  
-		},                                                                 
-		"bandwidth": {                      x       x       x       x       x  
-			"bandwidth-avg": #,               x       x       x       ?       x   
-			"bandwidth-burst": #,             x       x       x       ?       x   
-			"bandwidth-observed": #           x       x       x       ?       x   
-		},                                                    
-		"platform": "",                     x       x       x       x       
-		"published": "",                    x       x       x       x       
-		"fingerprint": "",                  x       x       x       x       
-		"hibernating": boolean,             x       x       x       x       
-		"uptime": #,                        x       x       x       x       
-		"onion-key": boolean,               x       x       x       x       
-		"signing-key": boolean,             x       x       x       x       
-		"exit_policy": ["","",""...],       x       x       x       x       
-		"router-signature": boolean,                x       x               
-		"contact": "",                      x       x       x       x        
-		"family": ["","",""...],            x       x       x       x        
-		"read-history":                     x       x       x       x        
-		"write-history":                    x       x       x       x        
-		"eventdns": boolean                 x       x       x       x                                                       
-		"link_protocol_versions": [#],      x       x       x       x
-		"circuit_protocol_versions": [#],   x       x       x       x
-		"extra-info-digest": "",            x               x       x      x
-		"hidden-service-dir": "",           x*              x       x*     x
-		"ntor-onion-key": boolean,          x               x       x      x
-		"router-digest": "",                x                       x      x
-		"identity-ed25519": boolean,                        x               
-		"master-key-ed25519": boolean,                      x               
-		"onion-key-crosscert": boolean,                     x               
-		"ntor-onion-key-crosscert": boolean,                x               
-		"router-sig-ed25519": boolean,                      x               
-		"ipv6-policy": ["","",""...],                       x       x
-		"caches-extra-info": boolean,       x               x       x            
-		"allow-single-hop-exits": boolean,  x               x       x         
-		"or-address": ["","",""...]         x               x       x
+	  "descriptor_type": "bridge_server_descriptor 1.1",   
+		"router": {                         
+			"nickname": "",                   req
+			"adress": "",                     req
+			"or_port": #,                     req
+			"socks_port": #,                  req
+			"dir_port": #                     req
+		},                                  
+		"bandwidth": {                      
+			"bandwidth_avg": #,               req
+			"bandwidth_burst": #,             req
+			"bandwidth_observed": #           opt
+		},  
+		"or_addresses": [
+			{
+				"adress": "",
+				"port": #
+			}
+			...
+		],                                  
+		"platform": "",                     opt
+		"published": "",                    
+		"fingerprint": "",                  
+		"hibernating": boolean,             opt
+		"uptime": #,                        opt
+		"onion_key": boolean,               req
+		"signing_key": boolean,             req
+		"exit_policy": ["","",""...],       req 
+		"ipv6_policy": "",                  opt
+		"contact": "",                      opt
+		"family": ["","",""...],            opt
+		"read_history": {                   opt
+			"date": "",                       req
+			"interval": #,                    req
+			"bytes": [#,#,#...]               req
+		},
+		"write_history":  {                 opt
+			"date": "",                       req
+			"interval": #,                    req
+			"bytes": [#,#,#...]               req
+		},                   
+		"eventdns": boolean,                  
+		"caches_extra_info": boolean,   
+		"extra_info_digest": "",            opt       
+		"hidden_service_dir_versions": [#,#,#...], 
+		"link_protocol_versions": [#,#,#...],      
+		"circuit_protocol_versions": [#,#,#...],   
+		"allow_single_hop_exits": boolean,              
+		"ntor_onion_key": boolean,          
+		"router_digest": ""    
 	}
-	
-	  * named hideen-service-dir-versions
+		
+	MAYBE LATER:
+		"identity_ed25519": boolean
+		                       
+	PROBABLY NEVER
+		"master_key_ed25519": boolean,                     
+		"onion_key_crosscert": boolean,                    
+		"ntor_onion_key_crosscert": boolean,               
+		"router_sig_ed25519": boolean,
+		       
+	NEVER
+		"router_signature"
+		
 	  
 	  
 	  
 TODO spec says "router-signature" ?!
-	
 	
 ###### bridge-extra-info 1.3
 
@@ -1339,113 +1354,113 @@ JSON SERIALIZATION
 		"nickname": "",
 		"fingerprint": "",
 		"published": "",
-		"read-history": {
+		"read_history": {
 			"date": "",
 			"interval": #,   // default: 86400
 			"bytes": [#,#,#...]
 		},
-		"write-history":  {
+		"write_history":  {
 			"date": "",
 			"interval": #,   // default: 86400
 			"bytes": [#,#,#...]
 		},
-		"geoip-db-digest": "",
-		"geoip6-db-digest": "",
-		"geoip-start-time": "",                      // TODO not sure about this one
-		"geoip-client-origins": {                    // TODO not sure about this one
+		"geoip_db_digest": "",
+		"geoip6_db_digest": "",
+		"geoip_start_time": "",             // TODO postponed, maybe irrelevant for bridges
+		"geoip_client_origins": {           // TODO postponed, maybe irrelevant for bridges
 			"": #   //  country code : number
 			...
 		},
-		"bridge-stats-end":  {
+		"bridge_stats_end":  {
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"bridge-ips": {
+		"bridge_ips": {
 			"": #   //  country code : number
 			...
 		},
-		"bridge-ip-versions": {
+		"bridge_ip_versions": {
 			"": #   //  family : number
 			...
 		},
-		"bridge-ip-transports": {
+		"bridge_ip_transports": {
 			"": #   //  pluggable transport : number
 			...
 		},
-		"dirreq-stats-end":  {
+		"dirreq_stats_end":  {
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"dirreq-v2-ips": {                           // TODO not sure about this one
+		"dirreq_v2_ips": {                  // TODO postponed, maybe irrelevant for bridges
 			"": #   //  country code : number
 			...
 		},
-		"dirreq-v3-ips": {
+		"dirreq_v3_ips": {
 			"": #   //  country code : number
 			...
 		},
-		"dirreq-v2-reqs": {                          // TODO not sure about this one
+		"dirreq_v2_reqs": {                 // TODO postponed, maybe irrelevant for bridges
 			"": #   //  country code : number
 			...
 		},
-		"dirreq-v3-reqs": {
+		"dirreq_v3_reqs": {
 			"": #   //  country code : number
 			...
 		},
-		"dirreq-v2-share": "",                      // TODO not sure about this one
-    "dirreq-v3-share": "",                      // TODO not sure about this one
-		"dirreq-v2-resp": {                         // TODO not sure about this one
+		"dirreq_v2_share": "",             // TODO postponed, maybe irrelevant for bridges
+    "dirreq_v3_share": "",             // TODO postponed, maybe irrelevant for bridges
+		"dirreq_v2_resp": {                // TODO postponed, maybe irrelevant for bridges
 			"": #   //  status : number
 			...
 		},
-		"dirreq-v3-resp": {
+		"dirreq_v3_resp": {
 			"": #   //  status : number
 			...
 		},
 		
-		"dirreq-v2-direct-dl": {                    // TODO not sure about this one 
+		"dirreq_v2_direct_dl": {           // TODO postponed, maybe irrelevant for bridges 
 			"": #   //  key : number
 			...
 		},
-		"dirreq-v3-direct-dl": {
+		"dirreq_v3_direct_dl": {
 			"": #   //  key : number
 			...
 		},
-		"dirreq-v2-tunneled-dl": {                   // TODO not sure about this one
+		"dirreq_v2_tunneled_dl": {          // TODO postponed, maybe irrelevant for bridges
 			"": #   //  key : number
 			...
 		},
-		"dirreq-v3-tunneled-dl": {
+		"dirreq_v3_tunneled_dl": {
 			"": #   //  key : number
 			...
 		},
-		"dirreq-read-history": {
+		"dirreq_read_history": {
 			"date": "",
 			"interval": #,
 			"bytes": [#,#,#...]
 		},
-		"dirreq-write-history": {
+		"dirreq_write_history": {
 			"date": "",
 			"interval": #,
 			"bytes": [#,#,#...]
 		},
-		"entry-stats-end": {                         // TODO not sure about this one
+		"entry_stats_end": {                // TODO postponed, maybe irrelevant for bridges
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"entry-ips": {                               // TODO not sure about this one
+		"entry_ips": {                      // TODO postponed, maybe irrelevant for bridges
 			"": #   //  country code : number
 			...
 		},
-		"cell-stats-end": {                          // TODO not sure about this one
+		"cell_stats_end": {                 // TODO postponed, maybe irrelevant for bridges
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"cell-processed-cells": [#,#,#...],          // TODO not sure about this one
-		"cell-queued-cells": [#,#,#...],             // TODO not sure about this one
-		"cell-time-in-queue": [#,#,#...],            // TODO not sure about this one
-		"cell-circuits-per-decile": #,               // TODO not sure about this one
-		"conn-bi-direct"::  {                        // TODO not sure about this one
+		"cell_processed_cells": [#,#,#...], // TODO postponed, maybe irrelevant for bridges
+		"cell_queued_cells": [#,#,#...],    // TODO postponed, maybe irrelevant for bridges
+		"cell_time_in_queue": [#,#,#...],   // TODO postponed, maybe irrelevant for bridges
+		"cell_circuits_per_decile": #,      // TODO postponed, maybe irrelevant for bridges
+		"conn_bi_direct"::  {               // TODO postponed, maybe irrelevant for bridges
 			"date": "",
 			"interval": #,   // default: 86400
 			"below": #,
@@ -1453,38 +1468,38 @@ JSON SERIALIZATION
 			"write": #,
 			"both": #
 		},
-		"exit-stats-end"::  {                        // TODO not sure about this one
+		"exit_stats_end"::  {               // TODO postponed, maybe irrelevant for bridges
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"exit-kibibytes-written": {                  // TODO not sure about this one
+		"exit_kibibytes_written": {         // TODO postponed, maybe irrelevant for bridges
 			"": #    // port : number
 			...
 		},
-		"exit-kibibytes-read": {                     // TODO not sure about this one
+		"exit_kibibytes_read": {            // TODO postponed, maybe irrelevant for bridges
 			"": #    // port : number
 			...
 		},
-		"exit-streams-opened": {                     // TODO not sure about this one
+		"exit_streams_opened": {            // TODO postponed, maybe irrelevant for bridges
 			"": #    // port : number
 			...
 		},
-		"hidserv-stats-end"::  {                     // TODO not sure about this one
+		"hidserv_stats_end"::  {            // TODO postponed, maybe irrelevant for bridges
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"hidserv-rend-relayed-cells": {              // TODO not sure about this one
+		"hidserv_rend_relayed_cells": {     // TODO postponed, maybe irrelevant for bridges
 			"cells": #,
 			"": #,    // key : number
 			...       // more key:number pairs
 		},
-		"hidserv-dir-onions-seen": {                 // TODO not sure about this one
+		"hidserv_dir_onions_seen": {        // TODO postponed, maybe irrelevant for bridges
 			"cells": #,
 			"": #,    // key : number
 			...       // more key:number pairs
 		},
 		"transport": ["","",""...],
-		"router-digest": ""
+		"router_digest": ""
 	}
 
 
