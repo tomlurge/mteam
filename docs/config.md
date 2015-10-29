@@ -20,6 +20,7 @@ Name: mteam
  - root: for server administration only
  - t: tomlurge
  - karsten: karsten
+ - hadoop
 
 ### Installed packages:
  - openjdk-7-jdk
@@ -39,6 +40,10 @@ Name: mteam
    sudo dpkg -i scala-2.10.4.deb  
    sudo wget https://bintray.com/artifact/download/sbt/debian/sbt-0.13.6.deb   
    sudo dpkg -i sbt-0.13.6.deb    
+ - apache hadoop
+ - apache hbase
+ - apache spark
+ - apache drill
 
 ### Sharing a screen created by root with user t:
 
@@ -51,16 +56,10 @@ Name: mteam
 	Ctrl-a :acladd t
 	$ screen -r root/shared
 	
-### logging into hadoop
-	
-	log in    t@mteam:~$ sudo -s -H -u hadoop
-	log out   hadoop@mteam:/home/t$ exit
-	          t@mteam:~$ 
 
 ### Open tasks:
   
-  - karsten: install avro 
-  - karsten: install thrift
+  - karsten: install thrift    
 
 	  
 	- t: check how to set max RAM for java on debian
@@ -111,7 +110,7 @@ Name: mteam
 	
 	              json  hbase avro  parquet          
 		hadoop mr                      
-		spark             x (1)             
+		spark       x     x (1)       x     
 		drill       x     x     x     x        (2)
 	
 		(1) http://www.vidyasource.com/blog/Programming/Scala/Java/Data/Hadoop/Analytics/2014/01/25/lighting-a-spark-with-hbase
@@ -125,11 +124,19 @@ Name: mteam
 	     
 	- t: check why hbase has no dir in hdfs
 	
+		hadoop@mteam:/usr/local/hadoop/sbin$ hadoop fs -ls /hbase
+			returns No such file or directory
+		maybe the zookeeper configuration is to blame
+		when trying to create a table i get
+			ERROR: Can't get master address from ZooKeeper; znode data == null
+		
+		
+	
 	- t: how2hadoop (start/stop commands, admin URLs, shell specifics etc)
 	
   - t: prepare data ingestion
   
-    - schemata
+    - schemata : mostly done
     - scripts
     - execution plan:
       xz-dateien -> 
@@ -138,6 +145,4 @@ Name: mteam
       shell-script/hadoop command line tool ->
       hadoop
 
-- t: do all the different datasets that collecTor offers have the same key?
-     e.g. timestamp?
 

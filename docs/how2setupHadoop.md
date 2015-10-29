@@ -1,8 +1,8 @@
 
 # How to install a single node Hadoop cluster
-Our install is a bit untypical since we don't want a test installation on a 
-local machine but OTOH don't want the typical multi machine Hadoop cluster 
-either. We are going for **pseudo-distributed mode**, also called a **single 
+Our install is a bit untypical since we want neither a test installation on a 
+local machine nor the typical multi machine Hadoop cluster. 
+We are going for **pseudo-distributed mode**, also called a **single 
 node cluster** and therefor have to take care to not make false friend with all 
 those tutorials about settingup Hadoop (clusters) out there. And we've been 
 warned that setting up Hadoop isn't exactly trivial - in any case.
@@ -177,7 +177,8 @@ Datanodes store the actual data.
 
 #### create HDFS users
 Now Hadoop users - as opposed to users of this unix box - need to be given 
-access to HDFS by creating home dirs and setting permissions. The HDFS commands are similar to Unix commands though.   
+access to HDFS by creating home dirs and setting permissions. The HDFS commands 
+are similar to Unix commands though.   
 Setting the space quota is optional. Here we do not set it to 200 GB. 
  
 	hdfs dfs -mkdir /user
@@ -293,6 +294,15 @@ Basically it's just download and verification
 Basically it's just download and verification
 - download http://www.apache.org/dist/drill/drill-1.1.0/
 - see also https://drill.apache.org/docs/installing-drill-on-linux-and-mac-os-x/
+- edit /usr/local/drill/conf/drill-override.conf to disable web console which 
+  otherwise provides a sql interface to the world
+
+      http: {
+        enabled: false,       // default: true
+        ssl_enabled: false,
+        port: 8047
+      }
+
 
 ## (10) Avro
 - python: https://avro.apache.org/docs/1.7.6/gettingstartedpython.html

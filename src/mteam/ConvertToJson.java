@@ -258,5 +258,3 @@ public class ConvertToJson {
     return bandwidthHistory;
   }
 }
-
-// just a , please ignore
