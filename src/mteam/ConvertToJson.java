@@ -59,23 +59,6 @@ public class ConvertToJson {
     bw.close();
   }
 
-  /* Inner class to serialize all entries of a descriptor's "router"
-   * line. */
-  static class Router {
-    String nickname; // required, can be mixed-case
-    String address; // required, changed to lower-case
-    int or_port; // required
-    int socks_port; // required, most likely 0 except for *very* old descs
-    int dir_port; // required
-  }
-
-  /* Inner class to serialize "bandwidth" lines. */
-  static class Bandwidth {
-    Integer bandwidth_avg; // required
-    Integer bandwidth_burst; // required
-    Integer bandwidth_observed; // optional, missing in older descriptors!
-  }
-
   /* Inner class to serialize address/port combinations in "or-address"
    * lines or others.  In theory, we could also include those as
    * strings. */
@@ -98,8 +81,14 @@ public class ConvertToJson {
   /* Inner class to serialize bridge server descriptors. */
   static class JsonBridgeServerDescriptor {
     String descriptor_type; // set to bridge-server-descriptor $VERSION
-    Router router; // required
-    Bandwidth bandwidth; // required
+    String nickname; // required, can be mixed-case
+    String address; // required, changed to lower-case
+    int or_port; // required
+    int socks_port; // required, most likely 0 except for *very* old descs
+    int dir_port; // required
+    Integer bandwidth_avg; // required
+    Integer bandwidth_burst; // required
+    Integer bandwidth_observed; // optional, missing in older descriptors!
     List<AddressAndPort> or_addresses; // addresses sanitized!
     String platform; // optional, though usually set
     String published; // format YYYY-MM-DD HH:MM:SS
@@ -149,14 +138,11 @@ public class ConvertToJson {
       }
     }
 
-    /* Put together the router object with nickname, address, etc. */
-    Router router = new Router();
-    router.nickname = desc.getNickname();
-    router.address = desc.getAddress();
-    router.or_port = desc.getOrPort();
-    router.socks_port = desc.getSocksPort();
-    router.dir_port = desc.getDirPort();
-    json.router = router;
+    json.nickname = desc.getNickname();
+    json.address = desc.getAddress();
+    json.or_port = desc.getOrPort();
+    json.socks_port = desc.getSocksPort();
+    json.dir_port = desc.getDirPort();
 
     /* If there are any or-addresses, include them in a list. */
     if (desc.getOrAddresses() != null &&
@@ -181,13 +167,11 @@ public class ConvertToJson {
 
     /* Include a bandwidth object with average, burst, and possibly
      * observed bandwidth. */
-    Bandwidth bandwidth = new Bandwidth();
-    bandwidth.bandwidth_avg = desc.getBandwidthRate();
-    bandwidth.bandwidth_burst = desc.getBandwidthBurst();
+    json.bandwidth_avg = desc.getBandwidthRate();
+    json.bandwidth_burst = desc.getBandwidthBurst();
     if (desc.getBandwidthObserved() >= 0) {
-      bandwidth.bandwidth_observed = desc.getBandwidthObserved();
+      json.bandwidth_observed = desc.getBandwidthObserved();
     }
-    json.bandwidth = bandwidth;
 
     /* Include a few more fields, some of them only if they're not
      * null. */
