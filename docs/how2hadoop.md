@@ -65,3 +65,17 @@ To stop HBase invoke `stop-hbase.sh`
     convert input json to output parquet without further ado
       create table dfs.tmp.`filename.parquet` as select * from dfs.`/tmp/filename.json` t
       http://stackoverflow.com/questions/21690992/convert-file-of-json-objects-to-parquet-file
+    
+    json
+      https://drill.apache.org/docs/json-data-model
+      short-ish introduction into querying json
+      json documents are not allowed to have semicolons between toplevel entries
+      and some more little caveats that have to be taken into acount
+      
+    query gz compressed files
+      https://drill.apache.org/docs/querying-plain-text-files/#querying-compressed-files
+    
+    query directories
+      You can store multiple files in a directory and query them as if they were
+      a single entity. You do not have to explicitly join the files. 
+        https://drill.apache.org/docs/querying-directories/

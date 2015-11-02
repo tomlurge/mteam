@@ -43,11 +43,11 @@ Most of the documents have nested data structures. Some get quite large.
 	network-status-consensus             x    v3 3.4.1. 
 	network-status-vote                  x    v3 3.4.1.
 	dir-key-certificate                  x    v3 3.1.   Creating key certificates
-	network-status-microdesc-consensus   *    v3 3.9.2. Microsescriptor consensus
-	bridge-network-status                +
-	bridge-server-descriptor             +
-	bridge-extra-info                    +               
-	bridge-pool-assignment               *
+	network-status-microdesc-consensus   x    v3 3.9.2. Microsescriptor consensus
+	bridge-network-status                x
+	bridge-server-descriptor             x
+	bridge-extra-info                    x               
+	bridge-pool-assignment               -    postponed
 	tordnsel                             x 
 	torperf                              x 
 	
@@ -150,21 +150,16 @@ JSON SERIALIZATION
 		
 	{
 		"descriptor_type": "server-descriptor 1.0",
-		"version": "1.0",
-		"router": {
-			"nickname": "",
-			"address": "",
-			"ORPort": #,
-			"Socksport": #,
-			"DirPort": #
-		},
+		"nickname": "",
+		"address": "",
+		"or_port": #,
+		"socks_port": #,
+		"dir_port": #,
 		"identity_ed25519": boolean,
 		"master_key_ed25519": boolean,
-		"bandwidth": {
-			"bandwidth_avg": #,
-			"bandwidth_burst": #,
-			"bandwidth_observed": #
-		},
+		"bandwidth_avg": #,
+		"bandwidth_burst": #,
+		"bandwidth_observed": #,
 		"platform": "",
 		"published": "",
 		"fingerprint": "",
@@ -178,10 +173,8 @@ JSON SERIALIZATION
 			"sig": boolean
 		},
 		"signing_key": boolean,
-		"accept": ["","",""...],
-		"reject": ["","",""...],
-		"ipv6_policy": "",   // "reject 1_65535" if absent
-		                     // TODO or as 2_line object instead of string?
+		"exit-policy": ["","",""...],
+		"ipv6_policy": "",
 		"router_sig_ed25519": boolean,
 		"router_signature": boolean,
 		"contact": "",
@@ -197,15 +190,15 @@ JSON SERIALIZATION
 			"bytes": [#,#,#...]
 		},
 		"eventdns": boolean,
-		"caches_extra_info": "",
+		"caches_extra_info": boolean,
 		"extra_info_digest": "",
-		"hidden_service_dir": "",
+		"hidden_service_dir": [#,#,#...],
 		"link_protocol_versions": [#,#,#...],
 		"circuit_protocol_versions": [#,#,#...],
-		"allow_single_hop_exits": boolean,   // false if absent
+		"allow_single_hop_exits": boolean,
 		"or_address": [
 			{
-				"adress": "",
+				"ip": "",
 				"port": #
 			},
 			...
@@ -329,73 +322,114 @@ JSON SERIALIZATION
 		"geoip_db_digest": "",
 		"geoip6_db_digest": "",
 		"geoip_start_time": "",
-		"geoip_client_origins": {
-			"": #   //  country code : number
+		"geoip_client_origins": [
+			{
+				"countryCode": "",
+				"value": #
+			}
 			...
-		},
+		],
 		"bridge_stats_end":  {
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"bridge_ips": {
-			"": #   //  country code : number
+		"bridge_ips":[
+			{
+				"countryCode": "",
+				"value": #
+			}
 			...
-		},
-		"bridge_ip_versions": {
-			"": #   //  family : number
+		],
+		"bridge_ip_versions": [
+			{
+				"family": "",
+				"value": #
+			}
 			...
-		},
-		"bridge_ip_transports": {
-			"": #   //  pluggable transport : number
+		],
+		"bridge_ip_transports": [
+			{
+				"transport": "",
+				"value": #
+			}
 			...
-		},
+		],
 		"dirreq_stats_end":  {
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"dirreq_v2_ips": {
-			"": #   //  country code : number
+		"dirreq_v2_ips": [
+			{
+				"countryCode": "",
+				"value": #
+			}
 			...
-		},
-		"dirreq_v3_ips": {
-			"": #   //  country code : number
+		],
+		"dirreq_v3_ips": [
+			{
+				"countryCode": "",
+				"value": #
+			}
 			...
-		},
-		"dirreq_v2_reqs": {
-			"": #   //  country code : number
+		],
+		"dirreq_v2_reqs": [
+			{
+				"countryCode": "",
+				"value": #
+			}
 			...
-		},
-		"dirreq_v3_reqs": {
-			"": #   //  country code : number
+		],
+		"dirreq_v3_reqs": [
+			{
+				"countryCode": "",
+				"value": #
+			}
 			...
-		},
-		"dirreq_v2_share": "",
-    "dirreq_v3_share": "",
-		"dirreq_v2_resp": {
-			"": #   //  status : number
+		],
+		"dirreq_v2_share": #,
+    "dirreq_v3_share": #,
+		"dirreq_v2_resp": [
+			{
+				"response": "",
+				"value": #
+			}
 			...
-		},
-		"dirreq_v3_resp": {
-			"": #   //  status : number
+		],
+		"dirreq_v3_resp": [
+			{
+				"response": "",
+				"value": #
+			}
 			...
-		},
-		
-		"dirreq_v2_direct_dl": {
-			"": #   //  key : number
+		],
+		"dirreq_v2_direct_dl": [
+			{
+				"download": "",
+				"value": #
+			}
 			...
-		},
-		"dirreq_v3_direct_dl": {
-			"": #   //  key : number
+		],
+		"dirreq_v3_direct_dl": [
+			{
+				"download": "",
+				"value": #
+			}
 			...
-		},
-		"dirreq_v2_tunneled_dl": {
-			"": #   //  key : number
+		],
+		"dirreq_v2_tunneled_dl": [
+			{
+				"download": "",
+				"value": #
+			}
 			...
-		},
-		"dirreq_v3_tunneled_dl": {
-			"": #   //  key : number
+		],
+		"dirreq_v3_tunneled_dl": [
+			{
+				"download": "",
+				"value": #
+			}
 			...
-		},
+		],
 		"dirreq_read_history": {
 			"date": "",
 			"interval": #,
@@ -410,10 +444,13 @@ JSON SERIALIZATION
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"entry_ips": {
-			"": #   //  country code : number
+		"entry_ips": [
+			{
+				"countryCode": "",
+				"value": #
+			}
 			...
-		},
+		],
 		"cell_stats_end": {
 			"date": "",
 			"interval": #   // default: 86400
@@ -434,40 +471,60 @@ JSON SERIALIZATION
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"exit_kibibytes_written": {
-			"": #    // port : number
+		"exit_kibibytes_written": [
+			{
+				"port": "",
+				"value": #
+			}
 			...
-		},
-		"exit_kibibytes_read": {
-			"": #    // port : number
+		],
+		"exit_kibibytes_read": [
+			{
+				"port": "",
+				"value": #
+			}
 			...
-		},
-		"exit_streams_opened": {
-			"": #    // port : number
+		],
+		"exit_streams_opened": [
+			{
+				"port": "",
+				"value": #
+			}
 			...
-		},
+		],
 		"hidserv_stats_end"::  {
 			"date": "",
 			"interval": #   // default: 86400
 		},
 		"hidserv_rend_relayed_cells": {
 			"cells": #,
-			"": #,    // key : number
-			...       // more key:number pairs
+			"obfuscation": [
+				{
+					"key": "",
+					"value": #
+				}
+				...
+			]
 		},
 		"hidserv_dir_onions_seen": {
-			"cells": #,
-			"": #,    // key : number
-			...       // more key:number pairs
+			"onions": #,
+			"obfuscation": [
+				{
+					"key": "",
+					"value": #
+				}
+				...
+			]
 		},
-		"transport": {
-			"": {    // transportname
-				"adress": "",
+		"transport": [
+			{
+				"transportname": "",
+				"ip": "",
 				"port": #,
 				"args": ""
 			}
 			...
-		},
+		],
 		"router_sig_ed25519": boolean
 		"router_signature": boolean
 	}
@@ -594,45 +651,48 @@ JSON SERIALIZATION
 
 	{
 		"descriptor_type": "network-status-consensus-3 1.0",
-		"version": "",
 		"vote_status": "",
     "consensus_method": #,
 		"valid_after": "",
 		"fresh_until": "",
 		"valid_until": "",
 		"voting_delay": {
-			"VoteSeconds": #,
-			"DistSeconds": #
+			"vote_seconds": #,
+			"dist_seconds": #
 		},
 		"client_versions": ["","",""...],
 		"server_versions": ["","",""...],
 		"package": [
 			{
-				"packagename": "",
+				"package_name": "",
 				"version": "",
 				"url": "",
-				"digests": {
-					"": ""    // digest_type : digest_value
+				"digests": [
+					{
+						"digest_type": "",
+						"digest_value": ""
+					}
 					...
-				}
+				]
 			}
 			...
 		],
 		"known_flags": ["","",""...],
-		"params": {
-			"": #     // paramter : number
+		"params": [
+			{
+				"param": "",
+				"value": # 
+			}
 			...
-		},
+		],
 		"authority": [
 			{
-				"dir_source": {
-					"nickname": "",
-					"identity": "",
-					"adress": "",
-					"ip": "",
-					"dirport": #,
-					"orport": #
-				},
+				"nickname": "",
+				"identity": "",
+				"adress": "",
+				"ip": "",
+				"dir_port": #,
+				"or_port": #
 				"contact": "",
 				"vote_digest": ""
 			}
@@ -647,19 +707,22 @@ JSON SERIALIZATION
 					"publication": "",
 					"ip": "",
 					"QRPort": #,
-					"DirPort": #
+					"dir_port": #
 				},
-				"a": ["","",""...],
+				"a": [
+					{
+						"ip": "",
+						"port": #
+					}
+					...
+				],
 				"s": ["","",""...],
 				"v": "",
 				"w": {
 					"bandwidth": #,
 					"unmeasured": #
 				},
-				"p": {
-					"accept": boolean,
-					"portlist": [#,#,#...]
-				}
+				"p": ["","",""...]
 			}
 			...
 		],
@@ -811,73 +874,75 @@ JSON SERIALIZATION
 
 	{
 		"descriptor_type": "network-status-vote-3 1.0",
-		"version": "",
 		"vote_status": "",
 		"consensus_methods": [#,#,#...],
 		"published": "",
 		"valid_after": "",
-		"flag_thresholds": {
-			"": #, 
+		"flag_thresholds": [
+			{
+				"treshold": "",
+				"value": #,
+			}
 			...   
-		},
+		],
 		"fresh_until": "",
 		"valid_until": "",
 		"voting_delay": {
-			"VoteSeconds": #,
-			"DistSeconds": #
+			"vote_seconds": #,
+			"dist_seconds": #
 		},
 		"client_versions": ["","",""...],
 		"server_versions": ["","",""...],
 		"package": [
 			{
-				"packagename": "",
+				"package_name": "",
 				"version": "",
 				"url": "",
-				"digests": {
-					"": ""    // digest_type : digest_value
+				"digests": [
+					{
+						"digest_type": "",
+						"digest_value": ""
+					}
 					...
-				}
+				]
 			}
 			...
 		],
 		"known_flags": ["","",""...],
-		"params": {
-			"": #     // paramter : number
-			...
-		},
-		authority: [
+		"params": [
 			{
-				"dir_source": {
-					"nickname": "",
-					"identity": "",
-					"adress": "",
-					"ip": "",
-					"dirport": #,
-					"orport": #
-				},
-				"contact": "",
-				"legacy_dir_key": {
-					"dir_source": "",
-					"nickname": "",
-					"identity": "",
-					"adress": "",
-					"ip": "",
-					"dirport": #,
-					"orport": #
-				},
-				"key_certificate": {
-					"version": #,
-					"fingerprint": "",
-					"dir_key_published": "",   
-					"dir_key_expires": "",
-					"dir_identity_key": boolean,
-					"dir_signing_key": boolean,
-					"dir_key_crosscert": boolean,
-					"dir_key_certification": boolean
-				}
+				"param": "",
+				"value": # 
 			}
 			...
 		],
+		authority: {
+			"nickname": "",
+			"identity": "",
+			"adress": "",
+			"ip": "",
+			"dir_port": #,
+			"or_port": #
+			"contact": "",
+			"legacy_dir_key": {
+				"nickname": "",
+				"identity": "",
+				"adress": "",
+				"ip": "",
+				"dir_port": #,
+				"or_port": #
+			},
+			"key_certificate": {
+				"version": #,
+				"fingerprint": "",
+				"dir_key_published": "",   
+				"dir_key_expires": "",
+				"dir_identity_key": boolean,
+				"dir_signing_key": boolean,
+				"dir_key_crosscert": boolean,
+				"dir_key_certification": boolean
+			}
+		},
 		"router_status": [
 			{
 				"r": {
@@ -886,20 +951,23 @@ JSON SERIALIZATION
 					"digest": "",
 					"publication": "",
 					"ip": "",
-					"ORPort": #,
-					"DirPort": #
+					"or_port": #,
+					"dir_port": #
 				},
-				"a": ["","",""...],
+				"a": [
+					{
+						"ip": "",
+						"port": #
+					}
+					...
+				],
 				"s": ["","",""...],
 				"v": "",
 				"w": {
 					"bandwidth": #,
 					"measured": #,
 				},
-				"p": {
-					"accept": boolean,
-					"portlist": [#,#,#...]
-				},
+				"p": ["","",""...], 
 				"m": [
 					{
 						"methods": [#,#,#...],
@@ -911,13 +979,13 @@ JSON SERIALIZATION
 			}
 			...
 		],
-		"id": {
-			"ed25519": ""    // TODO this is so far not implemented in collecTor
-		},
 		"directory_footer": {
-			"bandwidth_weights": {
-				"": #    // weight_keyword : number
-			},
+			"bandwidth_weights": [
+				{
+					"key": "",
+					"value": #
+				}
+			],
 			"directory_signature": {
 				"algorithm": "",
 				"identity": "",
@@ -926,6 +994,11 @@ JSON SERIALIZATION
 			}
 		}
 	}
+	
+	POSTPONED
+		"id": {
+			"ed25519": ""    // so far not implemented in collecTor
+		},
 	
 	
 	
@@ -941,8 +1014,10 @@ JSON SERIALIZATION
 
 	{
 		"descriptor_type": "dir-key-certificate-3 1.0",
-		"version": #,
-		"dir_address": "",
+		"dir_address": {
+			"ip": "",
+			"port": #
+		},
 		"fingerprint": "",
 		"dir_identity_key": boolean,
 		"dir_key_published": "",
@@ -1079,9 +1154,9 @@ JSON SERIALIZATION
 		 			"identity_key": "",
 		 			"descriptor": "",
 		 			"date": "",
-		 			"adress": "",
-		 			"ORPort": #,
-		 			"DirPort": #
+		 			"ip": "",
+		 			"or_port": #,
+		 			"dir_port": #
 				},
 				"s": ["","",""...],
 				"w": {
@@ -1170,22 +1245,18 @@ JSON SERIALIZATION
  
 	                                      
 	{
-	  "descriptor_type": "bridge_server_descriptor 1.1",   
-		"router": {                         
-			"nickname": "",                   req
-			"adress": "",                     req
-			"or_port": #,                     req
-			"socks_port": #,                  req
-			"dir_port": #                     req
-		},                                  
-		"bandwidth": {                      
-			"bandwidth_avg": #,               req
-			"bandwidth_burst": #,             req
-			"bandwidth_observed": #           opt
-		},  
+	  "descriptor_type": "bridge_server_descriptor 1.1",       
+		"nickname": "",                     req
+		"ip": "",                       req
+		"or_port": #,                       req
+		"socks_port": #,                    req
+		"dir_port": #,                      req     
+		"bandwidth_avg": #,                 req
+		"bandwidth_burst": #,               req
+		"bandwidth_observed": #,            opt
 		"or_addresses": [
 			{
-				"adress": "",
+				"ip": "",
 				"port": #
 			}
 			...
@@ -1314,7 +1385,11 @@ Ed25519 master key.
 	                              ru=8,
 	                              sv=8,
 	                              us=8
-	dirreq-v3-reqs                cz=8,ir=8,ru=8,sv=8,us=8
+	dirreq-v3-reqs                cz=8,
+	                              ir=8,
+	                              ru=8,
+	                              sv=8,
+	                              us=8
 	dirreq-v3-resp                ok=16,
 	                              not-enough-sigs=0,
 	                              unavailable=0,
@@ -1366,74 +1441,71 @@ JSON SERIALIZATION
 		},
 		"geoip_db_digest": "",
 		"geoip6_db_digest": "",
-		"geoip_start_time": "",             // TODO postponed, maybe irrelevant for bridges
-		"geoip_client_origins": {           // TODO postponed, maybe irrelevant for bridges
-			"": #   //  country code : number
-			...
-		},
 		"bridge_stats_end":  {
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"bridge_ips": {
-			"": #   //  country code : number
+		"bridge_ips": [
+			{
+				"countryCode": "",
+				"value": #
+			}
 			...
-		},
-		"bridge_ip_versions": {
-			"": #   //  family : number
+		],
+		"bridge_ip_versions": [
+			{
+				"family": "",
+				"value": #
+			}
 			...
-		},
-		"bridge_ip_transports": {
-			"": #   //  pluggable transport : number
+		],
+		"bridge_ip_transports": [
+			{
+				"transport": "",
+				"value": #
+			}
 			...
-		},
+		],
 		"dirreq_stats_end":  {
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"dirreq_v2_ips": {                  // TODO postponed, maybe irrelevant for bridges
-			"": #   //  country code : number
+		"dirreq_v3_ips": [
+			{
+				"countryCode": "",
+				"value": #
+			}
 			...
-		},
-		"dirreq_v3_ips": {
-			"": #   //  country code : number
+		],
+		"dirreq_v3_reqs": [
+			{
+				"countryCode": "",
+				"value": #
+			}
 			...
-		},
-		"dirreq_v2_reqs": {                 // TODO postponed, maybe irrelevant for bridges
-			"": #   //  country code : number
+		],
+    "dirreq_v3_share": #,    
+		"dirreq_v3_resp": [
+			{
+				"status": "",
+				"value": #
+			}
 			...
-		},
-		"dirreq_v3_reqs": {
-			"": #   //  country code : number
+		],
+		"dirreq_v3_direct_dl": [
+			{
+				"download": "",
+				"value": #
+			}
 			...
-		},
-		"dirreq_v2_share": "",             // TODO postponed, maybe irrelevant for bridges
-    "dirreq_v3_share": "",             // TODO postponed, maybe irrelevant for bridges
-		"dirreq_v2_resp": {                // TODO postponed, maybe irrelevant for bridges
-			"": #   //  status : number
+		],
+		"dirreq_v3_tunneled_dl": [
+			{
+				"download": "",
+				"value": #
+			}
 			...
-		},
-		"dirreq_v3_resp": {
-			"": #   //  status : number
-			...
-		},
-		
-		"dirreq_v2_direct_dl": {           // TODO postponed, maybe irrelevant for bridges 
-			"": #   //  key : number
-			...
-		},
-		"dirreq_v3_direct_dl": {
-			"": #   //  key : number
-			...
-		},
-		"dirreq_v2_tunneled_dl": {          // TODO postponed, maybe irrelevant for bridges
-			"": #   //  key : number
-			...
-		},
-		"dirreq_v3_tunneled_dl": {
-			"": #   //  key : number
-			...
-		},
+		],
 		"dirreq_read_history": {
 			"date": "",
 			"interval": #,
@@ -1444,23 +1516,66 @@ JSON SERIALIZATION
 			"interval": #,
 			"bytes": [#,#,#...]
 		},
-		"entry_stats_end": {                // TODO postponed, maybe irrelevant for bridges
-			"date": "",
-			"interval": #   // default: 86400
-		},
-		"entry_ips": {                      // TODO postponed, maybe irrelevant for bridges
+		"transport": [
+			{
+				"name": "",
+				"ip": "",
+				"port": #,
+				"args": ""
+			}
+			...
+		],
+		"router_digest": ""
+	}
+
+
+
+
+	POSTPONED, maybe irrelevant for bridges
+	
+		"geoip_start_time": "",             
+		"geoip_client_origins": {           
 			"": #   //  country code : number
 			...
 		},
-		"cell_stats_end": {                 // TODO postponed, maybe irrelevant for bridges
+		"dirreq_v2_ips": {                  
+			"": #   //  country code : number
+			...
+		},
+		"dirreq_v2_reqs": {                 
+			"": #   //  country code : number
+			...
+		},
+		"dirreq_v2_share": "",             
+		"dirreq_v2_resp": {                
+			"": #   //  status : number
+			...
+		},
+		"dirreq_v2_direct_dl": {           
+			"": #   //  key : number
+			...
+		},
+		"dirreq_v2_tunneled_dl": {          
+			"": #   //  key : number
+			...
+		},
+		"entry_stats_end": {                
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"cell_processed_cells": [#,#,#...], // TODO postponed, maybe irrelevant for bridges
-		"cell_queued_cells": [#,#,#...],    // TODO postponed, maybe irrelevant for bridges
-		"cell_time_in_queue": [#,#,#...],   // TODO postponed, maybe irrelevant for bridges
-		"cell_circuits_per_decile": #,      // TODO postponed, maybe irrelevant for bridges
-		"conn_bi_direct"::  {               // TODO postponed, maybe irrelevant for bridges
+		"entry_ips": {                      
+			"": #   //  country code : number
+			...
+		},
+		"cell_stats_end": {                 
+			"date": "",
+			"interval": #   // default: 86400
+		},
+		"cell_processed_cells": [#,#,#...], 
+		"cell_queued_cells": [#,#,#...],    
+		"cell_time_in_queue": [#,#,#...],   
+		"cell_circuits_per_decile": #,      
+		"conn_bi_direct"::  {               
 			"date": "",
 			"interval": #,   // default: 86400
 			"below": #,
@@ -1468,40 +1583,36 @@ JSON SERIALIZATION
 			"write": #,
 			"both": #
 		},
-		"exit_stats_end"::  {               // TODO postponed, maybe irrelevant for bridges
+		"exit_stats_end"::  {               
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"exit_kibibytes_written": {         // TODO postponed, maybe irrelevant for bridges
+		"exit_kibibytes_written": {         
 			"": #    // port : number
 			...
 		},
-		"exit_kibibytes_read": {            // TODO postponed, maybe irrelevant for bridges
+		"exit_kibibytes_read": {            
 			"": #    // port : number
 			...
 		},
-		"exit_streams_opened": {            // TODO postponed, maybe irrelevant for bridges
+		"exit_streams_opened": {            
 			"": #    // port : number
 			...
 		},
-		"hidserv_stats_end"::  {            // TODO postponed, maybe irrelevant for bridges
+		"hidserv_stats_end"::  {            
 			"date": "",
 			"interval": #   // default: 86400
 		},
-		"hidserv_rend_relayed_cells": {     // TODO postponed, maybe irrelevant for bridges
+		"hidserv_rend_relayed_cells": {     
 			"cells": #,
 			"": #,    // key : number
 			...       // more key:number pairs
 		},
-		"hidserv_dir_onions_seen": {        // TODO postponed, maybe irrelevant for bridges
+		"hidserv_dir_onions_seen": {        
 			"cells": #,
 			"": #,    // key : number
 			...       // more key:number pairs
-		},
-		"transport": ["","",""...],
-		"router_digest": ""
-	}
-
+		}
 
 
 ##### other 
@@ -1618,16 +1729,20 @@ JSON SERIALIZATION
 
 	{
 		"descriptor_type": "tordnsel 1.0",
-		"Downloaded": "",
+		"downloaded": "",
 		"relays": [
 			{
-				"ExitNode": "",
-				"Published": "",
-				"LastStatus": "",
-				"ExitAddress": {
-				"adress": "",
-				"date": ""
-			}
+				"fingerprint": "",
+				"published": "",
+				"last_status": "",
+				"exit_address": [
+					{
+					"ip": "",
+					"date": ""
+					},
+					...
+				]
+			},
 			...
 		]
 	}
@@ -1683,41 +1798,35 @@ JSON SERIALIZATION
 
 	{
 		"descriptor_type": "torperf 1.0",
-		"configuration": {
-			"SOURCE": "",
-			"FILESIZE": #
-		},
-		"measurements": {
-			"START": #,
-			"SOCKET": #,
-			"CONNECT": #,
-			"NEGOTIATE": #,
-			"REQUEST": #,
-			"RESPONSE": #,
-			"DATAREQUEST": #,
-			"DATARESPONSE": #,
-			"DATACOMPLETE": #,
-			"WRITEBYTES": #,
-			"READBYTES": #,
-			"DIDTIMEOUT": #,
-			"DATAPERC10": #,
-			"DATAPERC20": #,
-			"DATAPERC30": #,
-			"DATAPERC40": #,
-			"DATAPERC50": #,
-			"DATAPERC60": #,
-			"DATAPERC70": #,
-			"DATAPERC80": #,
-			"DATAPERC90": #
-		},
-		"additional": {
-			"LAUNCH": #,
-			"USED_AT": #,
-			"PATH": ["","",""...],
-			"BUILDTIMES": [#,#,#...],
-			"TIMEOUT": #,
-			"QUANTILE": #,
-			"CIRC_ID": #,
-			"USED_BY": #
-		}
+		"source": "",
+		"filesize": #,
+		"start": #,
+		"socket": #,
+		"connect": #,
+		"negotiate": #,
+		"request": #,
+		"response": #,
+		"datarequest": #,
+		"dataresponse": #,
+		"datacomplete": #,
+		"writebytes": #,
+		"readbytes": #,
+		"didtimeout": #,
+		"dataperc10": #,
+		"dataperc20": #,
+		"dataperc30": #,
+		"dataperc40": #,
+		"dataperc50": #,
+		"dataperc60": #,
+		"dataperc70": #,
+		"dataperc80": #,
+		"dataperc90": #,
+		"launch": #,
+		"used_at": #,
+		"path": ["","",""...],
+		"buildtimes": [#,#,#...],
+		"timeout": #,
+		"quantile": #,
+		"circ_id": #,
+		"used_by": #
 	}
