@@ -78,8 +78,8 @@ common attributes (from which to construct a key in HBase, eventually)
 		# : number
 		boolean : true/false
 		[x,x,x...] : array of x
-		if entry contains no value and no default is given in comment write: null
-		if entry is absent write: null
+		if entry contains no value and no default is given in comment write 'null'
+		if entry is absent write 'property-name:null'
 		
 #### JSON serialization caveat
 
@@ -100,7 +100,7 @@ CollecTor provides 12 types of documents. The following examples each contain
 - either the full document 
 - or the header and one or entries plus the note "[[ and so forth ]]", separated by
  blank lines.    
- TODO Sometimes the footer is missing.   
+
 There's no guarantee that these examples cover all possible cases. They should
 rather be considered a cursory overview.
 
@@ -1214,32 +1214,6 @@ master key.
 	reject                        *:*
 	router-digest                 00A0A2F7AA65DBDE7CE7A3FEF659368792FAAB2B
 	
-KL docs
-	
-	String                descriptor_type; // required, set to bridge-server-descriptor $VERSION
-	Router                router; // required
-	Bandwidth             bandwidth; // required
-	List<AddressAndPort>  or_addresses; // addresses sanitized!
-	String                platform; // optional, though usually set
-	String                published; // format YYYY-MM-DD HH:MM:SS
-	String                fingerprint; // always upper-case hex
-	Boolean               hibernating; // optional
-	Long                  uptime; // optional, though usually set
-	Boolean               onion_key; // required; usually false b/c sanitization
-	Boolean               signing_key; // required; usually false b/c sanitization
-	// TODO exit policy summary
-	String                contact; // optional
-	List<String>          family; // optional, apparently not used at all
-	// TODO read and write history
-	Boolean               eventdns;
-	Boolean               caches_extra_info;
-	String                extra_info_digest; // upper-case hex
-	List<Integer>         hidden_service_dir_versions;
-	List<Integer>         link_protocol_versions;
-	List<Integer>         circuit_protocol_versions;
-	Boolean               allow_single_hop_exits;
-	Boolean               ntor_onion_key;
-	String                router_digest; // upper-case hex
 
 JSON SERIALIZATION
  
@@ -1306,9 +1280,6 @@ JSON SERIALIZATION
 		"router_signature"
 		
 	  
-	  
-	  
-TODO spec says "router-signature" ?!
 	
 ###### bridge-extra-info 1.3
 
