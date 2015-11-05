@@ -26,40 +26,47 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 
+
+
 public class ConvertToJson {
 
   /* Read all descriptors in the provided (decompressed) tarball and
    * convert all server descriptors to the JSON format. */
   public static void main(String[] args) throws IOException {
-    DescriptorReader descriptorReader =
-        DescriptorSourceFactory.createDescriptorReader();
-    descriptorReader.addTarball(
-        new File("in/bridge-server-descriptors-2015-10.tar"));
-    Iterator<DescriptorFile> descriptorFiles =
-        descriptorReader.readDescriptors();
+
+    // TL did this to start generalization
+    String currentDescriptorCollection ="bridge-server-descriptors-2015-10";
+
+    DescriptorReader descriptorReader = DescriptorSourceFactory.createDescriptorReader();
+    descriptorReader.addTarball(new File("in/" + currentDescriptorCollection + ".tar"));
+    Iterator<DescriptorFile> descriptorFiles = descriptorReader.readDescriptors();
+
     int written = 0;
-    BufferedWriter bw = new BufferedWriter(new FileWriter(
-        "bridge-server-descriptors-2015-10.json"));
-    bw.write("{\"descriptors\": [\n");
+    BufferedWriter bw = new BufferedWriter(new FileWriter(currentDescriptorCollection + ".json"));
+    // TL Drill expects one doc per line, without semicolon or surrounding object
+    // bw.write("{\"descriptors\": [\n");
     while (descriptorFiles.hasNext()) {
       DescriptorFile descriptorFile = descriptorFiles.next();
       for (Descriptor descriptor : descriptorFile.getDescriptors()) {
         String jsonDescriptor = null;
-        if (descriptor instanceof ServerDescriptor) {
-          jsonDescriptor =
-              convertServerDescriptor((ServerDescriptor) descriptor);
+
+        if (descriptor instanceof ServerDescriptor) { // TL what else could it be and where is that defined?
+          jsonDescriptor = convertServerDescriptor((ServerDescriptor) descriptor);
         }
-        /* Could add more else-if statements here. */
+        /* Could add more else-if statements here. */ // TL for example?
         if (jsonDescriptor != null) {
-          bw.write((written++ > 0 ? ",\n" : "") + jsonDescriptor);
+          // TL see above
+          // bw.write((written++ > 0 ? ",\n" : "") + jsonDescriptor);
+          bw.write((written++ > 0 ? "\n" : "") + jsonDescriptor);
         }
       }
     }
-    bw.write("\n]\n}\n");
+    // TL see above
+    // bw.write("\n]\n}\n");
     bw.close();
   }
 
-  /* Inner class to serialize address/port combinations in "or-address"
+  /* Inner class to serialize address/port combinations in "or_address"
    * lines or others.  In theory, we could also include those as
    * strings. */
   static class AddressAndPort {
@@ -120,16 +127,15 @@ public class ConvertToJson {
   static final TimeZone dateTimezone = TimeZone.getTimeZone("UTC");
   static DateFormat dateTimeFormat;
   static {
-    dateTimeFormat = new SimpleDateFormat(dateTimePattern,
-        dateTimeLocale);
+    dateTimeFormat = new SimpleDateFormat(dateTimePattern, dateTimeLocale);
     dateTimeFormat.setLenient(false);
     dateTimeFormat.setTimeZone(dateTimezone);
   }
 
   /* Take a single server descriptor, assume it's a *bridge* server
    * descriptor, and return a JSON string representation for it. */
-  static String convertServerDescriptor(ServerDescriptor desc) {
-    JsonBridgeServerDescriptor json = new JsonBridgeServerDescriptor();
+  static String convertServerDescriptor(ServerDescriptor desc) {                // DESC
+    JsonBridgeServerDescriptor json = new JsonBridgeServerDescriptor();         // JSON
 
     /* Find the @type annotation and include its content. */
     for (String annotation : desc.getAnnotations()) {
@@ -144,10 +150,9 @@ public class ConvertToJson {
     json.socks_port = desc.getSocksPort();
     json.dir_port = desc.getDirPort();
 
+    json.or_addresses = new ArrayList<AddressAndPort>();
     /* If there are any or-addresses, include them in a list. */
-    if (desc.getOrAddresses() != null &&
-        !desc.getOrAddresses().isEmpty()) {
-      json.or_addresses = new ArrayList<AddressAndPort>();
+    if (desc.getOrAddresses() != null && !desc.getOrAddresses().isEmpty()) {
       for (String orAddress : desc.getOrAddresses()) {
         if (!orAddress.contains(":")) {
           continue;
@@ -167,23 +172,24 @@ public class ConvertToJson {
 
     /* Include a bandwidth object with average, burst, and possibly
      * observed bandwidth. */
-    json.bandwidth_avg = desc.getBandwidthRate();
+    json.bandwidth_avg = desc.getBandwidthRate();  // TL why no check for null here?
     json.bandwidth_burst = desc.getBandwidthBurst();
     if (desc.getBandwidthObserved() >= 0) {
       json.bandwidth_observed = desc.getBandwidthObserved();
     }
+    else { json.bandwidth_observed =  null; } // TL added null
 
     /* Include a few more fields, some of them only if they're not
-     * null. */
+     * null. */  // TL why not just omit the !null check? will that lead to null-pointer-exceptions?
     if (desc.getExtraInfoDigest() != null) {
       json.extra_info_digest = desc.getExtraInfoDigest().toUpperCase();
     }
     if (desc.getPlatform() != null) {
       json.platform = desc.getPlatform();
     }
-    json.published = dateTimeFormat.format(desc.getPublishedMillis());
+    json.published = dateTimeFormat.format(desc.getPublishedMillis()); // TL why no null check here?
     json.fingerprint = desc.getFingerprint().toUpperCase();
-    if (desc.isHibernating()) {
+    if (desc.isHibernating()) {  // TL why no explicit null check here?
       json.hibernating = desc.isHibernating();
     }
     if (desc.getUptime() != null) {
@@ -212,7 +218,7 @@ public class ConvertToJson {
     }
 
     /* Include more fields. */
-    json.contact = desc.getContact();
+    json.contact = desc.getContact();  // TL why no null checks here?
     json.family = desc.getFamilyEntries();
     json.eventdns = desc.getUsesEnhancedDnsLogic();
     json.caches_extra_info = desc.getCachesExtraInfo();
@@ -230,15 +236,11 @@ public class ConvertToJson {
 
   /* Convert a read or write history to an inner class that can later be
    * serialized to JSON. */
-  static BandwidthHistory convertBandwidthHistory(
-      org.torproject.descriptor.BandwidthHistory hist) {
+  static BandwidthHistory convertBandwidthHistory(org.torproject.descriptor.BandwidthHistory hist) {
     BandwidthHistory bandwidthHistory = new BandwidthHistory();
-    bandwidthHistory.date = dateTimeFormat.format(
-        hist.getHistoryEndMillis());
-    bandwidthHistory.interval =
-        hist.getIntervalLength();
-    bandwidthHistory.bytes =
-        hist.getBandwidthValues().values();
+    bandwidthHistory.date = dateTimeFormat.format(hist.getHistoryEndMillis());
+    bandwidthHistory.interval = hist.getIntervalLength();
+    bandwidthHistory.bytes = hist.getBandwidthValues().values();
     return bandwidthHistory;
   }
 }
