@@ -26,7 +26,6 @@
     </orderEntry>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="module" module-name="metrics-lib" />
-    <orderEntry type="library" name="metrics-lib" level="project" />
     <orderEntry type="library" name="junit-4.12" level="project" />
     <orderEntry type="library" name="commons-compress-1" level="project" />
     <orderEntry type="library" name="com.google.code.gson:gson:2.3.1" level="project" />

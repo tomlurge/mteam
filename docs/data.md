@@ -198,7 +198,7 @@ JSON SERIALIZATION
 		"allow_single_hop_exits": boolean,
 		"or_address": [
 			{
-				"ip": "",
+				"adress": "",
 				"port": #
 			},
 			...
@@ -519,7 +519,7 @@ JSON SERIALIZATION
 		"transport": [
 			{
 				"transportname": "",
-				"ip": "",
+				"adress": "",
 				"port": #,
 				"args": ""
 			}
@@ -706,7 +706,7 @@ JSON SERIALIZATION
 					"digest": "",
 					"publication": "",
 					"ip": "",
-					"QRPort": #,
+					"qr_port": #,
 					"dir_port": #
 				},
 				"a": [
@@ -950,13 +950,13 @@ JSON SERIALIZATION
 					"identity": "",
 					"digest": "",
 					"publication": "",
-					"ip": "",
+					"adress": "",
 					"or_port": #,
 					"dir_port": #
 				},
 				"a": [
 					{
-						"ip": "",
+						"adress": "",
 						"port": #
 					}
 					...
@@ -1015,7 +1015,7 @@ JSON SERIALIZATION
 	{
 		"descriptor_type": "dir-key-certificate-3 1.0",
 		"dir_address": {
-			"ip": "",
+			"adress": "",
 			"port": #
 		},
 		"fingerprint": "",
@@ -1136,7 +1136,34 @@ Sanitized bridge network statuses are similar to version 2 relay network
 statuses, but with only a published line in the header and without any lines in 
 the footer. The tarballs in archive contain all bridge descriptors of a given 
 month, not just network statuses. 
-…
+
+@type bridge-network-status 1.0
+published                      2015-11-04 02:55:31
+flag-thresholds                stable-uptime=5843092 
+                               stable-mtbf=3365971 
+                               fast-speed=55000 
+                               guard-wfu=98.000% 
+                               guard-tk=691200 
+                               guard-bw-inc-exits=392000 
+                               guard-bw-exc-exits=393000 
+                               enough-mtbf=1 
+                               ignoring-advertised-bws=0
+
+r                              solnettor 
+                               ACJdX2t95Yf3MWkozL7GH2oFyS8 
+                               CjIpVyB8mvCvynTlXKbVvqtX7QQ 
+                               2015-11-04 00:36:22 
+                               10.80.46.34 
+                               9020 
+                               0
+s                              Fast 
+                               Running 
+                               Valid
+w                              Bandwidth=58
+p                              reject 1-65535
+
+[...]
+
 
 JSON SERIALIZATION
 
@@ -1154,15 +1181,16 @@ JSON SERIALIZATION
 		 			"identity_key": "",
 		 			"descriptor": "",
 		 			"date": "",
-		 			"ip": "",
+		 			"adress": "",
 		 			"or_port": #,
 		 			"dir_port": #
 				},
 				"s": ["","",""...],
-				"w": {
-					"bandwidth": #
+				"w": {							//  TODO 	can be more than one
+					"bandwidth": #		//       	no fixed attribute name
 				},
-				"p": ""
+				"p": "",						//  TODO	accept reject
+				"a": ""             //  TODO  additional ip-adress and port
 			}
 			...
 		]
@@ -1221,7 +1249,7 @@ JSON SERIALIZATION
 	{
 	  "descriptor_type": "bridge_server_descriptor 1.1",       
 		"nickname": "",                     req
-		"ip": "",                       req
+		"adress": "",                       req
 		"or_port": #,                       req
 		"socks_port": #,                    req
 		"dir_port": #,                      req     
@@ -1230,7 +1258,7 @@ JSON SERIALIZATION
 		"bandwidth_observed": #,            opt
 		"or_addresses": [
 			{
-				"ip": "",
+				"adress": "",
 				"port": #
 			}
 			...
@@ -1490,7 +1518,7 @@ JSON SERIALIZATION
 		"transport": [
 			{
 				"name": "",
-				"ip": "",
+				"adress": "",
 				"port": #,
 				"args": ""
 			}
@@ -1708,7 +1736,7 @@ JSON SERIALIZATION
 				"last_status": "",
 				"exit_address": [
 					{
-					"ip": "",
+					"adress": "",
 					"date": ""
 					},
 					...
