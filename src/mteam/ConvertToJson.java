@@ -35,14 +35,14 @@ public class ConvertToJson {
   public static void main(String[] args) throws IOException {
 
     // TL did this to start generalization
-    String currentDescriptorCollection ="bridge-server-descriptors-2015-10";
+    String currentDescriptorCollection ="bridge-server-descriptors-2015-11";
 
     DescriptorReader descriptorReader = DescriptorSourceFactory.createDescriptorReader();
     descriptorReader.addTarball(new File("in/" + currentDescriptorCollection + ".tar"));
     Iterator<DescriptorFile> descriptorFiles = descriptorReader.readDescriptors();
 
     int written = 0;
-    BufferedWriter bw = new BufferedWriter(new FileWriter(currentDescriptorCollection + ".json"));
+    BufferedWriter bw = new BufferedWriter(new FileWriter("out/" + currentDescriptorCollection + ".json"));
     // TL Drill expects one doc per line, without semicolon or surrounding object
     // bw.write("{\"descriptors\": [\n");
     while (descriptorFiles.hasNext()) {
