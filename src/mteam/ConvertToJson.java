@@ -45,6 +45,7 @@ public class ConvertToJson {
     BufferedWriter bw = new BufferedWriter(new FileWriter("out/" + currentDescriptorCollection + ".json"));
     // TL Drill expects one doc per line, without semicolon or surrounding object
     // bw.write("{\"descriptors\": [\n");
+    bw.write("{\"test\": \"text\"}\n\n\n");
     while (descriptorFiles.hasNext()) {
       DescriptorFile descriptorFile = descriptorFiles.next();
       for (Descriptor descriptor : descriptorFile.getDescriptors()) {
