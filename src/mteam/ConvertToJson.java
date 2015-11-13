@@ -42,6 +42,7 @@ public class ConvertToJson {
     if (args.length > 0 && args[0].equals("-v")) {
       verbose = true;
     }
+    // verbose=false; // testing
 
     String dir = "";
     if (args.length == 1 && !args[0].equals("-v") ) {
@@ -272,9 +273,18 @@ public class ConvertToJson {
 
 
 
-    /* Convert everything to a JSON string and return that. */
-    Gson gson = new GsonBuilder().serializeNulls().create();
-    return gson.toJson(json);
+    /* Convert everything to a JSON string and return that.
+     * If flag '-v' (for "verbose") is set serialize null-values too
+     */
+
+    if (verbose) {
+      Gson gson = new GsonBuilder().serializeNulls().create();
+      return gson.toJson(json);
+    }
+    else {
+      Gson gson = new GsonBuilder().create();
+      return gson.toJson(json);
+    }
 
   }
 
