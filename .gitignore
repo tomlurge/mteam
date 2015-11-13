@@ -8,14 +8,13 @@ tmtags
 gson-2.4.jar
 gson-2.3.1-javadoc.jar
 gson-2.3.1-sources.jar
-bridge-server-descriptors-2015-11_original.json
 
 
 # tomlurge
 /bin
 /lib
-/out
-/src/in
+/data
 /src/org
-
-todo.md
+/mteam/TestMe.java
+TestMe.java
+TestMeToo.java
