@@ -76,26 +76,7 @@ public class ConvertToJson {
     bw.close();
   }
 
-
-
-   /*  TODO  implement switch for different types of descriptors
-
-
-    server-descriptor
-    extra-info
-    network-status-consensus
-    network-status-vote
-    bridge-network-status
-    bridge-server-descriptor
-    bridge-extra-info
-    tordnsel
-    torperf
-    */
-
-
-  //  TODO  modularize
-  //        keep complex (secondary) attributes constructs in this class
-  //        move (primary) attribute listings to sperate classes per descriptor
+  /* BRIDGES SERVER DESCRIPTORS */
 
   /* Inner class to serialize address/port combinations in "or_address"
    * lines or others.  In theory, we could also include those as strings. */
@@ -137,9 +118,37 @@ public class ConvertToJson {
   }
 
 
+  /* BRIDGE NETWORK STATUS */
+
+  /* Inner class to serialize flag/treshold combinations. */
+  static class FlagsAndTresholds {
+    String flag; // always lower-case
+    int treshold;
+    FlagsAndTresholds(String flag, int treshold) {
+      this.flag = flag;
+      this.treshold = treshold;
+    }
+  }
+
+  static class BridgeStatus {
+    List<R> r; // bridge description
+    List<String> s; // flags
+    List<W> w; // bandwidths
+    List<String> p; // policies
+    String a; // additional IP adress and port
+  }
+
+  static class R {}
+
+  static class W {}
+
+  /*  TODO  modularize
+   *
+   *        move JSON descriptor definition to sperate classes
+   */
+
   /* Inner class to serialize bridge server descriptors. */
   static class JsonBridgeServerDescriptor {
-
     /* mandatory */
     String descriptor_type; // set to bridge-server-descriptor $VERSION
     String nickname; // can be mixed-case
@@ -151,8 +160,7 @@ public class ConvertToJson {
     Integer bandwidth_burst; 
     Boolean onion_key; // usually false b/c sanitization
     Boolean signing_key; // usually false b/c sanitization
-    List<String> exit_policy; 
-
+    List<String> exit_policy;
     /* optional */
     Integer bandwidth_observed; //  missing in older descriptors!
     List<AddressAndPort> or_addresses; // addresses sanitized!
@@ -177,99 +185,138 @@ public class ConvertToJson {
     String router_digest; // upper-case hex
   }
 
+  static class JsonBridgeNetworkStatus {
+    String descriptor_type;
+    String published; // format YYYY-MM-DD HH:MM:SS
+    List<FlagsAndTresholds> flagTresholds;
+    List<BridgeStatus> bridge;
+  }
+
 
   /* Take a single server descriptor, assume it's a *bridge* server
    * descriptor, and return a JSON string representation for it. */
-  static String convertServerDescriptor(ServerDescriptor desc, boolean verbose) {  // DESC
-    JsonBridgeServerDescriptor json = new JsonBridgeServerDescriptor();  // JSON
+  static String convertServerDescriptor(ServerDescriptor desc, boolean verbose) { // DESC
 
-    /* mandatory */
+  /*  TODO  switch for different types of descriptors
+   *
+   *        server-descriptor
+   *        extra-info
+   *        network-status-consensus
+   *        network-status-vote
+   *        bridge-network-status
+   *        bridge-server-descriptor
+   *        bridge-extra-info
+   *        tordnsel
+   *        torperf
+   */
 
-    /* Find the @type annotation and include its content. */
+    //  TODO so geht das natürlich nicht
+    //        da müsste ich ja erst alle descriptoren initialisieren
+    JsonBridgeServerDescriptor json = null;
+    //  TODO  also muss ich wohl ganz am ende die GSON serialisierung
+    //        in eine eigene klasse auslagern
+    //        und aus der schleife heraus aufrufen
+
+    /* Find the @type annotation switch to appropriate JSONdescriptor */
     for (String annotation : desc.getAnnotations()) {
-      if (annotation.startsWith("@type ")) {
+      if (annotation.startsWith("@type bridge-server-descriptor")) {
+        json = new JsonBridgeServerDescriptor(); // JSON
+
+
+        /* mandatory */
         json.descriptor_type = annotation.substring("@type ".length());
-      }
-    }
-    json.nickname = desc.getNickname();
-    json.address = desc.getAddress();
-    json.or_port = desc.getOrPort();
-    json.socks_port = desc.getSocksPort();
-    json.dir_port = desc.getDirPort();
+        json.nickname = desc.getNickname();
+        json.address = desc.getAddress();
+        json.or_port = desc.getOrPort();
+        json.socks_port = desc.getSocksPort();
+        json.dir_port = desc.getDirPort();
 
 
     /* Include a bandwidth object with average, burst, and possibly
      * observed bandwidth. */
-    json.bandwidth_avg = desc.getBandwidthRate();
-    json.bandwidth_burst = desc.getBandwidthBurst();
-    json.onion_key = desc.getOnionKey() != null;
-    json.signing_key = desc.getSigningKey() != null;
-    if (desc.getExitPolicyLines() != null && !desc.getExitPolicyLines().isEmpty()) {
-      json.exit_policy = desc.getExitPolicyLines();
-    }
+        json.bandwidth_avg = desc.getBandwidthRate();
+        json.bandwidth_burst = desc.getBandwidthBurst();
+        json.onion_key = desc.getOnionKey() != null;
+        json.signing_key = desc.getSigningKey() != null;
+        if (desc.getExitPolicyLines() != null && !desc.getExitPolicyLines().isEmpty()) {
+          json.exit_policy = desc.getExitPolicyLines();
+        }
 
     /* optional */
 
-    if (desc.getBandwidthObserved() >= 0) {
-      json.bandwidth_observed = desc.getBandwidthObserved();
-    }
-    json.or_addresses = new ArrayList<AddressAndPort>();
-    if (desc.getOrAddresses() != null && !desc.getOrAddresses().isEmpty()) {
-      for (String orAddress : desc.getOrAddresses()) {
-        if (!orAddress.contains(":")) {
-          continue;
+        if (desc.getBandwidthObserved() >= 0) {
+          json.bandwidth_observed = desc.getBandwidthObserved();
         }
-        int lastColon = orAddress.lastIndexOf(":");
-        try {
-          int port = Integer.parseInt(orAddress.substring(
-                  lastColon + 1));
-          json.or_addresses.add(
-                  new AddressAndPort(orAddress.substring(0,
-                          lastColon), port));
-        } catch (NumberFormatException e) {
-          continue;
+        json.or_addresses = new ArrayList<AddressAndPort>();
+        if (desc.getOrAddresses() != null && !desc.getOrAddresses().isEmpty()) {
+          for (String orAddress : desc.getOrAddresses()) {
+            if (!orAddress.contains(":")) {
+              continue;
+            }
+            int lastColon = orAddress.lastIndexOf(":");
+            try {
+              int port = Integer.parseInt(orAddress.substring(
+                      lastColon + 1));
+              json.or_addresses.add(
+                      new AddressAndPort(orAddress.substring(0,
+                              lastColon), port));
+            } catch (NumberFormatException e) {
+              continue;
+            }
+          }
         }
+        //if (desc.getPlatform() != null) {
+        json.platform = desc.getPlatform();
+        //}
+        json.published = dateTimeFormat.format(desc.getPublishedMillis());
+        json.fingerprint = desc.getFingerprint().toUpperCase();
+        if (desc.isHibernating()) {
+          json.hibernating = desc.isHibernating();
+        }
+
+        if (desc.getUptime() != null) {
+          json.uptime = desc.getUptime();
+        }
+
+        if (desc.getIpv6DefaultPolicy() != null && !desc.getIpv6DefaultPolicy().isEmpty()) {
+          json.ipv6_policy = desc.getIpv6DefaultPolicy();
+        }
+
+        json.contact = desc.getContact();
+        json.family = desc.getFamilyEntries();
+    /* Include bandwidth histories using their own helper method. */
+        if (desc.getReadHistory() != null) {
+          json.read_history = convertBandwidthHistory(desc.getReadHistory());
+        }
+        if (desc.getWriteHistory() != null) {
+          json.write_history = convertBandwidthHistory(desc.getWriteHistory());
+        }
+
+        json.eventdns = desc.getUsesEnhancedDnsLogic();
+        json.caches_extra_info = desc.getCachesExtraInfo();
+        if (desc.getExtraInfoDigest() != null) {
+          json.extra_info_digest = desc.getExtraInfoDigest().toUpperCase();
+        }
+        json.hidden_service_dir_versions = desc.getHiddenServiceDirVersions();
+        json.link_protocol_versions = desc.getLinkProtocolVersions();
+        json.circuit_protocol_versions = desc.getCircuitProtocolVersions();
+        json.allow_single_hop_exits = desc.getAllowSingleHopExits();
+        json.ntor_onion_key = desc.getNtorOnionKey() != null;
+        json.router_digest = desc.getServerDescriptorDigest().toUpperCase();
+
+
+
+
+
+
+
+
+
+
       }
     }
-    if (desc.getPlatform() != null) {
-      json.platform = desc.getPlatform();
-    }
-    json.published = dateTimeFormat.format(desc.getPublishedMillis());
-    json.fingerprint = desc.getFingerprint().toUpperCase();
-    if (desc.isHibernating()) {
-      json.hibernating = desc.isHibernating();
-    }
 
-    if (desc.getUptime() != null) {
-      json.uptime = desc.getUptime();
-    }
-
-    if (desc.getIpv6DefaultPolicy() != null && !desc.getIpv6DefaultPolicy().isEmpty()) {
-      json.ipv6_policy = desc.getIpv6DefaultPolicy();
-    }
-
-    json.contact = desc.getContact();
-    json.family = desc.getFamilyEntries();
-    /* Include bandwidth histories using their own helper method. */
-    if (desc.getReadHistory() != null) {
-      json.read_history = convertBandwidthHistory(desc.getReadHistory());
-    }
-    if (desc.getWriteHistory() != null) {
-      json.write_history = convertBandwidthHistory(desc.getWriteHistory());
-    }
-
-    json.eventdns = desc.getUsesEnhancedDnsLogic();
-    json.caches_extra_info = desc.getCachesExtraInfo();
-    if (desc.getExtraInfoDigest() != null) {
-      json.extra_info_digest = desc.getExtraInfoDigest().toUpperCase();
-    }
-    json.hidden_service_dir_versions = desc.getHiddenServiceDirVersions();
-    json.link_protocol_versions = desc.getLinkProtocolVersions();
-    json.circuit_protocol_versions = desc.getCircuitProtocolVersions();
-    json.allow_single_hop_exits = desc.getAllowSingleHopExits();
-    json.ntor_onion_key = desc.getNtorOnionKey() != null;
-    json.router_digest = desc.getServerDescriptorDigest().toUpperCase();
-
+   // JsonBridgeServerDescriptor json = new JsonBridgeServerDescriptor(); // JSON
 
 
 
@@ -286,6 +333,10 @@ public class ConvertToJson {
       return gson.toJson(json);
     }
 
+  }
+
+  static class ToJson {
+    generateJson(JsonBridgeServerDescriptor json)
   }
 
 

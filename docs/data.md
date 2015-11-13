@@ -1177,27 +1177,35 @@ JSON SERIALIZATION
 	{
 		"descriptor_type": "bridge-network-status 1.0",
 		"published": "",
-		"flag_tresholds": {
-			"": #,     // flag : treshold
+		"flag_tresholds": [
+			{
+			  "flag": "",
+			  "treshold": #
+			}
 			...
-		},
+		],
 		"bridge": [
 			{
 				"r": {
 					"nickname": "",,
-		 			"identity_key": "",
-		 			"descriptor": "",
+		 			"identity": "",
+		 			"digest": "",
 		 			"date": "",
-		 			"adress": "",
+		 			"time": "",
+		 			"ip": "",
 		 			"or_port": #,
 		 			"dir_port": #
 				},
 				"s": ["","",""...],
-				"w": {							//  TODO 	can be more than one
-					"bandwidth": #		//       	no fixed attribute name
-				},
-				"p": "",						//  TODO	accept reject
-				"a": ""             //  TODO  additional ip-adress and port
+				"w": [
+				  {
+					  "key": "bandwidth",
+					  "value": #
+					 }
+					 ...
+				],
+				"p": ["","",""...],
+				"a": ""
 			}
 			...
 		]
@@ -1230,6 +1238,7 @@ router-digest-sha256 to server descriptors published by bridges using an Ed25519
 master key.
 
 
+	@type bridge-server-descriptor 1.1
 	router                        Unnamed 
 	                              10.143.227.19 
 	                              9001 
