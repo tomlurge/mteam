@@ -1,4 +1,4 @@
-package mteam;
+package docs;
 
 /* Import standard Java classes. */
 import java.io.BufferedWriter;
