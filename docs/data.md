@@ -54,22 +54,29 @@ Most of the documents have nested data structures. Some get quite large.
 	x schema done
 	+ schema almost done
 	* needs a decision
+	
 
-common attributes (from which to construct a key in HBase, eventually)
+descriptor formats,   
+in which version (if at all) they should be ingested into the analytics server  
+and common attributes (from which to construct a key in HBase, eventually)
 
-	name                                published  fingerprint
-	server-descriptor                   x          x                      
-	extra-info                          x          x                          
-	network-status-consensus            -          -                       
-	network-status-vote                 x          x                       
-	dir-key-certificate                 x          x                        
-	network-status-microdesc-consensus                                    
-	bridge-network-status               x          -         
-	bridge-server-descriptor            x          x              
-	bridge-extra-info                   x          x                        
-	bridge-pool-assignment              x          x                       
-	tordnsel                            x          x                        
-	torperf                             -          -                        
+	name                                 ingest in     | common atributes
+	                                     v1| v2| ??|no | published | fingerprint
+	server-descriptor                    x |   |   |   | x         | x                      
+	extra-info                           x |   |   |   | x         | x                          
+	network-status-consensus             x |   |   |   | -         | -                       
+	network-status-vote                  x |   |   |   | x         | x                       
+	dir-key-certificate                    |   | x |   | x         | x                        
+	network-status-microdesc-consensus     |   |   |x  |           |        
+	microdescriptor                        |   |   |x  |           |  
+	network-status-2 1.0                   | x |   |   |           |  
+	directory 1.0                          | x |   |   |           |  
+	bridge-network-status                x |   |   |   | x         | -         
+	bridge-server-descriptor             x |   |   |   | x         | x              
+	bridge-extra-info                    x |   |   |   | x         | x                        
+	bridge-pool-assignment                 |   | x |   | x         | x                       
+	tordnsel                             x |   |   |   | x         | x                        
+	torperf                              x |   |   |   | -         | -                        
 
 
 #### JSON serialization legend
