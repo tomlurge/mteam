@@ -15,11 +15,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 /* Import classes from metrics-lib. */
-import org.torproject.descriptor.Descriptor;
-import org.torproject.descriptor.DescriptorFile;
-import org.torproject.descriptor.DescriptorReader;
-import org.torproject.descriptor.DescriptorSourceFactory;
-import org.torproject.descriptor.ServerDescriptor;
+import org.torproject.descriptor.*;
 
 /* Import classes from Google's Gson library. */
 import com.google.gson.Gson;
@@ -27,28 +23,26 @@ import com.google.gson.GsonBuilder;
 
 
 
-
 public class ConvertToJson {
 
   static boolean verbose = false;
+  static boolean archive = false;
+  static String dir = "";
+
+
   /* Read all descriptors in the provided directory and
-   * convert all server descriptors to the JSON format. */
+   * convert them to the appropriate JSON format. */
   public static void main(String[] args) throws IOException {
 
     /*  optional arguments
      *    -v                force creation of attributes with null values
+     *    -a                generate .gz archive
      *    <directory name>  scan only a given subdirectory of data/in
      */
-
-    if (args.length > 0 && args[0].equals("-v")) {
-      verbose = true;
-    }
-    String dir = "";
-    if (args.length == 1 && !args[0].equals("-v") ) {
-      dir = args[0];
-    }
-    else if (args.length == 2) {
-      dir = args[1];
+    for(String arg : args) {
+      if (arg.equals("-v")) verbose = true;
+      else if (arg.equals("-a")) archive = true;
+      else dir = arg;
     }
 
     DescriptorReader descriptorReader = DescriptorSourceFactory.createDescriptorReader();
@@ -57,23 +51,67 @@ public class ConvertToJson {
 
     int written = 0;
     BufferedWriter bw = new BufferedWriter(new FileWriter("data/out/test.json"));
-    bw.write("{\"to start with\" : \"some remark\"}\n");
+
+    // TODO remove after testing
+    bw.write(
+      "{\"verbose\": " + verbose +
+      ", \"archive\": " + archive  +
+      ", \"starting with directory\" : \"data/in/" + dir + "\"},\n"
+    );
+
     while (descriptorFiles.hasNext()) {
       DescriptorFile descriptorFile = descriptorFiles.next();
       for (Descriptor descriptor : descriptorFile.getDescriptors()) {
         String jsonDescriptor = null;
-
+        /*
+         *    descriptor formats   +    classes
+         *
+         *    server-descriptor         ServerDescriptor
+         *    extra-info                ExtraInfoDescriptor
+         *    network-status-consensus  RelayNetworkStatusConsensus
+         *    network-status-vote       RelayNetworkStatusVote
+         *    bridge-network-status     BridgeNetworkStatus
+         *    bridge-server-descriptor  ServerDescriptor
+         *    bridge-extra-info         ExtraInfoDescriptor
+         *    tordnsel                  ExitList
+         *    torperf                   TorperfResult
+         */
         if (descriptor instanceof ServerDescriptor) {
           jsonDescriptor = convertCollectorDescriptor((ServerDescriptor) descriptor);
         }
-        /* Could add more else-if statements here. */
+        //  if (descriptor instanceof ExtraInfoDescriptor) {
+        //    jsonDescriptor = convertExtraInfoDescriptor((ExtraInfoDescriptor) descriptor);
+        //  }
+        //  if (descriptor instanceof RelayNetworkStatusConsensus) {
+        //    jsonDescriptor = convertRelayNetworkStatusConsensus((RelayNetworkStatusConsensus) descriptor);
+        //  }
+        //  if (descriptor instanceof RelayNetworkStatusVote) {
+        //    jsonDescriptor = convertRelayNetworkStatusVote((RelayNetworkStatusVote) descriptor);
+        //  }
+        //  if (descriptor instanceof BridgeNetworkStatus) {
+        //    jsonDescriptor = convertBridgeNetworkStatus((BridgeNetworkStatus) descriptor);
+        //  }
+        //  if (descriptor instanceof ExtraInfoDescriptor) {
+        //    jsonDescriptor = convertExtraInfoDescriptor((ExtraInfoDescriptor) descriptor);
+        //  }
+        //  if (descriptor instanceof ExitList) {
+        //    jsonDescriptor = convertExitList((ExitList) descriptor);
+        //  }
+        //  if (descriptor instanceof TorperfResult) {
+        //    jsonDescriptor = convertTorperfResult((TorperfResult) descriptor);
+        //  }
+
         if (jsonDescriptor != null) {
-          bw.write((written++ > 0 ? "\n" : "") + jsonDescriptor);
+          // TODO       remove this -v- comma after testing
+          bw.write((written++ > 0 ? ",\n" : "") + jsonDescriptor);
         }
       }
     }
     bw.close();
+
   }
+
+
 
   /* BRIDGES SERVER DESCRIPTORS */
 
@@ -141,19 +179,7 @@ public class ConvertToJson {
 
   static class W {}
 
-  /*
-   *  descriptor definitions
-   *
-   *        server-descriptor
-   *        extra-info
-   *        network-status-consensus
-   *        network-status-vote
-   *        bridge-network-status
-   *        bridge-server-descriptor
-   *        bridge-extra-info
-   *        tordnsel
-   *        torperf
-   */
+
 
   static class JsonDescriptor {}
 
@@ -223,14 +249,7 @@ public class ConvertToJson {
 
       /*
        *        server-descriptor
-       *        extra-info
-       *        network-status-consensus
-       *        network-status-vote
-       *        bridge-network-status
        *        bridge-server-descriptor
-       *        bridge-extra-info
-       *        tordnsel
-       *        torperf
        */
 
       if (annotation.startsWith("@type bridge-server-descriptor")) {
@@ -317,39 +336,29 @@ public class ConvertToJson {
     }
 
 
-
-    // JsonBridgeServerDescriptor json = new JsonBridgeServerDescriptor(); // JSON
-
-//    /* Convert everything to a JSON string and return that.
-//     * If flag '-v' (for "verbose") is set serialize null-values too
-//     */
-//
-//    if (verbose) {
-//      Gson gson = new GsonBuilder().serializeNulls().create();
-//      return gson.toJson(json);
-//    }
-//    else {
-//      Gson gson = new GsonBuilder().create();
-//      return gson.toJson(json);
-//    }
-
     return jDesc;
   }
 
 
   /* Convert everything to a JSON string and return that.
    * If flag '-v' (for "verbose") is set serialize null-values too
+   * If flag '-a' (for "archive") is set generate .gz archive
    */
   static class ToJson {
     static String serialize(JsonDescriptor json) {
       Gson gson;
+      String output;
       if (verbose) {
         gson = new GsonBuilder().serializeNulls().create();
       }
       else {
         gson = new GsonBuilder().create();
       }
-      return gson.toJson(json);
+      output = gson.toJson(json);
+      if (archive) {
+        // TODO
+      }
+      return output;
     }
   }
 
