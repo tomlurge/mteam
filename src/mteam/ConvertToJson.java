@@ -30,7 +30,8 @@ import com.google.gson.GsonBuilder;
 
 public class ConvertToJson {
 
-  /* Read all descriptors in the provided (decompressed) tarball and
+  static boolean verbose = false;
+  /* Read all descriptors in the provided directory and
    * convert all server descriptors to the JSON format. */
   public static void main(String[] args) throws IOException {
 
@@ -38,12 +39,10 @@ public class ConvertToJson {
      *    -v                force creation of attributes with null values
      *    <directory name>  scan only a given subdirectory of data/in
      */
-    boolean verbose = false;
+
     if (args.length > 0 && args[0].equals("-v")) {
       verbose = true;
     }
-    // verbose=false; // testing
-
     String dir = "";
     if (args.length == 1 && !args[0].equals("-v") ) {
       dir = args[0];
@@ -65,7 +64,7 @@ public class ConvertToJson {
         String jsonDescriptor = null;
 
         if (descriptor instanceof ServerDescriptor) {
-          jsonDescriptor = convertServerDescriptor((ServerDescriptor) descriptor, verbose);
+          jsonDescriptor = convertCollectorDescriptor((ServerDescriptor) descriptor);
         }
         /* Could add more else-if statements here. */
         if (jsonDescriptor != null) {
@@ -142,13 +141,35 @@ public class ConvertToJson {
 
   static class W {}
 
-  /*  TODO  modularize
+  /*
+   *  descriptor definitions
    *
-   *        move JSON descriptor definition to sperate classes
+   *        server-descriptor
+   *        extra-info
+   *        network-status-consensus
+   *        network-status-vote
+   *        bridge-network-status
+   *        bridge-server-descriptor
+   *        bridge-extra-info
+   *        tordnsel
+   *        torperf
    */
 
-  /* Inner class to serialize bridge server descriptors. */
-  static class JsonBridgeServerDescriptor {
+  static class JsonDescriptor {}
+
+  static class JsonServerDescriptor extends JsonDescriptor {}
+  static class JsonExtraInfo extends JsonDescriptor {}
+  static class JsonNetworkStatusConsensus extends JsonDescriptor {}
+  static class JsonNetworkStatusVote extends JsonDescriptor {}
+
+  static class JsonBridgeNetworkStatus extends JsonDescriptor {
+    String descriptor_type;
+    String published; // format YYYY-MM-DD HH:MM:SS
+    List<FlagsAndTresholds> flagTresholds;
+    List<BridgeStatus> bridge;
+  }
+
+  static class JsonBridgeServerDescriptor extends JsonDescriptor {
     /* mandatory */
     String descriptor_type; // set to bridge-server-descriptor $VERSION
     String nickname; // can be mixed-case
@@ -185,44 +206,35 @@ public class ConvertToJson {
     String router_digest; // upper-case hex
   }
 
-  static class JsonBridgeNetworkStatus {
-    String descriptor_type;
-    String published; // format YYYY-MM-DD HH:MM:SS
-    List<FlagsAndTresholds> flagTresholds;
-    List<BridgeStatus> bridge;
-  }
+  static class JsonBridgeExtraInfo extends JsonDescriptor {}
+  static class JsonTordnsel extends JsonDescriptor {}
+  static class JsonTorperf extends JsonDescriptor {}
 
 
-  /* Take a single server descriptor, assume it's a *bridge* server
-   * descriptor, and return a JSON string representation for it. */
-  static String convertServerDescriptor(ServerDescriptor desc, boolean verbose) { // DESC
 
-  /*  TODO  switch for different types of descriptors
-   *
-   *        server-descriptor
-   *        extra-info
-   *        network-status-consensus
-   *        network-status-vote
-   *        bridge-network-status
-   *        bridge-server-descriptor
-   *        bridge-extra-info
-   *        tordnsel
-   *        torperf
-   */
+  /* Take a single CollecTor server descriptor, test which type it is,
+   * and return a JSON string representation for it. */
+  static String convertCollectorDescriptor(ServerDescriptor desc) {
 
-    //  TODO so geht das natürlich nicht
-    //        da müsste ich ja erst alle descriptoren initialisieren
-    JsonBridgeServerDescriptor json = null;
-    //  TODO  also muss ich wohl ganz am ende die GSON serialisierung
-    //        in eine eigene klasse auslagern
-    //        und aus der schleife heraus aufrufen
+    String jDesc = null;
 
     /* Find the @type annotation switch to appropriate JSONdescriptor */
     for (String annotation : desc.getAnnotations()) {
+
+      /*
+       *        server-descriptor
+       *        extra-info
+       *        network-status-consensus
+       *        network-status-vote
+       *        bridge-network-status
+       *        bridge-server-descriptor
+       *        bridge-extra-info
+       *        tordnsel
+       *        torperf
+       */
+
       if (annotation.startsWith("@type bridge-server-descriptor")) {
-        json = new JsonBridgeServerDescriptor(); // JSON
-
-
+        JsonBridgeServerDescriptor json = new JsonBridgeServerDescriptor();
         /* mandatory */
         json.descriptor_type = annotation.substring("@type ".length());
         json.nickname = desc.getNickname();
@@ -230,20 +242,20 @@ public class ConvertToJson {
         json.or_port = desc.getOrPort();
         json.socks_port = desc.getSocksPort();
         json.dir_port = desc.getDirPort();
-
-
-    /* Include a bandwidth object with average, burst, and possibly
-     * observed bandwidth. */
         json.bandwidth_avg = desc.getBandwidthRate();
         json.bandwidth_burst = desc.getBandwidthBurst();
+        // test, if there is a key: return 'true' if yes, 'false' otherwise
         json.onion_key = desc.getOnionKey() != null;
         json.signing_key = desc.getSigningKey() != null;
+        // verbose testing because of List type
+        // first check that the list is not null, then if it's empty
+        // (checking for emptiness right away could lead to null pointer exc)
         if (desc.getExitPolicyLines() != null && !desc.getExitPolicyLines().isEmpty()) {
           json.exit_policy = desc.getExitPolicyLines();
         }
-
-    /* optional */
-
+        /* optional */
+        // can be '-1' if null. in taht case we don't touch it here, leaving the
+        // default from the class definition intact
         if (desc.getBandwidthObserved() >= 0) {
           json.bandwidth_observed = desc.getBandwidthObserved();
         }
@@ -265,33 +277,29 @@ public class ConvertToJson {
             }
           }
         }
-        //if (desc.getPlatform() != null) {
         json.platform = desc.getPlatform();
-        //}
         json.published = dateTimeFormat.format(desc.getPublishedMillis());
         json.fingerprint = desc.getFingerprint().toUpperCase();
+        // isHibernating can't return 'null' because it's of type 'boolean'
+        // (with little 'b') but it's only present in the collecTor data if it's
+        // true. therefor we check for it's existence and include it if it
+        // exists. otherwise we leave it alone / to the default value from
+        // the class definition above (which is null)
         if (desc.isHibernating()) {
           json.hibernating = desc.isHibernating();
         }
-
-        if (desc.getUptime() != null) {
-          json.uptime = desc.getUptime();
-        }
-
-        if (desc.getIpv6DefaultPolicy() != null && !desc.getIpv6DefaultPolicy().isEmpty()) {
-          json.ipv6_policy = desc.getIpv6DefaultPolicy();
-        }
-
+        json.uptime = desc.getUptime();
+        json.ipv6_policy = desc.getIpv6DefaultPolicy();
         json.contact = desc.getContact();
         json.family = desc.getFamilyEntries();
-    /* Include bandwidth histories using their own helper method. */
+        // check for 'null' first because we want to run a method on it
+        // and not get a null pointer exception meanwhile
         if (desc.getReadHistory() != null) {
           json.read_history = convertBandwidthHistory(desc.getReadHistory());
         }
         if (desc.getWriteHistory() != null) {
           json.write_history = convertBandwidthHistory(desc.getWriteHistory());
         }
-
         json.eventdns = desc.getUsesEnhancedDnsLogic();
         json.caches_extra_info = desc.getCachesExtraInfo();
         if (desc.getExtraInfoDigest() != null) {
@@ -304,39 +312,45 @@ public class ConvertToJson {
         json.ntor_onion_key = desc.getNtorOnionKey() != null;
         json.router_digest = desc.getServerDescriptorDigest().toUpperCase();
 
-
-
-
-
-
-
-
-
-
+        jDesc = ToJson.serialize(json);
       }
     }
 
-   // JsonBridgeServerDescriptor json = new JsonBridgeServerDescriptor(); // JSON
 
 
+    // JsonBridgeServerDescriptor json = new JsonBridgeServerDescriptor(); // JSON
 
-    /* Convert everything to a JSON string and return that.
-     * If flag '-v' (for "verbose") is set serialize null-values too
-     */
+//    /* Convert everything to a JSON string and return that.
+//     * If flag '-v' (for "verbose") is set serialize null-values too
+//     */
+//
+//    if (verbose) {
+//      Gson gson = new GsonBuilder().serializeNulls().create();
+//      return gson.toJson(json);
+//    }
+//    else {
+//      Gson gson = new GsonBuilder().create();
+//      return gson.toJson(json);
+//    }
 
-    if (verbose) {
-      Gson gson = new GsonBuilder().serializeNulls().create();
-      return gson.toJson(json);
-    }
-    else {
-      Gson gson = new GsonBuilder().create();
-      return gson.toJson(json);
-    }
-
+    return jDesc;
   }
 
+
+  /* Convert everything to a JSON string and return that.
+   * If flag '-v' (for "verbose") is set serialize null-values too
+   */
   static class ToJson {
-    generateJson(JsonBridgeServerDescriptor json)
+    static String serialize(JsonDescriptor json) {
+      Gson gson;
+      if (verbose) {
+        gson = new GsonBuilder().serializeNulls().create();
+      }
+      else {
+        gson = new GsonBuilder().create();
+      }
+      return gson.toJson(json);
+    }
   }
 
 
