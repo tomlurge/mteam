@@ -44,7 +44,7 @@ Most of the documents have nested data structures. Some get quite large.
 	network-status-vote                  x    v3 3.4.1.
 	dir-key-certificate                  x    v3 3.1.   Creating key certificates
 	network-status-microdesc-consensus   x    v3 3.9.2. Microsescriptor consensus
-	bridge-network-status                x
+	bridge-network-status                x    v2 3.0    Network Status Format
 	bridge-server-descriptor             x
 	bridge-extra-info                    x               
 	bridge-pool-assignment               -    postponed
@@ -60,23 +60,23 @@ descriptor formats,
 in which version (if at all) they should be ingested into the analytics server  
 and common attributes (from which to construct a key in HBase, eventually)
 
-	name                                 ingest in     | common atributes
-	                                     v1| v2| ??|no | published | fingerprint
-	server-descriptor                    x |   |   |   | x         | x                      
-	extra-info                           x |   |   |   | x         | x                          
-	network-status-consensus             x |   |   |   | -         | -                       
-	network-status-vote                  x |   |   |   | x         | x                       
-	dir-key-certificate                    |   | x |   | x         | x                        
-	network-status-microdesc-consensus     |   |   |x  |           |        
-	microdescriptor                        |   |   |x  |           |  
-	network-status-2 1.0                   | x |   |   |           |  
-	directory 1.0                          | x |   |   |           |  
-	bridge-network-status                x |   |   |   | x         | -         
-	bridge-server-descriptor             x |   |   |   | x         | x              
-	bridge-extra-info                    x |   |   |   | x         | x                        
-	bridge-pool-assignment                 |   | x |   | x         | x                       
-	tordnsel                             x |   |   |   | x         | x                        
-	torperf                              x |   |   |   | -         | -                        
+	name                         ingest in     |  metrics-lib class      | common atributes
+	                             v1| v2| ??|no |                         | published | fingerprint
+	server-descriptor            x |   |   |   |  ServerDescriptor       | x         | x                      
+	extra-info                   x |   |   |   |  ExtraInfoDescriptor    | x         | x                          
+	network-status-consensus     x |   |   |   |  RelayNetworkStatusCons.| -         | -                       
+	network-status-vote          x |   |   |   |  RelayNetworkStatusVote | x         | x                       
+	dir-key-certificate            |   | x |   |                         | x         | x                        
+	network-status-microdesc-c.    |   |   |x  |                         |           |        
+	microdescriptor                |   |   |x  |                         |           |  
+	network-status-2 1.0           | x |   |   |                         |           |  
+	directory 1.0                  | x |   |   |                         |           |  
+	bridge-network-status        x |   |   |   |  BridgeNetworkStatus    | x         | -         
+	bridge-server-descriptor     x |   |   |   |  ServerDescriptor       | x         | x              
+	bridge-extra-info            x |   |   |   |  ExtraInfoDescriptor    | x         | x                        
+	bridge-pool-assignment         |   | x |   |                         | x         | x                       
+	tordnsel                     x |   |   |   |  ExitList               | -         | -                        
+	torperf                      x |   |   |   |  TorperfResult          | -         | -                        
 
 
 #### JSON serialization legend
@@ -314,8 +314,9 @@ JSON SERIALIZATION
 		"descriptor_type": "extra-info 1.0",
 		"nickname": "",
 		"fingerprint": "",
-		"identity_ed25519": boolean,
+		// "identity_ed25519": boolean,
 		"published": "",
+		"extra_info_digest": "",
 		"read_history": {
 			"date": "",
 			"interval": #,   // default: 86400
@@ -329,38 +330,6 @@ JSON SERIALIZATION
 		"geoip_db_digest": "",
 		"geoip6_db_digest": "",
 		"geoip_start_time": "",
-		"geoip_client_origins": [
-			{
-				"countryCode": "",
-				"value": #
-			}
-			...
-		],
-		"bridge_stats_end":  {
-			"date": "",
-			"interval": #   // default: 86400
-		},
-		"bridge_ips":[
-			{
-				"countryCode": "",
-				"value": #
-			}
-			...
-		],
-		"bridge_ip_versions": [
-			{
-				"family": "",
-				"value": #
-			}
-			...
-		],
-		"bridge_ip_transports": [
-			{
-				"transport": "",
-				"value": #
-			}
-			...
-		],
 		"dirreq_stats_end":  {
 			"date": "",
 			"interval": #   // default: 86400
@@ -466,7 +435,7 @@ JSON SERIALIZATION
 		"cell_queued_cells": [#,#,#...],
 		"cell_time_in_queue": [#,#,#...],
 		"cell_circuits_per_decile": #,
-		"conn_bi_direct"::  {
+		"conn_bi_direct":  {
 			"date": "",
 			"interval": #,   // default: 86400
 			"below": #,
@@ -474,7 +443,7 @@ JSON SERIALIZATION
 			"write": #,
 			"both": #
 		},
-		"exit_stats_end"::  {
+		"exit_stats_end":  {
 			"date": "",
 			"interval": #   // default: 86400
 		},
@@ -499,7 +468,7 @@ JSON SERIALIZATION
 			}
 			...
 		],
-		"hidserv_stats_end"::  {
+		"hidserv_stats_end":  {
 			"date": "",
 			"interval": #   // default: 86400
 		},
@@ -656,95 +625,103 @@ flags, heuristics used for relay selection, etc.
 
 JSON SERIALIZATION
 
-	{
+                                        metrics-lib class/method
+	{                                     RelayNetworkStatusConsensus
 		"descriptor_type": "network-status-consensus-3 1.0",
-		"vote_status": "",
-    "consensus_method": #,
-		"valid_after": "",
-		"fresh_until": "",
-		"valid_until": "",
-		"voting_delay": {
-			"vote_seconds": #,
-			"dist_seconds": #
-		},
-		"client_versions": ["","",""...],
-		"server_versions": ["","",""...],
-		"package": [
-			{
-				"package_name": "",
-				"version": "",
-				"url": "",
-				"digests": [
-					{
-						"digest_type": "",
-						"digest_value": ""
-					}
-					...
-				]
-			}
-			...
-		],
-		"known_flags": ["","",""...],
-		"params": [
-			{
-				"param": "",
-				"value": # 
-			}
-			...
-		],
-		"authority": [
-			{
-				"nickname": "",
-				"identity": "",
-				"adress": "",
-				"ip": "",
-				"dir_port": #,
-				"or_port": #
-				"contact": "",
-				"vote_digest": ""
-			}
-			...
-		],
-		"router_status": [
-			{
-				"r": {
-					"nickname": "",
-					"identity": "",
-					"digest": "",
-					"publication": "",
-					"ip": "",
-					"qr_port": #,
-					"dir_port": #
-				},
-				"a": [
-					{
-						"ip": "",
-						"port": #
-					}
-					...
-				],
-				"s": ["","",""...],
-				"v": "",
-				"w": {
-					"bandwidth": #,
-					"unmeasured": #
-				},
-				"p": ["","",""...]
-			}
-			...
-		],
-		"directory_footer": {
-			"bandwidth_weights": {
-				"": #    //  weight_keyword : number
-				...
-			},
-			"directory_signature": [
-				{
-					"algorithm": "",
-					"identity": "",
-					"signing_key_digest": "",
-					"signature": boolean
+		"vote_status": #,                   int getNetworkStatusVersion
+    "consensus_method": #,              int getConsensusMethod
+		"consensus_flavor": ""              getConsensusFlavor
+		"valid_after": "",                  long getValidAfterMillis
+		"fresh_until": "",                  long getFreshUntilMillis
+		"valid_until": "",                  long getValidUntilMillis
+		"voting_delay": {                   
+			"vote_seconds": #,                long getVoteSeconds
+			"dist_seconds": #                 long getDistSeconds
+		},                                  
+		"client_versions": ["","",""...],   getRecommendedClientVersions
+		"server_versions": ["","",""...],   getRecommendedServerVersions
+		"package": [                        
+			{                                 
+				"package_name": "",             
+				"version": "",                  
+				"url": "",                      
+				"digests": [                    
+					{                             
+						"digest_type": "",          
+						"digest_value": ""          
+					}                             
+					...                           
+				]                               
+			}                                 
+			...                               
+		],                                  
+		"known_flags": ["","",""...],       getKnownFlags
+		"params": [                         getConsensusParams
+			{                                 
+				"param": "",                    
+				"value": #                      
+			}                                 
+			...                               
+		],                                  
+		"authority": [                      DirSourceEntry
+			{                                 
+				"nickname": "",                 getNickname
+				"identity": "",                 getIdentity
+				"adress": "",                   getIp
+				"ip": "",                       getIp
+				"dir_port": #,                  getDirPort
+				"or_port": #                    getOrPort
+				"contact": "",                  getContactLine
+				"vote_digest": ""               getVoteDigest
+				"legacy": boolean               isLegacy
+			}                                 
+			...                               
+		],                                  
+		"router_status": [                  SortedMap<String, NetworkStatusEntry> getStatusEntries()
+			{                                 
+				"r": {                          
+					"nickname": "",               getNickname
+					"identity": "",               getFingerprint
+					"digest": "",                 getDescriptor
+					"publication": "",            long getPublishedMillis
+					"ip": "",                     getAddress
+					"qr_port": #,                 int getOrPort
+					"dir_port": #                 int getDirPort
+				},                              
+				"a": [                          ¿¿¿ getOrAddresses ???
+					{                             
+						"ip": "",                   
+						"port": #                   
+					}                             
+					...                           
+				],                              
+				"s": ["","",""...],             getFlags
+				"v": "",                        getVersion
+				"w": {                          
+					"bandwidth": #,               long getBandwidth
+					"measured": #                 long getMeasured
+					"unmeasured": boolean         getUnMeasured
+				},                              
+				"p": {
+				  "default_policy": "",         getDefaultPolicy
+				  "port_summary": ""            getPortList
 				}
+			}                                 
+			...                
+		],                
+		"directory_footer": {               
+			"bandwidth_weights": {            getBandwidthWeights
+				"": #    //weight_keyword : #   SortedMap<String, Integer>
+				...                             
+			},                           
+			"consensus_digest: "",            getConsensusDigest
+			"directory_signature": [          DirectorySignature
+				{                               
+					"algorithm": "",              getAlgorithm
+					"identity": "",               getIdentity
+					"signing_key_digest": "",     getSigningKeyDigest
+					"signature": boolean          getSignature
+				}                                               
 				...
 			]
 		}
@@ -879,127 +856,139 @@ consensus. Vote documents are by far the largest documents provided here.
 
 JSON SERIALIZATION
 
-	{
+                                       metrics-lib class/method
+	{                                    RelayNetworkStatusVote
 		"descriptor_type": "network-status-vote-3 1.0",
-		"vote_status": "",
-		"consensus_methods": [#,#,#...],
-		"published": "",
-		"valid_after": "",
-		"flag_thresholds": [
-			{
-				"treshold": "",
-				"value": #,
-			}
-			...   
-		],
-		"fresh_until": "",
-		"valid_until": "",
-		"voting_delay": {
-			"vote_seconds": #,
-			"dist_seconds": #
-		},
-		"client_versions": ["","",""...],
-		"server_versions": ["","",""...],
-		"package": [
-			{
-				"package_name": "",
-				"version": "",
-				"url": "",
-				"digests": [
-					{
-						"digest_type": "",
-						"digest_value": ""
+		"vote_status": #,                  int getNetworkStatusVersion
+		"consensus_methods": [#,#,#...],   getConsensusMethods
+		"published": "",                   long getPublishedMillis
+		"valid_after": "",                 long getValidAfterMillis
+		"flag_thresholds": [               
+			{                                
+				"stable-uptime": #,            long getStableUptime
+				"stable-mtbf": #,              long getStableMtbf
+				"enough-mtbf": #,              long getEnoughMtbfInfo
+				"fast-speed": #,               long getFastBandwidth
+				"guard-wfu": #,                long getGuardWfu
+				"guard-tk": #,                 long getGuardTk
+				"guard-bw-inc-exits": #,       long getGuardBandwidthIncludingExits
+				"guard-bw-exc-exits": #,       long getGuardBandwidthExcludingExits
+				"ignoring-advertised-bws": #   
+			}                                
+			...                              
+		],                                 
+		"fresh_until": "",                 long getFreshUntilMillis
+		"valid_until": "",                 long getValidUntilMillis
+		"voting_delay": {                  
+			"vote_seconds": #,               long getVoteSeconds
+			"dist_seconds": #                long getDistSeconds
+		},                                 
+		"client_versions": ["","",""...],  getRecommendedClientVersions
+		"server_versions": ["","",""...],  getRecommendedServerVersions
+		"package": [                       
+			{                                
+				"package_name": "",            
+				"version": "",                 
+				"url": "",                     
+				"digests": [                   
+					{                            
+						"digest_type": "",         
+						"digest_value": ""         
 					}
 					...
 				]
 			}
 			...
 		],
-		"known_flags": ["","",""...],
-		"params": [
-			{
-				"param": "",
-				"value": # 
-			}
-			...
-		],
-		authority: {
-			"nickname": "",
-			"identity": "",
-			"adress": "",
-			"ip": "",
-			"dir_port": #,
-			"or_port": #
-			"contact": "",
-			"legacy_dir_key": {
-				"nickname": "",
-				"identity": "",
-				"adress": "",
-				"ip": "",
-				"dir_port": #,
-				"or_port": #
-			},
-			"key_certificate": {
-				"version": #,
-				"fingerprint": "",
-				"dir_key_published": "",   
-				"dir_key_expires": "",
-				"dir_identity_key": boolean,
-				"dir_signing_key": boolean,
-				"dir_key_crosscert": boolean,
-				"dir_key_certification": boolean
+		"known_flags": ["","",""...],      getKnownFlags
+		"params": [                        getConsensusParams SortedMap<String, Integer>
+			{                                
+				"param": "",                   
+				"value": #                     int
+			}                             
+			...                             
+		],                             
+		authority: {                       
+			"nickname": "",                  getNickname
+			"identity": "",                  getIdentity
+			"adress": "",                    int getAddress
+			"ip": "",                        int getAddress
+			"dir_port": #,                   int getDirport
+			"or_port": #                     int getOrport
+			"contact": "",                   getContactLine
+			"legacy_dir_key": {              getLegacyDirKey
+				"nickname": "",                
+				"identity": "",                
+				"adress": "",                  
+				"ip": "",                      
+				"dir_port": #,                 
+				"or_port": #                   
+			},                             
+			"key_certificate": {             
+				"version": #,                  int getDirKeyCertificateVersion
+				"fingerprint": "",             
+				"dir_key_published": "",       long getDirKeyPublishedMillis
+				"dir_key_expires": "",         long getDirKeyExpiresMillis
+				"dir_identity_key": boolean,   
+				"dir_signing_key": boolean,    getSigningKeyDigest
+				"dir_key_crosscert": boolean,  
+				"dir_key_certification": bool. 
 			}
 		},
-		"router_status": [
-			{
-				"r": {
-					"nickname": "",
-					"identity": "",
-					"digest": "",
-					"publication": "",
-					"adress": "",
-					"or_port": #,
-					"dir_port": #
-				},
-				"a": [
-					{
-						"adress": "",
-						"port": #
-					}
-					...
-				],
-				"s": ["","",""...],
-				"v": "",
-				"w": {
-					"bandwidth": #,
-					"measured": #,
-				},
-				"p": ["","",""...], 
-				"m": [
-					{
-						"methods": [#,#,#...],
-						"algorithm": "",
-						"digest": ""
-					}
-					...
-				]
-			}
-			...
-		],
-		"directory_footer": {
-			"bandwidth_weights": [
-				{
-					"key": "",
-					"value": #
-				}
-			],
-			"directory_signature": {
-				"algorithm": "",
-				"identity": "",
-				"signing_key_digest": "",
-				"signature": boolean
-			}
-		}
+		"router_status": [                  SortedMap<String, NetworkStatusEntry> getStatusEntries()
+			{                                 
+				"r": {                          
+					"nickname": "",               getNickname
+					"identity": "",               getFingerprint
+					"digest": "",                 getDescriptor
+					"publication": "",            long getPublishedMillis
+					"ip": "",                     getAddress
+					"qr_port": #,                 int getOrPort
+					"dir_port": #                 int getDirPort
+				},                              
+				"a": [                          ¿¿¿ getOrAddresses ???
+					{                             
+						"ip": "",                   
+						"port": #                   
+					}                             
+					...                           
+				],                              
+				"s": ["","",""...],             getFlags
+				"v": "",                        getVersion
+				"w": {                          
+					"bandwidth": #,               long getBandwidth
+					"measured": #                 long getMeasured
+					"unmeasured": boolean         getUnMeasured
+				},                              
+				"p": {
+				  "default_policy": "",         getDefaultPolicy
+				  "port_summary": ""            getPortList
+				}            
+				"m": [                          
+					{                             
+						"methods": [#,#,#...],      
+						"algorithm": "",            
+						"digest": ""                
+					}                             
+					...                           
+				]                               
+			}                                 
+			...                               
+		],                                  
+		"directory_footer": {               
+			"bandwidth_weights": [            
+				{                               
+					"key": "",                    
+					"value": #                    
+				}                               
+			],                                
+			"directory_signature": {          getDirectorySignatures SortedMap<String, DirectorySignature>
+				"algorithm": "",                getAlgorithm
+				"identity": "",                 getIdentity
+				"signing_key_digest": "",       getSigningKeyDigest
+				"signature": boolean            getSignature
+			}                                 
+		}                                   
 	}
 	
 	POSTPONED
@@ -1174,38 +1163,37 @@ p                              reject 1-65535
 
 JSON SERIALIZATION
 
-	{
+                               metrics-lib class/method
+	{                            BridgeNetworkStatus
 		"descriptor_type": "bridge-network-status 1.0",
-		"published": "",
-		"flag_tresholds": [
+		"published": "",           long getPublishedMillis
+		"flag_tresholds": [        missing (https://trac.torproject.org/projects/tor/ticket/17617#ticket)
 			{
 			  "flag": "",
 			  "treshold": #
 			}
 			...
 		],
-		"bridge": [
-			{
-				"r": {
-					"nickname": "",,
-		 			"identity": "",
-		 			"digest": "",
-		 			"date": "",
-		 			"time": "",
-		 			"ip": "",
-		 			"or_port": #,
-		 			"dir_port": #
-				},
-				"s": ["","",""...],
-				"w": [
-				  {
-					  "key": "bandwidth",
-					  "value": #
-					 }
-					 ...
-				],
-				"p": ["","",""...],
-				"a": ""
+		"bridge": [                BridgeNetworkStatus.getStatusEntries
+			{                        NetworkStatusEntry
+				"r": {                    
+					"nickname": "",,     getNickname
+		 			"identity": "",      getDescriptor
+		 			"digest": "",        getFingerprint
+		 			"date": "",          getPublishedMillis
+		 			"time": "",          getPublishedMillis
+		 			"ip": "",            getAddress
+		 			"or_port": #,        int getOrPort
+		 			"dir_port": #        int getDirPort
+				},                     
+				"s": ["","",""...],    getFlags
+				"w": {                 
+				  "bandwidth": #,      long getBandwidth 
+					"measured_bw": #,    long getMeasured
+					"unmeasured_bw": #   long getUnmeasured
+				},                     
+				"p": ["","",""...],    getDefaultPolicy
+				"v": ""                getVersion
 			}
 			...
 		]
@@ -1443,6 +1431,7 @@ JSON SERIALIZATION
 		"descriptor_type": "bridge-extra-info 1.3",
 		"nickname": "",
 		"fingerprint": "",
+		// "identity_ed25519": boolean,
 		"published": "",
 		"read_history": {
 			"date": "",
@@ -1456,9 +1445,18 @@ JSON SERIALIZATION
 		},
 		"geoip_db_digest": "",
 		"geoip6_db_digest": "",
-		"bridge_stats_end":  {
-			"date": "",
-			"interval": #   // default: 86400
+		"geoip_start_time": "",
+		
+		// START ONLY BRIDGES
+		"geoip_client_origins": [
+			{
+				"countryCode": "",
+				"value": #
+			}
+			...
+		],
+		"bridge_stats_end_date": "",
+		"bridge_stats_end_interval": #   // default: 86400
 		},
 		"bridge_ips": [
 			{
@@ -1481,6 +1479,8 @@ JSON SERIALIZATION
 			}
 			...
 		],
+		// END ONLY BRODGES
+		
 		"dirreq_stats_end":  {
 			"date": "",
 			"interval": #   // default: 86400
@@ -1742,25 +1742,26 @@ the relay also uses IP address 91.102.152.227 for exiting.
 
 JSON SERIALIZATION
 
-	{
+                               metrics-lib class/method
+	{                            ExitList
 		"descriptor_type": "tordnsel 1.0",
-		"downloaded": "",
-		"relays": [
-			{
-				"fingerprint": "",
-				"published": "",
-				"last_status": "",
-				"exit_address": [
-					{
-					"adress": "",
-					"date": ""
-					},
-					...
-				]
-			},
-			...
-		]
-	}
+		"downloaded": "",          getDownloadedMillis
+		"relays": [                Set<ExitListEntry> getExitListEntries()
+			{                        
+				"fingerprint": "",     getFingerprint
+				"published": "",       long getPublishedMillis
+				"last_status": "",     long getLastStatusMillis
+				"exit_address": [      
+					{                    
+					"adress": "",        getExitAddress
+					"date": ""           long getScanMillis
+					},                   
+					...                  
+				]                      
+			},                       
+			...                      
+		]                          
+	}                              
 
 
 
@@ -1811,37 +1812,38 @@ long substeps take.
 
 JSON SERIALIZATION
 
-	{
+                               metrics-lib class/method
+	{                            TorperfResult
 		"descriptor_type": "torperf 1.0",
-		"source": "",
-		"filesize": #,
-		"start": #,
-		"socket": #,
-		"connect": #,
-		"negotiate": #,
-		"request": #,
-		"response": #,
-		"datarequest": #,
-		"dataresponse": #,
-		"datacomplete": #,
-		"writebytes": #,
-		"readbytes": #,
-		"didtimeout": #,
-		"dataperc10": #,
-		"dataperc20": #,
-		"dataperc30": #,
-		"dataperc40": #,
-		"dataperc50": #,
-		"dataperc60": #,
-		"dataperc70": #,
-		"dataperc80": #,
-		"dataperc90": #,
-		"launch": #,
-		"used_at": #,
-		"path": ["","",""...],
-		"buildtimes": [#,#,#...],
-		"timeout": #,
-		"quantile": #,
-		"circ_id": #,
-		"used_by": #
+		"source": "",              getSource
+		"filesize": #,             int getFileSize
+		"start": #,                long getStartMillis
+		"socket": #,               long getSocketMillis
+		"connect": #,              long getConnectMillis
+		"negotiate": #,            long getNegotiateMillis
+		"request": #,              long getRequestMillis
+		"response": #,             long getResponseMillis
+		"datarequest": #,          long getDataRequestMillis
+		"dataresponse": #,         long getDataResponseMillis
+		"datacomplete": #,         long getDataCompleteMillis
+		"writebytes": #,           int getWriteBytes
+		"readbytes": #,            int getReadBytes
+		"didtimeout": bool,        didTimeout
+		"dataperc10": #,           long SortedMap<Integer, Long> getDataPercentiles()
+		"dataperc20": #,           long SortedMap<Integer, Long> getDataPercentiles()
+		"dataperc30": #,           long SortedMap<Integer, Long> getDataPercentiles()
+		"dataperc40": #,           long SortedMap<Integer, Long> getDataPercentiles()
+		"dataperc50": #,           long SortedMap<Integer, Long> getDataPercentiles()
+		"dataperc60": #,           long SortedMap<Integer, Long> getDataPercentiles()
+		"dataperc70": #,           long SortedMap<Integer, Long> getDataPercentiles()
+		"dataperc80": #,           long SortedMap<Integer, Long> getDataPercentiles()
+		"dataperc90": #,           long SortedMap<Integer, Long> getDataPercentiles()
+		"launch": #,               long getLaunchMillis
+		"used_at": #,              long getUsedAtMillis
+		"path": ["","",""...],     getPath
+		"buildtimes": [#,#,#...],  long getBuildTimes
+		"timeout": #,              long getTimeout
+		"quantile": #,             double getQuantile
+		"circ_id": #,              int getCircId
+		"used_by": #               int getUsedBy
 	}
