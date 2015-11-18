@@ -88,19 +88,6 @@ public class ConvertToJson {
       DescriptorFile descriptorFile = descriptorFiles.next();
       for (Descriptor descriptor : descriptorFile.getDescriptors()) {
         String jsonDescriptor = null;
-        /*
-         *    descriptor formats   +    classes
-         *
-         *    server-descriptor         ServerDescriptor
-         *    bridge-server-descriptor  ServerDescriptor
-         *    extra-info                ExtraInfoDescriptor
-         *    bridge-extra-info         ExtraInfoDescriptor
-         *    network-status-consensus  RelayNetworkStatusConsensus
-         *    network-status-vote       RelayNetworkStatusVote
-         *    bridge-network-status     BridgeNetworkStatus
-         *    tordnsel                  ExitList
-         *    torperf                   TorperfResult
-         */
         //  relays & bridges descriptors
         if (descriptor instanceof ServerDescriptor) {
           jsonDescriptor = JsonServerDescriptor
@@ -127,13 +114,12 @@ public class ConvertToJson {
           jsonDescriptor = JsonExitList
                   .convert((ExitList) descriptor);
         }
-        //  TODO  something is wrong with the 'torperf' detection algorithm
-        //        it doesnt find the type declaration but spits out
-        //        hundreds of false positives: {"descriptor_type":null}
-        //  if (descriptor instanceof TorperfResult) {
-        //    jsonDescriptor = JsonTorperfResult
-        //            .convert((TorperfResult) descriptor);
-        //  }
+        /* there's a bug in Torperf...
+        if (descriptor instanceof TorperfResult) {
+          jsonDescriptor = JsonTorperfResult
+                  .convert((TorperfResult) descriptor);
+        }
+        */
 
         if (jsonDescriptor != null) {
           // TODO        this comma -v- remove after testing
@@ -146,65 +132,6 @@ public class ConvertToJson {
 
 
   static class JDesc {
-
-    /* Serialize address/port combinations in "or_address"  lines or others. */
-    //  TODO convert to object of type StringInt with attributes "key" and "val"
-    static class AddressPort {
-      String address; // always lower-case
-      int port;
-      AddressPort(String address, int port) {
-        this.address = address;
-        this.port = port;
-      }
-    }
-
-    // extra-infos
-    static class ConnBiDirect {
-      String date;
-      Long interval;
-      Integer below;
-      Integer read;
-      Integer write;
-      Integer both;
-    }
-
-    /* Serialize "read-history" and "write-history" lines. */
-    static class BandwidthHistory {
-      String date; // format is YYYY-MM-DD HH:MM:SS
-      long interval; // seconds
-      Collection<Long> bytes;
-    }
-
-    /* Date/time formatter. */
-    static final String dateTimePattern = "yyyy-MM-dd HH:mm:ss";
-    static final Locale dateTimeLocale = Locale.US;
-    static final TimeZone dateTimezone = TimeZone.getTimeZone("UTC");
-    static DateFormat dateTimeFormat;
-    static {
-      dateTimeFormat = new SimpleDateFormat(dateTimePattern, dateTimeLocale);
-      dateTimeFormat.setLenient(false);
-      dateTimeFormat.setTimeZone(dateTimezone);
-    }
-
-    /* Convert a read or write history to an inner class. */
-    static BandwidthHistory convertBandwidthHistory(org.torproject.descriptor.BandwidthHistory hist) {
-      BandwidthHistory bandwidthHistory = new BandwidthHistory();
-      bandwidthHistory.date = dateTimeFormat.format(hist.getHistoryEndMillis());
-      bandwidthHistory.interval = hist.getIntervalLength();
-      bandwidthHistory.bytes = hist.getBandwidthValues().values();
-      return bandwidthHistory;
-    }
-
-    /* Serialize flag/treshold combinations. */
-    //  TODO convert to object of type StringInt with attributes "key" and "val"
-    static class FlagTreshold {
-      String flag; // always lower-case
-      int treshold;
-      FlagTreshold(String flag, int treshold) {
-        this.flag = flag;
-        this.treshold = treshold;
-      }
-    }
 
     /* generic key/value containers */
     static class StringInt {
@@ -224,25 +151,34 @@ public class ConvertToJson {
       }
     }
 
-
-
-    /* Helper to BridgeNetworkStatus */
-    static class BridgeStatus {
-      List<R> r; // bridge description
-      List<String> s; // flags
-      List<W> w; // bandwidths
-      List<String> p; // policies
-      String a; // additional IP adress and port
+    /* Serialize "read-history" and "write-history" lines. */
+    static class BandwidthHistory {
+      String date; // format is YYYY-MM-DD HH:MM:SS
+      long interval; // seconds
+      Collection<Long> bytes;
     }
 
-    /* Helper to BridgeNetworkStatus */
-    static class R {}
+    /* Convert read or write history */
+    static BandwidthHistory convertBandwidthHistory(org.torproject.descriptor.BandwidthHistory hist) {
+      BandwidthHistory bandwidthHistory = new BandwidthHistory();
+      bandwidthHistory.date = dateTimeFormat.format(hist.getHistoryEndMillis());
+      bandwidthHistory.interval = hist.getIntervalLength();
+      bandwidthHistory.bytes = hist.getBandwidthValues().values();
+      return bandwidthHistory;
+    }
 
-    /* Helper to BridgeNetworkStatus */
-    static class W {}
+    /* Date/time formatter. */
+    static final String dateTimePattern = "yyyy-MM-dd HH:mm:ss";
+    static final Locale dateTimeLocale = Locale.US;
+    static final TimeZone dateTimezone = TimeZone.getTimeZone("UTC");
+    static DateFormat dateTimeFormat;
+    static {
+      dateTimeFormat = new SimpleDateFormat(dateTimePattern, dateTimeLocale);
+      dateTimeFormat.setLenient(false);
+      dateTimeFormat.setTimeZone(dateTimezone);
+    }
 
   }
-
 
   static class JsonServerDescriptor extends JDesc {
 
@@ -263,7 +199,8 @@ public class ConvertToJson {
     List<String> exit_policy;
     /* optional */
     Integer bandwidth_observed; //  missing in older descriptors!
-    List<AddressPort> or_addresses; // addresses sanitized!
+    // List<AddressPort> or_addresses; // addresses sanitized!
+    List<StringInt> or_addresses; // addresses sanitized!
     String platform; //  though usually set
     Boolean hibernating;
     Long uptime; // though usually set
@@ -321,7 +258,7 @@ public class ConvertToJson {
       if (desc.getBandwidthObserved() >= 0) {
         server.bandwidth_observed = desc.getBandwidthObserved();
       }
-      server.or_addresses = new ArrayList<AddressPort>();
+      server.or_addresses = new ArrayList<StringInt>();
       if (desc.getOrAddresses() != null && !desc.getOrAddresses().isEmpty()) {
         for (String orAddress : desc.getOrAddresses()) {
           if (!orAddress.contains(":")) {
@@ -329,9 +266,9 @@ public class ConvertToJson {
           }
           int lastColon = orAddress.lastIndexOf(":");
           try {
-            int port = Integer.parseInt(orAddress.substring(lastColon + 1));
+            int val = Integer.parseInt(orAddress.substring(lastColon + 1));
             server.or_addresses.add(
-                    new AddressPort(orAddress.substring(0, lastColon), port)
+                    new StringInt(orAddress.substring(0, lastColon), val)
             );
           } catch (NumberFormatException e) {
             continue;
@@ -375,7 +312,7 @@ public class ConvertToJson {
 
       return ToJson.serialize(server);
     }
-  } // TODO KL getIpv6PortList from metrics-lib never gets called. on purpose?
+  }
 
   static class JsonExtraInfoDescriptor extends JDesc {
     String descriptor_type;
@@ -414,14 +351,6 @@ public class ConvertToJson {
     List<Integer> cell_time_in_queue;
     Integer cell_circuits_per_decile;
     ConnBiDirect conn_bi_direct;
-    /* the flat alternative
-    String conn_bi_direct_date;
-    Long conn_bi_direct_interval;
-    Integer conn_bi_direct_below;
-    Integer conn_bi_direct_read;
-    Integer conn_bi_direct_write;
-    Integer conn_bi_direct_both;
-    */
     String exit_stats_end_date;
     Long exit_stats_end_interval;
     List<StringLong> exit_kibibytes_written;
@@ -440,6 +369,15 @@ public class ConvertToJson {
     List<StringInt> bridge_ips;
     List<StringInt> bridge_ip_versions;
     List<StringInt> bridge_ip_transports;
+
+    static class ConnBiDirect {
+      String date;
+      Long interval;
+      Integer below;
+      Integer read;
+      Integer write;
+      Integer both;
+    }
 
     static String convert(ExtraInfoDescriptor desc) {
       JsonExtraInfoDescriptor extra = new JsonExtraInfoDescriptor();
@@ -632,26 +570,6 @@ public class ConvertToJson {
           extra.conn_bi_direct.both = desc.getConnBiDirectBoth();
         }
       }
-      /* the flat alternative
-      if (desc.getConnBiDirectStatsEndMillis() >= 0) {
-        extra.conn_bi_direct_date = dateTimeFormat.format(desc.getConnBiDirectStatsEndMillis());
-      }
-      if (desc.getConnBiDirectStatsIntervalLength() >= 0) {
-        extra.conn_bi_direct_interval = desc.getConnBiDirectStatsIntervalLength();
-      }
-      if (desc.getConnBiDirectBelow() >= 0) {
-        extra.conn_bi_direct_below = desc.getConnBiDirectBelow();
-      }
-      if (desc.getConnBiDirectRead() >= 0) {
-        extra.conn_bi_direct_read = desc.getConnBiDirectRead();
-      }
-      if (desc.getConnBiDirectWrite() >= 0) {
-        extra.conn_bi_direct_write = desc.getConnBiDirectWrite();
-      }
-      if (desc.getConnBiDirectBoth() >= 0) {
-        extra.conn_bi_direct_both = desc.getConnBiDirectBoth();
-      }
-      */
       if (desc.getExitStatsEndMillis() >= 0) {
         extra.exit_stats_end_date = dateTimeFormat.format(desc.getExitStatsEndMillis());
       }
@@ -695,15 +613,12 @@ public class ConvertToJson {
     //  NO String fingerprint;
     //  TODO
 
-    //  TODO KL suppress microdescriptors
     static String convert(RelayNetworkStatusConsensus desc) {
       JsonRelayNetworkStatusConsensus consensus = new JsonRelayNetworkStatusConsensus();
       for (String annotation : desc.getAnnotations()) {
         consensus.descriptor_type = annotation.substring("@type ".length());
       }
-      //  if (desc.XXX() != null) {
-      //    status.published = dateTimeFormat.format(desc.getPublishedMillis());
-      //  }
+      //  status.published = dateTimeFormat.format(desc.getPublishedMillis());
       //  TODO
       return ToJson.serialize(consensus);
     }
@@ -712,7 +627,7 @@ public class ConvertToJson {
   static class JsonRelayNetworkStatusVote extends JDesc {
     String descriptor_type;
     String published;
-    //  String fingerprint; TODO I don't understand...
+    //  String fingerprint;
     //  TODO  ¡¡¡procrastinate!!! this is the largest of them all...
     static String convert(RelayNetworkStatusVote desc) {
       JsonRelayNetworkStatusVote vote = new JsonRelayNetworkStatusVote();
@@ -730,10 +645,26 @@ public class ConvertToJson {
     String descriptor_type;
     String published;
     //  NO String fingerprint;
-    List<FlagTreshold> flagTresholds; // TODO no getter in metrics-lib
+    List<StringInt> flagTresholds; // no getter in metrics-lib
     SortedMap<String, NetworkStatusEntry> bridges;  // TODO
       /* Return status entries, one for each contained bridge. */
       // public SortedMap<String, NetworkStatusEntry> getStatusEntries();
+
+
+    static class BridgeStatus {
+      List<R> r; // bridge description
+      List<String> s; // flags
+      List<W> w; // bandwidths
+      List<String> p; // policies
+      String a; // additional IP adress and port
+    }
+
+    /* Helper to BridgeNetworkStatus */
+    static class R {}
+
+    /* Helper to BridgeNetworkStatus */
+    static class W {}
+
 
     static String convert(BridgeNetworkStatus desc) {
       JsonBridgeNetworkStatus status = new JsonBridgeNetworkStatus();
@@ -749,10 +680,18 @@ public class ConvertToJson {
 
   static class JsonExitList extends JDesc {
     String descriptor_type;
-    //  NO String published;
-    //  NO String fingerprint;
     Long downloaded;
-    Set<ExitListEntry> entries; // TODO entries -> getExitListEntries();
+    List<Entry> relays;
+    static class Entry {
+      String fingerprint;
+      String published;
+      String last_status;
+      Exit exit_adress;
+    }
+    static class Exit {
+      String ip;
+      String date;
+    }
 
     static String convert(ExitList desc) {
       JsonExitList tordnsel = new JsonExitList();
@@ -760,28 +699,114 @@ public class ConvertToJson {
         tordnsel.descriptor_type = annotation.substring("@type ".length());
       }
       tordnsel.downloaded = desc.getDownloadedMillis();
-      // TODO entries
+      if (desc.getExitListEntries() != null && !desc.getExitListEntries().isEmpty()) {
+        tordnsel.relays = new ArrayList<Entry>();
+        for(ExitListEntry entry : desc.getExitListEntries() ) {
+          Entry en = new Entry();
+          en.fingerprint = entry.getFingerprint();
+          en.published = dateTimeFormat.format(entry.getPublishedMillis());
+          en.last_status = dateTimeFormat.format(entry.getLastStatusMillis());
+          en.exit_adress = new Exit();
+          en.exit_adress.ip = entry.getExitAddress();
+          en.exit_adress.date = dateTimeFormat.format(entry.getScanMillis());
+          tordnsel.relays.add(en);
+        }
+      }
       return ToJson.serialize(tordnsel);
     }
   }
 
   static class JsonTorperfResult extends JDesc {
     String descriptor_type;
-    //  NO String published;
-    //  NO String fingerprint;
-    //  TODO
+    String source;
+    Integer filesize;
+    String start;
+    String socket;
+    String connect;
+    String negotiate;
+    String request;
+    String response;
+    String datarequest;
+    String dataresponse;
+    String datacomplete;
+    Integer writebytes;
+    Integer readbytes;
+    Boolean didtimeout;
+    Long dataperc10;
+    Long dataperc20;
+    Long dataperc30;
+    Long dataperc40;
+    Long dataperc50;
+    Long dataperc60;
+    Long dataperc70;
+    Long dataperc80;
+    Long dataperc90;
+    String launch;
+    String used_at;
+    List<String> path;
+    List<Long> buildtimes;
+    String timeout;
+    Double quantile;
+    Integer circ_id;
+    Integer used_by;
 
     static String convert(TorperfResult desc) {
       JsonTorperfResult torperf = new JsonTorperfResult();
       for (String annotation : desc.getAnnotations()) {
         torperf.descriptor_type = annotation.substring("@type ".length());
       }
-      // TODO
+      torperf.source = desc.getSource();
+      torperf.filesize = desc.getFileSize();
+      torperf.start = dateTimeFormat.format(desc.getStartMillis());
+      torperf.socket = dateTimeFormat.format(desc.getSocketMillis());
+      torperf.connect = dateTimeFormat.format(desc.getConnectMillis());
+      torperf.negotiate = dateTimeFormat.format(desc.getNegotiateMillis());
+      torperf.request = dateTimeFormat.format(desc.getRequestMillis());
+      torperf.response = dateTimeFormat.format(desc.getResponseMillis());
+      torperf.datarequest = dateTimeFormat.format(desc.getDataRequestMillis());
+      torperf.dataresponse = dateTimeFormat.format(desc.getDataResponseMillis());
+      torperf.datacomplete = dateTimeFormat.format(desc.getDataCompleteMillis());
+      torperf.writebytes = desc.getWriteBytes();
+      torperf.readbytes = desc.getReadBytes();
+      torperf.didtimeout = desc.didTimeout();
+      if (desc.getDataPercentiles() != null && !desc.getDataPercentiles().isEmpty()) {
+        torperf.dataperc10 = desc.getDataPercentiles().get("10");
+        torperf.dataperc20 = desc.getDataPercentiles().get("20");
+        torperf.dataperc30 = desc.getDataPercentiles().get("30");
+        torperf.dataperc40 = desc.getDataPercentiles().get("40");
+        torperf.dataperc50 = desc.getDataPercentiles().get("50");
+        torperf.dataperc60 = desc.getDataPercentiles().get("60");
+        torperf.dataperc70 = desc.getDataPercentiles().get("70");
+        torperf.dataperc80 = desc.getDataPercentiles().get("80");
+        torperf.dataperc90 = desc.getDataPercentiles().get("90");
+      }
+      if (desc.getLaunchMillis() >= 0) {
+        torperf.launch = dateTimeFormat.format(desc.getLaunchMillis());
+      }
+      if (desc.getUsedAtMillis() >= 0) {
+        torperf.used_at = dateTimeFormat.format(desc.getUsedAtMillis());
+      }
+      if (desc.getPath() != null && !desc.getPath().isEmpty()) {
+        torperf.path = desc.getPath();
+      }
+      if (desc.getBuildTimes() != null && !desc.getBuildTimes().isEmpty()) {
+        torperf.buildtimes = desc.getBuildTimes();
+      }
+      if (desc.getTimeout() >= 0) {
+        torperf.timeout = dateTimeFormat.format(desc.getTimeout());
+      }
+      if (desc.getQuantile() >= 0) {
+        torperf.quantile = desc.getQuantile();
+      }
+      if (desc.getCircId() >= 0) {
+        torperf.circ_id = desc.getCircId();
+      }
+      if (desc.getUsedBy() >= 0) {
+        torperf.used_by = desc.getUsedBy();
+      }
       return ToJson.serialize(torperf);
     }
   }
-
-
 
 
   /* Convert everything to a JSON string and return that.

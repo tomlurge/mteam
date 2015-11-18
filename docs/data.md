@@ -1751,13 +1751,10 @@ JSON SERIALIZATION
 				"fingerprint": "",     getFingerprint
 				"published": "",       long getPublishedMillis
 				"last_status": "",     long getLastStatusMillis
-				"exit_address": [      
-					{                    
+				"exit_address": {                    
 					"adress": "",        getExitAddress
 					"date": ""           long getScanMillis
-					},                   
-					...                  
-				]                      
+				}                     
 			},                       
 			...                      
 		]                          

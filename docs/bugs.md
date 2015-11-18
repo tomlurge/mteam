@@ -35,4 +35,13 @@ missing
         dir idendity key
         dir key crosscert
         dir key certification
-        
+
+# Torperf
+something is wrong with the 'torperf' detection algorithm    
+it doesnt find the type declaration but spits out   
+hundreds of false positives: {"descriptor_type":null}
+
+
+# JsonServerDescriptor 
+never calls getIpv6PortList()
+on purpose?
