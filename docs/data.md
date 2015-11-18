@@ -1024,7 +1024,6 @@ JSON SERIALIZATION
 	}
 
 
-
 ######  network-status-microdesc-consensus-3 1.0
 
 Tor clients used to download all server descriptors of active relays, but now 
@@ -1090,6 +1089,7 @@ a single file.
 NOTE: Microdescriptors will not be included. They're terribly hard to analyze, 
 and their content is already contained in server descriptors and consensuses
 
+	
 	
 ##### network-status-2 1.0
 
@@ -1174,14 +1174,13 @@ JSON SERIALIZATION
 			}
 			...
 		],
-		"bridge": [                BridgeNetworkStatus.getStatusEntries
+		"bridges": [               BridgeNetworkStatus.getStatusEntries
 			{                        NetworkStatusEntry
 				"r": {                    
 					"nickname": "",,     getNickname
 		 			"identity": "",      getDescriptor
 		 			"digest": "",        getFingerprint
 		 			"date": "",          getPublishedMillis
-		 			"time": "",          getPublishedMillis
 		 			"ip": "",            getAddress
 		 			"or_port": #,        int getOrPort
 		 			"dir_port": #        int getDirPort
@@ -1190,9 +1189,10 @@ JSON SERIALIZATION
 				"w": {                 
 				  "bandwidth": #,      long getBandwidth 
 					"measured_bw": #,    long getMeasured
-					"unmeasured_bw": #   long getUnmeasured
+					"unmeasured_bw": #   Boolean getUnmeasured
 				},                     
-				"p": ["","",""...],    getDefaultPolicy
+				"p": "",               getDefaultPolicy
+				"a": "",               getPortList
 				"v": ""                getVersion
 			}
 			...
@@ -1699,6 +1699,7 @@ As of December 8, 2014, bridge pool assignment files are no longer archived.
 
 NOTE: they may be included at a later point. They will be at least 1 year 
 old, so they are not terribly important.
+
                             
 ###### tordnsel 1.0
 

@@ -644,27 +644,32 @@ public class ConvertToJson {
   static class JsonBridgeNetworkStatus extends JDesc {
     String descriptor_type;
     String published;
-    //  NO String fingerprint;
-    List<StringInt> flagTresholds; // no getter in metrics-lib
-    SortedMap<String, NetworkStatusEntry> bridges;  // TODO
-      /* Return status entries, one for each contained bridge. */
-      // public SortedMap<String, NetworkStatusEntry> getStatusEntries();
+    List<StringInt> flag_tresholds; // no getter in metrics-lib
+    List<Bridge> bridges;
 
-
-    static class BridgeStatus {
-      List<R> r; // bridge description
-      List<String> s; // flags
-      List<W> w; // bandwidths
-      List<String> p; // policies
-      String a; // additional IP adress and port
+    static class Bridge {
+      String key; // bridge key
+      R r; // bridge description
+      SortedSet<String> s; // flags
+      W w; // bandwidths
+      String p; // policies
+      String a; // port summary
+      String v;
     }
-
-    /* Helper to BridgeNetworkStatus */
-    static class R {}
-
-    /* Helper to BridgeNetworkStatus */
-    static class W {}
-
+    static class R {
+      String nickname;
+      String identity;
+      String digest;
+      String date;
+      String ip;
+      Integer or_port;
+      Integer dir_port;
+    }
+    static class W {
+      Long bandwidth;
+      Long measured_bw;
+      Boolean unmeasured_bw;
+    }
 
     static String convert(BridgeNetworkStatus desc) {
       JsonBridgeNetworkStatus status = new JsonBridgeNetworkStatus();
@@ -672,8 +677,38 @@ public class ConvertToJson {
         status.descriptor_type = annotation.substring("@type ".length());
       }
       status.published = dateTimeFormat.format(desc.getPublishedMillis());
-      //  TODO
-      // status.bridges;
+      if (desc.getStatusEntries() != null && !desc.getStatusEntries().isEmpty()) {
+        status.bridges = new ArrayList<Bridge>();
+        for (Map.Entry<String, NetworkStatusEntry> entry : desc.getStatusEntries().entrySet()) {
+          Bridge b = new Bridge();
+          b.key = entry.getKey();
+          b.r = new R();
+          b.r.nickname = entry.getValue().getNickname();
+          b.r.identity = entry.getValue().getDescriptor();
+          b.r.digest = entry.getValue().getFingerprint();
+          b.r.date = dateTimeFormat.format(entry.getValue().getPublishedMillis());
+          b.r.ip = entry.getValue().getAddress();
+          b.r.or_port = entry.getValue().getOrPort();
+          b.r.dir_port = entry.getValue().getDirPort();
+          if (entry.getValue().getFlags() != null && !entry.getValue().getFlags().isEmpty()) {
+            b.s = entry.getValue().getFlags();
+          }
+          b.w = new W();
+          if (entry.getValue().getBandwidth() >= 0) {
+            b.w.bandwidth = entry.getValue().getBandwidth();
+          }
+          if (entry.getValue().getMeasured() >= 0) {
+            b.w.measured_bw = entry.getValue().getMeasured();
+          }
+          if (entry.getValue().getUnmeasured()) {
+            b.w.unmeasured_bw = entry.getValue().getUnmeasured();
+          }
+          b.p = entry.getValue().getDefaultPolicy();
+          b.a = entry.getValue().getPortList();
+          b.v = entry.getValue().getVersion();
+          status.bridges.add(b);
+        }
+      }
       return ToJson.serialize(status);
     }
   }
