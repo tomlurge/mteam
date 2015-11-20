@@ -663,12 +663,11 @@ JSON SERIALIZATION
 			}                                 
 			...                               
 		],                                  
-		"authority": [                      DirSourceEntry
+		"dir_source": [                      DirSourceEntry
 			{                                 
 				"nickname": "",                 getNickname
 				"identity": "",                 getIdentity
 				"adress": "",                   getIp
-				"ip": "",                       getIp
 				"dir_port": #,                  getDirPort
 				"or_port": #                    getOrPort
 				"contact": "",                  getContactLine
@@ -859,30 +858,16 @@ JSON SERIALIZATION
                                        metrics-lib class/method
 	{                                    RelayNetworkStatusVote
 		"descriptor_type": "network-status-vote-3 1.0",
+		"published": "",                   long getPublishedMillis
 		"vote_status": #,                  int getNetworkStatusVersion
 		"consensus_methods": [#,#,#...],   getConsensusMethods
-		"published": "",                   long getPublishedMillis
-		"valid_after": "",                 long getValidAfterMillis
-		"flag_thresholds": [               
-			{                                
-				"stable-uptime": #,            long getStableUptime
-				"stable-mtbf": #,              long getStableMtbf
-				"enough-mtbf": #,              long getEnoughMtbfInfo
-				"fast-speed": #,               long getFastBandwidth
-				"guard-wfu": #,                long getGuardWfu
-				"guard-tk": #,                 long getGuardTk
-				"guard-bw-inc-exits": #,       long getGuardBandwidthIncludingExits
-				"guard-bw-exc-exits": #,       long getGuardBandwidthExcludingExits
-				"ignoring-advertised-bws": #   
-			}                                
-			...                              
-		],                                 
+		"valid_after": "",                 long getValidAfterMillis                                
 		"fresh_until": "",                 long getFreshUntilMillis
 		"valid_until": "",                 long getValidUntilMillis
 		"voting_delay": {                  
 			"vote_seconds": #,               long getVoteSeconds
 			"dist_seconds": #                long getDistSeconds
-		},                                 
+		},                               
 		"client_versions": ["","",""...],  getRecommendedClientVersions
 		"server_versions": ["","",""...],  getRecommendedServerVersions
 		"package": [                       
@@ -900,6 +885,17 @@ JSON SERIALIZATION
 			}
 			...
 		],
+		"flag_thresholds": {                                
+			"stable-uptime": #,              long getStableUptime
+			"stable-mtbf": #,                long getStableMtbf
+			"enough-mtbf": #,                int getEnoughMtbfInfo
+			"fast-speed": #,                 long getFastBandwidth
+			"guard-wfu": #,                  double getGuardWfu
+			"guard-tk": #,                   long getGuardTk
+			"guard-bw-inc-exits": #,         long getGuardBandwidthIncludingExits
+			"guard-bw-exc-exits": #,         long getGuardBandwidthExcludingExits
+			"ignoring-advertised-bws": #   
+			}
 		"known_flags": ["","",""...],      getKnownFlags
 		"params": [                        getConsensusParams SortedMap<String, Integer>
 			{                                
@@ -911,8 +907,7 @@ JSON SERIALIZATION
 		authority: {                       
 			"nickname": "",                  getNickname
 			"identity": "",                  getIdentity
-			"adress": "",                    int getAddress
-			"ip": "",                        int getAddress
+			"adress": "",                    getAddress
 			"dir_port": #,                   int getDirport
 			"or_port": #                     int getOrport
 			"contact": "",                   getContactLine
@@ -943,22 +938,16 @@ JSON SERIALIZATION
 					"digest": "",                 getDescriptor
 					"publication": "",            long getPublishedMillis
 					"ip": "",                     getAddress
-					"qr_port": #,                 int getOrPort
+					"or_port": #,                 int getOrPort
 					"dir_port": #                 int getDirPort
 				},                              
-				"a": [                          ¿¿¿ getOrAddresses ???
-					{                             
-						"ip": "",                   
-						"port": #                   
-					}                             
-					...                           
-				],                              
+				"a": ["","",""...],             getOrAddresses                            
 				"s": ["","",""...],             getFlags
 				"v": "",                        getVersion
 				"w": {                          
 					"bandwidth": #,               long getBandwidth
 					"measured": #                 long getMeasured
-					"unmeasured": boolean         getUnMeasured
+					"unmeasured": boolean         getUnmeasured
 				},                              
 				"p": {
 				  "default_policy": "",         getDefaultPolicy

@@ -54,7 +54,6 @@ public class ConvertToJson {
   static boolean archive = false;
   static String dir = "";
 
-
   /* Read all descriptors in the provided directory and
    * convert them to the appropriate JSON format. */
   public static void main(String[] args) throws IOException {
@@ -609,9 +608,11 @@ public class ConvertToJson {
 
   static class JsonRelayNetworkStatusConsensus extends JDesc {
     String descriptor_type;
-    //  String published;  TODO KL can we fake/"derive" a published date?
-    //  NO String fingerprint;
-    //  TODO
+    String published;  // TODO
+
+    String consensus_flavor;
+//    List<Authority> dir_source;
+//    Authority.vote_digest;
 
     static String convert(RelayNetworkStatusConsensus desc) {
       JsonRelayNetworkStatusConsensus consensus = new JsonRelayNetworkStatusConsensus();
@@ -627,19 +628,219 @@ public class ConvertToJson {
   static class JsonRelayNetworkStatusVote extends JDesc {
     String descriptor_type;
     String published;
-    //  String fingerprint;
-    //  TODO  ¡¡¡procrastinate!!! this is the largest of them all...
+    Integer vote_status;
+    List<Integer> consensus_method;
+    String valid_after;
+    String fresh_until;
+    String valid_until;
+    Vote voting_delay;
+    List<String> client_version;
+    List<String> server_versions;
+    FlagTreshold flagTreshold;
+    SortedSet<String> known_flags;
+    List<StringInt> params;
+    Authority authority;
+    List<Router> router_status;
+    DirFooter directory_footer;
+
+    static class Vote {
+      String vote_seconds;
+      String dist_seconds;
+    }
+    static class FlagTreshold {
+      Long stable_uptime;
+      Long stable_mtbf;
+      Integer enough_mtbf;
+      Long fast_speed;
+      Double guard_wfu;
+      Long guard_tk;
+      Long guard_bw_inc_exits;
+      Long guard_bw_exc_exits;
+    }
+    static class Authority {
+      String nickname;
+      String identity;
+      String adress;
+      Integer dir_port;
+      Integer or_port;
+      String contact;
+      String legacy_dir_key;
+      Cert key_certificate;
+    }
+    static class Cert {
+      Integer version;
+      String dir_key_published;
+      String dir_key_expires;
+      Boolean dir_signing_key;
+    }
+    static class Router {
+      String key; // the String in SortedMap<String, NetworkStatusEntry>
+      String descriptor_identity;
+      R r; // router description
+      List<String> a; // additinal OR adresses and ports
+      List<String> s; // flags
+      String v; // version
+      W w; // bandwidths
+      Policy p; // policies
+    }
+    static class R {
+      String nickname;
+      String identity;
+      String digest;
+      String publication;
+      String ip;
+      Integer or_port;
+      Integer dir_port;
+    }
+    static class W {
+      Long bandwidth;
+      Long measured_bw;
+      Boolean unmeasured_bw;
+    }
+    static class Policy {
+      String default_policy;
+      String port_summary;
+    }
+    static class DirFooter {
+      DirSig directory_signature;
+    }
+    static class DirSig {
+      String algorithm;
+      String identity;
+      String signing_key_digest;
+      Boolean signature;
+    }
+
+
     static String convert(RelayNetworkStatusVote desc) {
       JsonRelayNetworkStatusVote vote = new JsonRelayNetworkStatusVote();
       for (String annotation : desc.getAnnotations()) {
         vote.descriptor_type = annotation.substring("@type ".length());
       }
       vote.published = dateTimeFormat.format(desc.getPublishedMillis());
-      //  vote.fingerprint = desc.getFingerprint().toUpperCase();
-      //  TODO
+      vote.vote_status = desc.getNetworkStatusVersion();
+      if (desc.getConsensusMethods() != null && !desc.getConsensusMethods().isEmpty()) {
+        vote.consensus_method = desc.getConsensusMethods();
+      }
+      vote.valid_after = dateTimeFormat.format(desc.getValidAfterMillis());
+      vote.fresh_until = dateTimeFormat.format(desc.getFreshUntilMillis());
+      vote.valid_until = dateTimeFormat.format(desc.getValidUntilMillis());
+      vote.voting_delay = new Vote();
+      vote.voting_delay.vote_seconds = dateTimeFormat.format(desc.getVoteSeconds());
+      vote.voting_delay.dist_seconds = dateTimeFormat.format(desc.getDistSeconds());
+      if (desc.getRecommendedClientVersions() != null && !desc.getRecommendedClientVersions().isEmpty()) {
+        vote.client_version = desc.getRecommendedClientVersions();
+      }
+      if (desc.getRecommendedServerVersions() != null && !desc.getRecommendedServerVersions().isEmpty()) {
+        vote.server_versions = desc.getRecommendedServerVersions();
+      }
+      vote.flagTreshold = new FlagTreshold();
+      vote.flagTreshold.stable_uptime = desc.getStableUptime();
+      vote.flagTreshold.stable_mtbf = desc.getStableMtbf();
+      vote.flagTreshold.enough_mtbf = desc.getEnoughMtbfInfo();
+      vote.flagTreshold.fast_speed = desc.getFastBandwidth();
+      vote.flagTreshold.guard_wfu = desc.getGuardWfu();
+      vote.flagTreshold.guard_tk = desc.getGuardTk();
+      vote.flagTreshold.guard_bw_inc_exits = desc.getGuardBandwidthIncludingExits();
+      vote.flagTreshold.guard_bw_exc_exits = desc.getGuardBandwidthExcludingExits();
+      if (desc.getKnownFlags() != null && !desc.getKnownFlags().isEmpty()) {
+        vote.known_flags = desc.getKnownFlags();
+      }
+      if (desc.getConsensusParams() != null && !desc.getConsensusParams().isEmpty()) {
+        SortedMap<String,Integer> params = desc.getConsensusParams();
+        for(Map.Entry<String,Integer> para : params.entrySet()) {
+          vote.params.add(new StringInt(para.getKey(), para.getValue()));
+        }
+      }
+      vote.authority = new Authority();
+      vote.authority.nickname = desc.getNickname();
+      vote.authority.identity = desc.getIdentity();
+      vote.authority.adress = desc.getAddress();
+      vote.authority.dir_port = desc.getDirport();
+      vote.authority.or_port = desc.getOrport();
+      vote.authority.contact = desc.getContactLine();
+      vote.authority.legacy_dir_key = desc.getLegacyDirKey();
+      vote.authority.key_certificate = new Cert();
+      vote.authority.key_certificate.version = desc.getDirKeyCertificateVersion();
+      vote.authority.key_certificate.dir_key_published = dateTimeFormat.format(desc.getDirKeyPublishedMillis());
+      vote.authority.key_certificate.dir_key_expires = dateTimeFormat.format(desc.getDirKeyExpiresMillis());
+      vote.authority.key_certificate.dir_signing_key = desc.getSigningKeyDigest() != null;
+      if (desc.getStatusEntries() != null && !desc.getStatusEntries().isEmpty()) {
+        SortedMap<String,NetworkStatusEntry> statuses = desc.getStatusEntries();
+        for(Map.Entry<String,NetworkStatusEntry> status : statuses.entrySet()) {
+          Router router = new Router();
+          router.key = status.getKey();
+          router.descriptor_identity = status.getValue().getDescriptor();
+          router.r = new R();
+          router.r.nickname = status.getValue().getNickname();
+          router.r.identity = status.getValue().getFingerprint();
+          router.r.digest = status.getValue().getDescriptor();
+          router.r.publication = dateTimeFormat.format(status.getValue().getPublishedMillis());
+          router.r.ip = status.getValue().getAddress();
+          router.r.or_port = status.getValue().getOrPort();
+          router.r.dir_port = status.getValue().getDirPort();
+          if (status.getValue().getOrAddresses() != null && !status.getValue().getOrAddresses().isEmpty()) {
+            router.a = status.getValue().getOrAddresses();
+          }
+          if (status.getValue().getFlags() != null && !status.getValue().getFlags().isEmpty()) {
+            for (String flag : status.getValue().getFlags()) router.s.add(flag);
+          }
+          router.v = status.getValue().getVersion();
+          router.w = new W();
+          if (status.getValue().getBandwidth() >= 0) {
+            router.w.bandwidth = status.getValue().getBandwidth();
+          }
+          if (status.getValue().getMeasured() >= 0) {
+            router.w.measured_bw = status.getValue().getMeasured();
+          }
+          router.w.unmeasured_bw = status.getValue().getUnmeasured();
+          router.p = new Policy();
+          router.p.default_policy = status.getValue().getDefaultPolicy();
+          router.p.port_summary = status.getValue().getPortList();
+          vote.router_status.add(router);
+        }
+      }
+      if (desc.getDirectorySignatures() != null && !desc.getDirectorySignatures().isEmpty()) {
+        vote.directory_footer = new DirFooter();
+        vote.directory_footer.directory_signature = new DirSig();
+        //  TODO this shouldn't be a SortedMap since by Spec it can only contain one entry
+        //       This code breaks if there is more than one entry in SortedMap
+        SortedMap<String,DirectorySignature> dirSigs = desc.getDirectorySignatures();
+        for(Map.Entry<String,DirectorySignature> dirSig : dirSigs.entrySet()) {
+          vote.directory_footer.directory_signature.algorithm = dirSig.getValue().getAlgorithm();
+          vote.directory_footer.directory_signature.identity = dirSig.getValue().getIdentity();
+          vote.directory_footer.directory_signature.signing_key_digest = dirSig.getValue().getSigningKeyDigest();
+          vote.directory_footer.directory_signature.signature = dirSig.getValue().getSignature() != null;
+        }
+      }
       return ToJson.serialize(vote);
     }
   }
+
+  
+
+  /*
+      can return -1
+        if (desc.XXX() >= 0) {
+
+      can't be null or false, only true'
+        if (desc.XXX()) {
+
+      if a method is called on the desc property always check for null
+        if (desc.XXX() != null) {
+
+      for keys: test, if there is one and return 'true' if yes, 'false' otherwise
+          server.onion_key = desc.getOnionKey() != null;
+
+      List: first check that the list is not null, then if it's empty
+          if (desc.XXX() != null && !desc.XXX().isEmpty()) {
+
+
+      SortedMap<String,Integer> MAP = desc.GETTER();
+      for(Map.Entry<String,Integer> kv : MAP.entrySet()) {
+        extra.ATTRIBUTE.add(new StringInt(kv.getKey(), kv.getValue()));
+      }
+   */
 
   static class JsonBridgeNetworkStatus extends JDesc {
     String descriptor_type;
