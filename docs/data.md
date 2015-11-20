@@ -658,7 +658,7 @@ JSON SERIALIZATION
 		"known_flags": ["","",""...],       getKnownFlags
 		"params": [                         getConsensusParams
 			{                                 
-				"param": "",                    
+				"key": "",                    
 				"value": #                      
 			}                                 
 			...                               
@@ -677,7 +677,9 @@ JSON SERIALIZATION
 			...                               
 		],                                  
 		"router_status": [                  SortedMap<String, NetworkStatusEntry> getStatusEntries()
-			{                                 
+			{
+			  "key": "",                      the String in SortedMap<String, NetworkStatusEntry>
+			  "descriptor_identity",          getDescriptor
 				"r": {                          
 					"nickname": "",               getNickname
 					"identity": "",               getFingerprint
@@ -687,13 +689,7 @@ JSON SERIALIZATION
 					"qr_port": #,                 int getOrPort
 					"dir_port": #                 int getDirPort
 				},                              
-				"a": [                          ¿¿¿ getOrAddresses ???
-					{                             
-						"ip": "",                   
-						"port": #                   
-					}                             
-					...                           
-				],                              
+				"a": ["","",""...],             getOrAddresses                        
 				"s": ["","",""...],             getFlags
 				"v": "",                        getVersion
 				"w": {                          
@@ -709,10 +705,13 @@ JSON SERIALIZATION
 			...                
 		],                
 		"directory_footer": {               
-			"bandwidth_weights": {            getBandwidthWeights
-				"": #    //weight_keyword : #   SortedMap<String, Integer>
+			"bandwidth_weights": [            getBandwidthWeights SortedMap<String, Integer>
+				{
+				  "key": "",
+				  "value": #
+				}
 				...                             
-			},                           
+			],                           
 			"consensus_digest: "",            getConsensusDigest
 			"directory_signature": [          DirectorySignature
 				{                               
@@ -931,7 +930,9 @@ JSON SERIALIZATION
 			}
 		},
 		"router_status": [                  SortedMap<String, NetworkStatusEntry> getStatusEntries()
-			{                                 
+			{
+			  "key": "",                      the String in SortedMap<String, NetworkStatusEntry>
+			  "descriptor_identity",          getDescriptor
 				"r": {                          
 					"nickname": "",               getNickname
 					"identity": "",               getFingerprint

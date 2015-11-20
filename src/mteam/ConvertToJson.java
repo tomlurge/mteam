@@ -608,20 +608,183 @@ public class ConvertToJson {
 
   static class JsonRelayNetworkStatusConsensus extends JDesc {
     String descriptor_type;
-    String published;  // TODO
-
+    String published;  // TODO fake it
+    Integer vote_status;
+    Integer consensus_method;
     String consensus_flavor;
-//    List<Authority> dir_source;
-//    Authority.vote_digest;
+    String valid_after;
+    String fresh_until;
+    String valid_until;
+    Vote voting_delay;
+    static class Vote {
+      Long vote_seconds;
+      Long dist_seconds;
+    }
+    List<String> client_version;
+    List<String> server_versions;
+    SortedSet<String> known_flags;
+    List<StringInt> params;
+    List<Authority> dir_source;
+    static class Authority {
+      String nickname;
+      String identity;
+      String adress;
+      Integer dir_port;
+      Integer or_port;
+      String contact;
+      String vote_digest;
+      Boolean legacy;
+    }
+    List<Router> router_status;
+    static class Router {
+      String key; // the String in SortedMap<String, NetworkStatusEntry>
+      String descriptor_identity;
+      R r; // router description
+      List<String> a; // additinal OR adresses and ports
+      List<String> s; // flags
+      String v; // version
+      W w; // bandwidths
+      Policy p; // policies
+    }
+    static class R {
+      String nickname;
+      String identity;
+      String digest;
+      String publication;
+      String ip;
+      Integer or_port;
+      Integer dir_port;
+    }
+    static class W {
+      Long bandwidth;
+      Long measured_bw;
+      Boolean unmeasured_bw;
+    }
+    static class Policy {
+      String default_policy;
+      String port_summary;
+    }
+    DirFooter directory_footer;
+    static class DirFooter {
+      List<StringInt> bandwidth_weights;
+      String consensus_digest;
+      List<DirSig> directory_signature;
+    }
+    static class DirSig {
+      String algorithm;
+      String identity;
+      String signing_key_digest;
+      Boolean signature;
+    }
 
     static String convert(RelayNetworkStatusConsensus desc) {
-      JsonRelayNetworkStatusConsensus consensus = new JsonRelayNetworkStatusConsensus();
+      JsonRelayNetworkStatusConsensus cons = new JsonRelayNetworkStatusConsensus();
       for (String annotation : desc.getAnnotations()) {
-        consensus.descriptor_type = annotation.substring("@type ".length());
+        cons.descriptor_type = annotation.substring("@type ".length());
       }
-      //  status.published = dateTimeFormat.format(desc.getPublishedMillis());
-      //  TODO
-      return ToJson.serialize(consensus);
+      //  status.published = dateTimeFormat.format(desc.getPublishedMillis()); TODO fake it
+      cons.vote_status = desc.getNetworkStatusVersion();
+      cons.consensus_method = desc.getConsensusMethod();
+      cons.consensus_flavor = desc.getConsensusFlavor();
+      cons.valid_after = dateTimeFormat.format(desc.getValidAfterMillis());
+      cons.fresh_until = dateTimeFormat.format(desc.getFreshUntilMillis());
+      cons.valid_until = dateTimeFormat.format(desc.getValidUntilMillis());
+      cons.voting_delay = new Vote();
+      cons.voting_delay.vote_seconds = desc.getVoteSeconds();
+      cons.voting_delay.dist_seconds = desc.getDistSeconds();
+      if (desc.getRecommendedClientVersions() != null && !desc.getRecommendedClientVersions().isEmpty()) {
+        cons.client_version = desc.getRecommendedClientVersions();
+      }
+      if (desc.getRecommendedServerVersions() != null && !desc.getRecommendedServerVersions().isEmpty()) {
+        cons.server_versions = desc.getRecommendedServerVersions();
+      }
+      if (desc.getKnownFlags() != null && !desc.getKnownFlags().isEmpty()) {
+        cons.known_flags = desc.getKnownFlags();
+      }
+      if (desc.getConsensusParams() != null && !desc.getConsensusParams().isEmpty()) {
+        cons.params = new ArrayList<StringInt> ();
+        SortedMap<String,Integer> paramsC = desc.getConsensusParams();
+        for(Map.Entry<String,Integer> paraC : paramsC.entrySet()) {
+          cons.params.add(new StringInt(paraC.getKey(), paraC.getValue()));
+        }
+      }
+      if (desc.getDirSourceEntries() != null && !desc.getDirSourceEntries().isEmpty()) {
+        cons.dir_source = new ArrayList<Authority>();
+        SortedMap<String, DirSourceEntry> AuthorityMap = desc.getDirSourceEntries();
+        for (Map.Entry<String, DirSourceEntry> mAuth : AuthorityMap.entrySet()) {
+          Authority auth = new Authority();
+          auth.nickname = mAuth.getValue().getNickname();
+          auth.identity = mAuth.getValue().getIdentity();
+          auth.adress = mAuth.getValue().getIp();
+          auth.dir_port = mAuth.getValue().getDirPort();
+          auth.or_port = mAuth.getValue().getOrPort();
+          auth.contact = mAuth.getValue().getContactLine();
+          auth.vote_digest = mAuth.getValue().getVoteDigest();
+          auth.legacy = mAuth.getValue().isLegacy();
+          cons.dir_source.add(auth);
+        }
+      }
+      if (desc.getStatusEntries() != null && !desc.getStatusEntries().isEmpty()) {
+        cons.router_status = new ArrayList();
+        SortedMap<String,NetworkStatusEntry> statusMap = desc.getStatusEntries();
+        for(Map.Entry<String,NetworkStatusEntry> status : statusMap.entrySet()) {
+          Router router = new Router();
+          router.key = status.getKey();
+          router.descriptor_identity = status.getValue().getDescriptor();
+          router.r = new R();
+          router.r.nickname = status.getValue().getNickname();
+          router.r.identity = status.getValue().getFingerprint();
+          router.r.digest = status.getValue().getDescriptor();
+          router.r.publication = dateTimeFormat.format(status.getValue().getPublishedMillis());
+          router.r.ip = status.getValue().getAddress();
+          router.r.or_port = status.getValue().getOrPort();
+          router.r.dir_port = status.getValue().getDirPort();
+          if (status.getValue().getOrAddresses() != null && !status.getValue().getOrAddresses().isEmpty()) {
+            router.a = status.getValue().getOrAddresses();
+          }
+          if (status.getValue().getFlags() != null && !status.getValue().getFlags().isEmpty()) {
+            router.s = new ArrayList<String>();
+            for (String flag : status.getValue().getFlags()) router.s.add(flag);
+          }
+          router.v = status.getValue().getVersion();
+          router.w = new W();
+          if (status.getValue().getBandwidth() >= 0) {
+            router.w.bandwidth = status.getValue().getBandwidth();
+          }
+          if (status.getValue().getMeasured() >= 0) {
+            router.w.measured_bw = status.getValue().getMeasured();
+          }
+          router.w.unmeasured_bw = status.getValue().getUnmeasured();
+          router.p = new Policy();
+          router.p.default_policy = status.getValue().getDefaultPolicy();
+          router.p.port_summary = status.getValue().getPortList();
+          cons.router_status.add(router);
+        }
+      }
+      if (desc.getDirectorySignatures() != null && !desc.getDirectorySignatures().isEmpty()) {
+        cons.directory_footer = new DirFooter();
+        if (desc.getBandwidthWeights() != null && !desc.getBandwidthWeights().isEmpty()) {
+          cons.directory_footer.bandwidth_weights = new ArrayList<StringInt> ();
+          SortedMap<String,Integer> bwWeights = desc.getBandwidthWeights();
+          for(Map.Entry<String,Integer> bw : bwWeights.entrySet()) {
+            cons.params.add(new StringInt(bw.getKey(), bw.getValue()));
+          }
+        }
+        cons.directory_footer.consensus_digest = desc.getConsensusDigest();
+        if (desc.getDirectorySignatures() != null && !desc.getDirectorySignatures().isEmpty()) {
+          cons.directory_footer.directory_signature = new ArrayList<DirSig>();
+          SortedMap<String,DirectorySignature> dirSigMap = desc.getDirectorySignatures();
+          for(Map.Entry<String,DirectorySignature> dirSigEntry : dirSigMap.entrySet()) {
+            DirSig dirSig = new DirSig();
+            dirSig.algorithm = dirSigEntry.getValue().getAlgorithm();
+            dirSig.identity = dirSigEntry.getValue().getIdentity();
+            dirSig.signing_key_digest = dirSigEntry.getValue().getSigningKeyDigest();
+            dirSig.signature = dirSigEntry.getValue().getSignature() != null;
+            cons.directory_footer.directory_signature.add(dirSig);
+          }
+        }
+      }
+      return ToJson.serialize(cons);
     }
   }
 
@@ -644,8 +807,8 @@ public class ConvertToJson {
     DirFooter directory_footer;
 
     static class Vote {
-      String vote_seconds;
-      String dist_seconds;
+      Long vote_seconds;
+      Long dist_seconds;
     }
     static class FlagTreshold {
       Long stable_uptime;
@@ -711,7 +874,6 @@ public class ConvertToJson {
       Boolean signature;
     }
 
-
     static String convert(RelayNetworkStatusVote desc) {
       JsonRelayNetworkStatusVote vote = new JsonRelayNetworkStatusVote();
       for (String annotation : desc.getAnnotations()) {
@@ -726,8 +888,8 @@ public class ConvertToJson {
       vote.fresh_until = dateTimeFormat.format(desc.getFreshUntilMillis());
       vote.valid_until = dateTimeFormat.format(desc.getValidUntilMillis());
       vote.voting_delay = new Vote();
-      vote.voting_delay.vote_seconds = dateTimeFormat.format(desc.getVoteSeconds());
-      vote.voting_delay.dist_seconds = dateTimeFormat.format(desc.getDistSeconds());
+      vote.voting_delay.vote_seconds = desc.getVoteSeconds();
+      vote.voting_delay.dist_seconds = desc.getDistSeconds();
       if (desc.getRecommendedClientVersions() != null && !desc.getRecommendedClientVersions().isEmpty()) {
         vote.client_version = desc.getRecommendedClientVersions();
       }
@@ -735,18 +897,36 @@ public class ConvertToJson {
         vote.server_versions = desc.getRecommendedServerVersions();
       }
       vote.flagTreshold = new FlagTreshold();
-      vote.flagTreshold.stable_uptime = desc.getStableUptime();
-      vote.flagTreshold.stable_mtbf = desc.getStableMtbf();
-      vote.flagTreshold.enough_mtbf = desc.getEnoughMtbfInfo();
-      vote.flagTreshold.fast_speed = desc.getFastBandwidth();
-      vote.flagTreshold.guard_wfu = desc.getGuardWfu();
-      vote.flagTreshold.guard_tk = desc.getGuardTk();
-      vote.flagTreshold.guard_bw_inc_exits = desc.getGuardBandwidthIncludingExits();
-      vote.flagTreshold.guard_bw_exc_exits = desc.getGuardBandwidthExcludingExits();
+      if (desc.getStableUptime() >= 0) {
+        vote.flagTreshold.stable_uptime = desc.getStableUptime();
+      }
+      if (desc.getStableMtbf() >= 0) {
+        vote.flagTreshold.stable_mtbf = desc.getStableMtbf();
+      }
+      if (desc.getEnoughMtbfInfo() >= 0) {
+        vote.flagTreshold.enough_mtbf = desc.getEnoughMtbfInfo();
+      }
+      if (desc.getFastBandwidth() >= 0) {
+        vote.flagTreshold.fast_speed = desc.getFastBandwidth();
+      }
+      if (desc.getGuardWfu() >= 0) {
+        vote.flagTreshold.guard_wfu = desc.getGuardWfu();
+      }
+      if (desc.getGuardTk() >= 0) {
+        vote.flagTreshold.guard_tk = desc.getGuardTk();
+      }
+      if (desc.getGuardBandwidthIncludingExits() >= 0) {
+        vote.flagTreshold.guard_bw_inc_exits = desc.getGuardBandwidthIncludingExits();
+      }
+      if (desc.getGuardBandwidthExcludingExits() >= 0) {
+        vote.flagTreshold.guard_bw_exc_exits = desc.getGuardBandwidthExcludingExits();
+      }
       if (desc.getKnownFlags() != null && !desc.getKnownFlags().isEmpty()) {
         vote.known_flags = desc.getKnownFlags();
       }
+
       if (desc.getConsensusParams() != null && !desc.getConsensusParams().isEmpty()) {
+        vote.params = new ArrayList<StringInt> ();
         SortedMap<String,Integer> params = desc.getConsensusParams();
         for(Map.Entry<String,Integer> para : params.entrySet()) {
           vote.params.add(new StringInt(para.getKey(), para.getValue()));
@@ -766,8 +946,9 @@ public class ConvertToJson {
       vote.authority.key_certificate.dir_key_expires = dateTimeFormat.format(desc.getDirKeyExpiresMillis());
       vote.authority.key_certificate.dir_signing_key = desc.getSigningKeyDigest() != null;
       if (desc.getStatusEntries() != null && !desc.getStatusEntries().isEmpty()) {
-        SortedMap<String,NetworkStatusEntry> statuses = desc.getStatusEntries();
-        for(Map.Entry<String,NetworkStatusEntry> status : statuses.entrySet()) {
+        vote.router_status = new ArrayList();
+        SortedMap<String,NetworkStatusEntry> statusMap = desc.getStatusEntries();
+        for(Map.Entry<String,NetworkStatusEntry> status : statusMap.entrySet()) {
           Router router = new Router();
           router.key = status.getKey();
           router.descriptor_identity = status.getValue().getDescriptor();
@@ -783,6 +964,7 @@ public class ConvertToJson {
             router.a = status.getValue().getOrAddresses();
           }
           if (status.getValue().getFlags() != null && !status.getValue().getFlags().isEmpty()) {
+            router.s = new ArrayList<String>();
             for (String flag : status.getValue().getFlags()) router.s.add(flag);
           }
           router.v = status.getValue().getVersion();
@@ -803,8 +985,7 @@ public class ConvertToJson {
       if (desc.getDirectorySignatures() != null && !desc.getDirectorySignatures().isEmpty()) {
         vote.directory_footer = new DirFooter();
         vote.directory_footer.directory_signature = new DirSig();
-        //  TODO this shouldn't be a SortedMap since by Spec it can only contain one entry
-        //       This code breaks if there is more than one entry in SortedMap
+        //  TODO this shouldn't be an array since there can't be more than one entry
         SortedMap<String,DirectorySignature> dirSigs = desc.getDirectorySignatures();
         for(Map.Entry<String,DirectorySignature> dirSig : dirSigs.entrySet()) {
           vote.directory_footer.directory_signature.algorithm = dirSig.getValue().getAlgorithm();
@@ -816,31 +997,6 @@ public class ConvertToJson {
       return ToJson.serialize(vote);
     }
   }
-
-  
-
-  /*
-      can return -1
-        if (desc.XXX() >= 0) {
-
-      can't be null or false, only true'
-        if (desc.XXX()) {
-
-      if a method is called on the desc property always check for null
-        if (desc.XXX() != null) {
-
-      for keys: test, if there is one and return 'true' if yes, 'false' otherwise
-          server.onion_key = desc.getOnionKey() != null;
-
-      List: first check that the list is not null, then if it's empty
-          if (desc.XXX() != null && !desc.XXX().isEmpty()) {
-
-
-      SortedMap<String,Integer> MAP = desc.GETTER();
-      for(Map.Entry<String,Integer> kv : MAP.entrySet()) {
-        extra.ATTRIBUTE.add(new StringInt(kv.getKey(), kv.getValue()));
-      }
-   */
 
   static class JsonBridgeNetworkStatus extends JDesc {
     String descriptor_type;
@@ -1006,15 +1162,15 @@ public class ConvertToJson {
       torperf.readbytes = desc.getReadBytes();
       torperf.didtimeout = desc.didTimeout();
       if (desc.getDataPercentiles() != null && !desc.getDataPercentiles().isEmpty()) {
-        torperf.dataperc10 = desc.getDataPercentiles().get("10");
-        torperf.dataperc20 = desc.getDataPercentiles().get("20");
-        torperf.dataperc30 = desc.getDataPercentiles().get("30");
-        torperf.dataperc40 = desc.getDataPercentiles().get("40");
-        torperf.dataperc50 = desc.getDataPercentiles().get("50");
-        torperf.dataperc60 = desc.getDataPercentiles().get("60");
-        torperf.dataperc70 = desc.getDataPercentiles().get("70");
-        torperf.dataperc80 = desc.getDataPercentiles().get("80");
-        torperf.dataperc90 = desc.getDataPercentiles().get("90");
+        torperf.dataperc10 = desc.getDataPercentiles().get(10);
+        torperf.dataperc20 = desc.getDataPercentiles().get(20);
+        torperf.dataperc30 = desc.getDataPercentiles().get(30);
+        torperf.dataperc40 = desc.getDataPercentiles().get(40);
+        torperf.dataperc50 = desc.getDataPercentiles().get(50);
+        torperf.dataperc60 = desc.getDataPercentiles().get(60);
+        torperf.dataperc70 = desc.getDataPercentiles().get(70);
+        torperf.dataperc80 = desc.getDataPercentiles().get(80);
+        torperf.dataperc90 = desc.getDataPercentiles().get(90);
       }
       if (desc.getLaunchMillis() >= 0) {
         torperf.launch = dateTimeFormat.format(desc.getLaunchMillis());
