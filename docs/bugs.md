@@ -1,7 +1,5 @@
 # RelayNetworkStatusConsensus
 
-is missing "package" getters  
-
 not a bug, but ... there is no "published" field. can we fake/derive one from 
 another attribute? having a published attribute would come in very handy because
 it's the only attribute that nearly all other datasets have in common
@@ -20,7 +18,6 @@ mapping is unclear:
     identity <-> getFingerprint,   
     digest <-> getDescriptor ?
 
-serious: router-status attribute 'm' is missing
     
     
 # RelayNetworkStatusVote
@@ -28,7 +25,6 @@ serious: router-status attribute 'm' is missing
 missing 
 
     package
-    flag-tresholds/ignoring-advertised-bws
     authority
       adress (only has ip)
       legacy dir key details

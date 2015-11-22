@@ -707,9 +707,9 @@ JSON SERIALIZATION
 		"directory_footer": {               
 			"bandwidth_weights": [            getBandwidthWeights SortedMap<String, Integer>
 				{
-				  "key": "",
-				  "value": #
-				}
+				  "key": "",                    // TODO 
+				  "value": #                    // this might be a well defined list
+				}                               // then an object would be better
 				...                             
 			],                           
 			"consensus_digest: "",            getConsensusDigest
@@ -893,7 +893,7 @@ JSON SERIALIZATION
 			"guard-tk": #,                   long getGuardTk
 			"guard-bw-inc-exits": #,         long getGuardBandwidthIncludingExits
 			"guard-bw-exc-exits": #,         long getGuardBandwidthExcludingExits
-			"ignoring-advertised-bws": #   
+			"ignoring-advertised-bws": #     int getIgnoringAdvertisedBws
 			}
 		"known_flags": ["","",""...],      getKnownFlags
 		"params": [                        getConsensusParams SortedMap<String, Integer>
@@ -965,13 +965,7 @@ JSON SERIALIZATION
 			}                                 
 			...                               
 		],                                  
-		"directory_footer": {               
-			"bandwidth_weights": [            
-				{                               
-					"key": "",                    
-					"value": #                    
-				}                               
-			],                                
+		"directory_footer": {           
 			"directory_signature": {          getDirectorySignatures SortedMap<String, DirectorySignature>
 				"algorithm": "",                getAlgorithm
 				"identity": "",                 getIdentity

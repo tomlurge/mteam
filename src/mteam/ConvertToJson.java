@@ -1,10 +1,7 @@
 package mteam;
 
 /* Import standard Java classes. */
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -85,8 +82,11 @@ public class ConvertToJson {
 
     while (descriptorFiles.hasNext()) {
       DescriptorFile descriptorFile = descriptorFiles.next();
+
+
       for (Descriptor descriptor : descriptorFile.getDescriptors()) {
         String jsonDescriptor = null;
+
         //  relays & bridges descriptors
         if (descriptor instanceof ServerDescriptor) {
           jsonDescriptor = JsonServerDescriptor
@@ -97,31 +97,40 @@ public class ConvertToJson {
           jsonDescriptor = JsonExtraInfoDescriptor
                   .convert((ExtraInfoDescriptor) descriptor);
         }
+        //  network status consensus
         if (descriptor instanceof RelayNetworkStatusConsensus) {
           jsonDescriptor = JsonRelayNetworkStatusConsensus
                   .convert((RelayNetworkStatusConsensus) descriptor);
         }
+        //  network status vote
         if (descriptor instanceof RelayNetworkStatusVote) {
           jsonDescriptor = JsonRelayNetworkStatusVote
                   .convert((RelayNetworkStatusVote) descriptor);
         }
+        // bridge network status
         if (descriptor instanceof BridgeNetworkStatus) {
           jsonDescriptor = JsonBridgeNetworkStatus
                   .convert((BridgeNetworkStatus) descriptor);
         }
-        if (descriptor instanceof ExitList) { //tordnsel
+        //  tordnsel
+        if (descriptor instanceof ExitList) {
           jsonDescriptor = JsonExitList
                   .convert((ExitList) descriptor);
         }
-        /* there's a bug in Torperf...
+        // torperf
         if (descriptor instanceof TorperfResult) {
           jsonDescriptor = JsonTorperfResult
                   .convert((TorperfResult) descriptor);
         }
-        */
 
+        if (!descriptor.getUnrecognizedLines().isEmpty()) {
+          System.err.println("Unrecognized lines in "
+                  + descriptorFile.getFileName() + ":");
+          System.err.println(descriptor.getUnrecognizedLines());
+          continue;
+        }
         if (jsonDescriptor != null) {
-          // TODO        this comma -v- remove after testing
+          // TODO remove this comma -v- after testing
           bw.write((written++ > 0 ? ",\n" : "") + jsonDescriptor);
         }
       }
@@ -130,9 +139,9 @@ public class ConvertToJson {
   }
 
 
-  static class JDesc {
+  static class JsonDescriptor {
 
-    /* generic key/value containers */
+    /* generic key/value containers for verbose output*/
     static class StringInt {
       String key;
       int val;
@@ -179,9 +188,7 @@ public class ConvertToJson {
 
   }
 
-  static class JsonServerDescriptor extends JDesc {
-
-    /* bridge + relay server descriptor */
+  static class JsonServerDescriptor extends JsonDescriptor {
     /* mandatory */
     String descriptor_type;
     String published; // format YYYY-MM-DD HH:MM:SS
@@ -313,7 +320,7 @@ public class ConvertToJson {
     }
   }
 
-  static class JsonExtraInfoDescriptor extends JDesc {
+  static class JsonExtraInfoDescriptor extends JsonDescriptor {
     String descriptor_type;
     String nickname;
     String fingerprint;
@@ -350,6 +357,14 @@ public class ConvertToJson {
     List<Integer> cell_time_in_queue;
     Integer cell_circuits_per_decile;
     ConnBiDirect conn_bi_direct;
+    static class ConnBiDirect {
+      String date;
+      Long interval;
+      Integer below;
+      Integer read;
+      Integer write;
+      Integer both;
+    }
     String exit_stats_end_date;
     Long exit_stats_end_interval;
     List<StringLong> exit_kibibytes_written;
@@ -368,15 +383,6 @@ public class ConvertToJson {
     List<StringInt> bridge_ips;
     List<StringInt> bridge_ip_versions;
     List<StringInt> bridge_ip_transports;
-
-    static class ConnBiDirect {
-      String date;
-      Long interval;
-      Integer below;
-      Integer read;
-      Integer write;
-      Integer both;
-    }
 
     static String convert(ExtraInfoDescriptor desc) {
       JsonExtraInfoDescriptor extra = new JsonExtraInfoDescriptor();
@@ -606,7 +612,7 @@ public class ConvertToJson {
     }
   }
 
-  static class JsonRelayNetworkStatusConsensus extends JDesc {
+  static class JsonRelayNetworkStatusConsensus extends JsonDescriptor {
     String descriptor_type;
     String published;  // TODO fake it
     Integer vote_status;
@@ -788,7 +794,7 @@ public class ConvertToJson {
     }
   }
 
-  static class JsonRelayNetworkStatusVote extends JDesc {
+  static class JsonRelayNetworkStatusVote extends JsonDescriptor {
     String descriptor_type;
     String published;
     Integer vote_status;
@@ -797,19 +803,13 @@ public class ConvertToJson {
     String fresh_until;
     String valid_until;
     Vote voting_delay;
-    List<String> client_version;
-    List<String> server_versions;
-    FlagTreshold flagTreshold;
-    SortedSet<String> known_flags;
-    List<StringInt> params;
-    Authority authority;
-    List<Router> router_status;
-    DirFooter directory_footer;
-
     static class Vote {
       Long vote_seconds;
       Long dist_seconds;
     }
+    List<String> client_version;
+    List<String> server_versions;
+    FlagTreshold flagTreshold;
     static class FlagTreshold {
       Long stable_uptime;
       Long stable_mtbf;
@@ -819,7 +819,11 @@ public class ConvertToJson {
       Long guard_tk;
       Long guard_bw_inc_exits;
       Long guard_bw_exc_exits;
+      Integer ignoring_advertised;
     }
+    SortedSet<String> known_flags;
+    List<StringInt> params;
+    Authority authority;
     static class Authority {
       String nickname;
       String identity;
@@ -836,6 +840,7 @@ public class ConvertToJson {
       String dir_key_expires;
       Boolean dir_signing_key;
     }
+    List<Router> router_status;
     static class Router {
       String key; // the String in SortedMap<String, NetworkStatusEntry>
       String descriptor_identity;
@@ -864,6 +869,7 @@ public class ConvertToJson {
       String default_policy;
       String port_summary;
     }
+    DirFooter directory_footer;
     static class DirFooter {
       DirSig directory_signature;
     }
@@ -920,6 +926,9 @@ public class ConvertToJson {
       }
       if (desc.getGuardBandwidthExcludingExits() >= 0) {
         vote.flagTreshold.guard_bw_exc_exits = desc.getGuardBandwidthExcludingExits();
+      }
+      if (desc.getIgnoringAdvertisedBws() >= 0) {
+        vote.flagTreshold.ignoring_advertised = desc.getIgnoringAdvertisedBws();
       }
       if (desc.getKnownFlags() != null && !desc.getKnownFlags().isEmpty()) {
         vote.known_flags = desc.getKnownFlags();
@@ -985,7 +994,6 @@ public class ConvertToJson {
       if (desc.getDirectorySignatures() != null && !desc.getDirectorySignatures().isEmpty()) {
         vote.directory_footer = new DirFooter();
         vote.directory_footer.directory_signature = new DirSig();
-        //  TODO this shouldn't be an array since there can't be more than one entry
         SortedMap<String,DirectorySignature> dirSigs = desc.getDirectorySignatures();
         for(Map.Entry<String,DirectorySignature> dirSig : dirSigs.entrySet()) {
           vote.directory_footer.directory_signature.algorithm = dirSig.getValue().getAlgorithm();
@@ -998,12 +1006,22 @@ public class ConvertToJson {
     }
   }
 
-  static class JsonBridgeNetworkStatus extends JDesc {
+  static class JsonBridgeNetworkStatus extends JsonDescriptor {
     String descriptor_type;
     String published;
-    List<StringInt> flag_tresholds; // no getter in metrics-lib
+    FlagTreshold flagTreshold;
+    static class FlagTreshold {
+      Long stable_uptime;
+      Long stable_mtbf;
+      Integer enough_mtbf;
+      Long fast_speed;
+      Double guard_wfu;
+      Long guard_tk;
+      Long guard_bw_inc_exits;
+      Long guard_bw_exc_exits;
+      Integer ignoring_advertised;
+    }
     List<Bridge> bridges;
-
     static class Bridge {
       String key; // bridge key
       R r; // bridge description
@@ -1034,6 +1052,34 @@ public class ConvertToJson {
         status.descriptor_type = annotation.substring("@type ".length());
       }
       status.published = dateTimeFormat.format(desc.getPublishedMillis());
+      status.flagTreshold = new FlagTreshold();
+      if (desc.getStableUptime() >= 0) {
+        status.flagTreshold.stable_uptime = desc.getStableUptime();
+      }
+      if (desc.getStableMtbf() >= 0) {
+        status.flagTreshold.stable_mtbf = desc.getStableMtbf();
+      }
+      if (desc.getEnoughMtbfInfo() >= 0) {
+        status.flagTreshold.enough_mtbf = desc.getEnoughMtbfInfo();
+      }
+      if (desc.getFastBandwidth() >= 0) {
+        status.flagTreshold.fast_speed = desc.getFastBandwidth();
+      }
+      if (desc.getGuardWfu() >= 0) {
+        status.flagTreshold.guard_wfu = desc.getGuardWfu();
+      }
+      if (desc.getGuardTk() >= 0) {
+        status.flagTreshold.guard_tk = desc.getGuardTk();
+      }
+      if (desc.getGuardBandwidthIncludingExits() >= 0) {
+        status.flagTreshold.guard_bw_inc_exits = desc.getGuardBandwidthIncludingExits();
+      }
+      if (desc.getGuardBandwidthExcludingExits() >= 0) {
+        status.flagTreshold.guard_bw_exc_exits = desc.getGuardBandwidthExcludingExits();
+      }
+      if (desc.getIgnoringAdvertisedBws() >= 0) {
+        status.flagTreshold.ignoring_advertised = desc.getIgnoringAdvertisedBws();
+      }
       if (desc.getStatusEntries() != null && !desc.getStatusEntries().isEmpty()) {
         status.bridges = new ArrayList<Bridge>();
         for (Map.Entry<String, NetworkStatusEntry> entry : desc.getStatusEntries().entrySet()) {
@@ -1070,7 +1116,7 @@ public class ConvertToJson {
     }
   }
 
-  static class JsonExitList extends JDesc {
+  static class JsonExitList extends JsonDescriptor {
     String descriptor_type;
     Long downloaded;
     List<Entry> relays;
@@ -1108,7 +1154,7 @@ public class ConvertToJson {
     }
   }
 
-  static class JsonTorperfResult extends JDesc {
+  static class JsonTorperfResult extends JsonDescriptor {
     String descriptor_type;
     String source;
     Integer filesize;
@@ -1144,9 +1190,7 @@ public class ConvertToJson {
 
     static String convert(TorperfResult desc) {
       JsonTorperfResult torperf = new JsonTorperfResult();
-      for (String annotation : desc.getAnnotations()) {
-        torperf.descriptor_type = annotation.substring("@type ".length());
-      }
+      torperf.descriptor_type = "torperf 1.0";
       torperf.source = desc.getSource();
       torperf.filesize = desc.getFileSize();
       torperf.start = dateTimeFormat.format(desc.getStartMillis());
@@ -1206,7 +1250,7 @@ public class ConvertToJson {
    * If flag '-a' (for "archive") is set generate gzip compressed archive
    */
   static class ToJson {
-    static String serialize(JDesc json) {
+    static String serialize(JsonDescriptor json) {
       Gson gson;
       String output;
       if (verbose) {
