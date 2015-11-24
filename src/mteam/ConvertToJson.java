@@ -14,36 +14,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 
-/* CONSTRUCTION MATERIALS
-
-
-  SORTEDMAP TEMPLATE
-
-      SortedMap<String,Integer> MAP = desc.GETTER();
-      for(Map.Entry<String,Integer> kv : MAP.entrySet()) {
-        extra.ATTRIBUTE.add(new StringInt(kv.getKey(), kv.getValue()));
-      }
-
-  USEFUL CHECKS TO DEFEND AGAINST NULL POINTER EXCEPTIONS
-
-      can return -1
-        if (desc.XXX() >= 0) {
-
-      can't be null or false, only true'
-        if (desc.XXX()) {
-
-      if a method is called on the desc property always check for null
-        if (desc.XXX() != null) {
-
-      for keys: test, if there is one and return 'true' if yes, 'false' otherwise
-          server.onion_key = desc.getOnionKey() != null;
-
-      List: first check that the list is not null, then if it's empty
-          if (desc.XXX() != null && !desc.XXX().isEmpty()) {
-
-
- */
-
 public class ConvertToJson {
 
 
@@ -274,8 +244,8 @@ public class ConvertToJson {
           try {
             int val = Integer.parseInt(orAddress.substring(lastColon + 1));
             server.or_addresses.add(
-                    new StringInt(orAddress.substring(0, lastColon), val)
-            );
+                new StringInt(orAddress.substring(0, lastColon), val)
+              );
           } catch (NumberFormatException e) {
             continue;
           }
@@ -643,8 +613,6 @@ public class ConvertToJson {
     }
     List<Router> router_status;
     static class Router {
-      String key; // the String in SortedMap<String, NetworkStatusEntry>
-      String descriptor_identity;
       R r; // router description
       List<String> a; // additinal OR adresses and ports
       List<String> s; // flags
@@ -735,8 +703,6 @@ public class ConvertToJson {
         SortedMap<String,NetworkStatusEntry> statusMap = desc.getStatusEntries();
         for(Map.Entry<String,NetworkStatusEntry> status : statusMap.entrySet()) {
           Router router = new Router();
-          router.key = status.getKey();
-          router.descriptor_identity = status.getValue().getDescriptor();
           router.r = new R();
           router.r.nickname = status.getValue().getNickname();
           router.r.identity = status.getValue().getFingerprint();
@@ -842,8 +808,6 @@ public class ConvertToJson {
     }
     List<Router> router_status;
     static class Router {
-      String key; // the String in SortedMap<String, NetworkStatusEntry>
-      String descriptor_identity;
       R r; // router description
       List<String> a; // additinal OR adresses and ports
       List<String> s; // flags
@@ -959,8 +923,6 @@ public class ConvertToJson {
         SortedMap<String,NetworkStatusEntry> statusMap = desc.getStatusEntries();
         for(Map.Entry<String,NetworkStatusEntry> status : statusMap.entrySet()) {
           Router router = new Router();
-          router.key = status.getKey();
-          router.descriptor_identity = status.getValue().getDescriptor();
           router.r = new R();
           router.r.nickname = status.getValue().getNickname();
           router.r.identity = status.getValue().getFingerprint();
@@ -1023,7 +985,6 @@ public class ConvertToJson {
     }
     List<Bridge> bridges;
     static class Bridge {
-      String key; // bridge key
       R r; // bridge description
       SortedSet<String> s; // flags
       W w; // bandwidths
@@ -1084,7 +1045,6 @@ public class ConvertToJson {
         status.bridges = new ArrayList<Bridge>();
         for (Map.Entry<String, NetworkStatusEntry> entry : desc.getStatusEntries().entrySet()) {
           Bridge b = new Bridge();
-          b.key = entry.getKey();
           b.r = new R();
           b.r.nickname = entry.getValue().getNickname();
           b.r.identity = entry.getValue().getDescriptor();

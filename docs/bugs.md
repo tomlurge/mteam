@@ -35,10 +35,6 @@ missing
         dir key certification
     directory-footer/bandwidth-weights
 
-# Torperf
-something is wrong with the 'torperf' detection algorithm    
-it doesnt find the type declaration but spits out   
-hundreds of false positives: {"descriptor_type":null}
 
 
 # JsonServerDescriptor 
