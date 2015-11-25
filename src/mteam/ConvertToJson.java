@@ -5,6 +5,7 @@ import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.zip.GZIPOutputStream;
 
 /* Import classes from metrics-lib. */
 import org.torproject.descriptor.*;
@@ -16,9 +17,9 @@ import com.google.gson.GsonBuilder;
 
 public class ConvertToJson {
 
-
+  /* argument defaults */
   static boolean verbose = false;
-  static boolean archive = false;
+  static boolean unzipped = false;
   static String dir = "";
 
   /* Read all descriptors in the provided directory and
@@ -26,13 +27,18 @@ public class ConvertToJson {
   public static void main(String[] args) throws IOException {
 
     /*  optional command line arguments
-     *    -v                force creation of attributes with null values
-     *    -a                generate .gz archive
+     *    -v                verbose: emit attributes with null values
+     *    -u                uncompressed: do not generate .gz archive
+     *    -t                testing: verbose and uncompressed
      *    <directory name>  scan only a given subdirectory of data/in
      */
     for(String arg : args) {
       if (arg.equals("-v")) verbose = true;
-      else if (arg.equals("-a")) archive = true;
+      else if (arg.equals("-u")) unzipped = true;
+      else if (arg.equals("-t")) {
+        unzipped = true;
+        verbose = true;
+      }
       else dir = arg;
     }
 
@@ -41,18 +47,27 @@ public class ConvertToJson {
     Iterator<DescriptorFile> descriptorFiles = descriptorReader.readDescriptors();
 
     int written = 0;
-    BufferedWriter bw = new BufferedWriter(new FileWriter("data/out/test.json"));
+    String outputPath = "data/out/";
+    String outputName = "testTorperf.json";
+    Writer JsonWriter;
+    if (unzipped) {
+      JsonWriter = new FileWriter(outputPath + outputName);
+    }
+    else {
+      JsonWriter = new OutputStreamWriter(new GZIPOutputStream(
+              new FileOutputStream(outputPath + outputName + ".gz")));
+    }
+    BufferedWriter bw = new BufferedWriter(JsonWriter);
 
     // TODO remove after testing
     bw.write(
       "{\"verbose\": " + verbose +
-      ", \"archive\": " + archive  +
+      ", \"unzipped\": " + unzipped  +
       ", \"starting at directory\" : \"data/in/" + dir + "\"},\n"
     );
 
     while (descriptorFiles.hasNext()) {
       DescriptorFile descriptorFile = descriptorFiles.next();
-
 
       for (Descriptor descriptor : descriptorFile.getDescriptors()) {
         String jsonDescriptor = null;
@@ -135,7 +150,6 @@ public class ConvertToJson {
       long interval; // seconds
       Collection<Long> bytes;
     }
-
     /* Convert read or write history */
     static BandwidthHistory convertBandwidthHistory(org.torproject.descriptor.BandwidthHistory hist) {
       BandwidthHistory bandwidthHistory = new BandwidthHistory();
@@ -144,7 +158,6 @@ public class ConvertToJson {
       bandwidthHistory.bytes = hist.getBandwidthValues().values();
       return bandwidthHistory;
     }
-
     /* Date/time formatter. */
     static final String dateTimePattern = "yyyy-MM-dd HH:mm:ss";
     static final Locale dateTimeLocale = Locale.US;
@@ -157,6 +170,68 @@ public class ConvertToJson {
     }
 
   }
+
+//  TODO remove after testing
+//  static class JsonTestNonVerbose extends JsonDescriptor {
+//    String descriptor_type;
+//    Integer vote_status;
+//    SortedSet<String> known_flags;
+//    Object params;
+//    List<Authority> dir_source;
+//    static class Authority {
+//      String nickname;
+//      String identity;
+//      String adress;
+//    }
+//    Object bandwidth_weights;
+//
+//    static String convert(RelayNetworkStatusConsensus desc) {
+//      JsonTestNonVerbose tester = new JsonTestNonVerbose();
+//      for (String annotation : desc.getAnnotations()) {
+//        tester.descriptor_type = annotation.substring("@type ".length());
+//      }
+//      tester.vote_status = desc.getNetworkStatusVersion();
+//      if (desc.getKnownFlags() != null && !desc.getKnownFlags().isEmpty()) {
+//        tester.known_flags = desc.getKnownFlags();
+//      }
+//      if (desc.getConsensusParams() != null && !desc.getConsensusParams().isEmpty()) {
+//        if (verbose) {
+//          ArrayList<StringInt> verboseP = new ArrayList<StringInt>();
+//          tester.params = new ArrayList<StringInt>();
+//          SortedMap<String, Integer> paramsC = desc.getConsensusParams();
+//          for (Map.Entry<String, Integer> paraC : paramsC.entrySet()) {
+//            verboseP.add(new StringInt(paraC.getKey(), paraC.getValue()));
+//          }
+//          tester.params = verboseP;
+//        } else {
+//          tester.params = desc.getConsensusParams();
+//        }
+//      }
+//      if (desc.getDirSourceEntries() != null && !desc.getDirSourceEntries().isEmpty()) {
+//        tester.dir_source = new ArrayList<Authority>();
+//        SortedMap<String, DirSourceEntry> AuthorityMap = desc.getDirSourceEntries();
+//        for (Map.Entry<String, DirSourceEntry> mAuth : AuthorityMap.entrySet()) {
+//          Authority auth = new Authority();
+//          auth.nickname = mAuth.getValue().getNickname();
+//          auth.identity = mAuth.getValue().getIdentity();
+//          auth.adress = mAuth.getValue().getIp();
+//        }
+//      }
+//      if (desc.getBandwidthWeights() != null && !desc.getBandwidthWeights().isEmpty()) {
+//        if (verbose) {
+//          ArrayList<StringInt> verboseBW = new ArrayList<StringInt>();
+//          SortedMap<String, Integer> bwWeights = desc.getBandwidthWeights();
+//          for (Map.Entry<String, Integer> bw : bwWeights.entrySet()) {
+//            verboseBW.add(new StringInt(bw.getKey(), bw.getValue()));
+//          }
+//          tester.bandwidth_weights = verboseBW;
+//        } else {
+//          tester.bandwidth_weights = desc.getBandwidthWeights();
+//        }
+//      }
+//      return ToJson.serialize(tester);
+//    }
+//  }
 
   static class JsonServerDescriptor extends JsonDescriptor {
     /* mandatory */
@@ -584,7 +659,7 @@ public class ConvertToJson {
 
   static class JsonRelayNetworkStatusConsensus extends JsonDescriptor {
     String descriptor_type;
-    String published;  // TODO fake it
+    String published;
     Integer vote_status;
     Integer consensus_method;
     String consensus_flavor;
@@ -656,7 +731,7 @@ public class ConvertToJson {
       for (String annotation : desc.getAnnotations()) {
         cons.descriptor_type = annotation.substring("@type ".length());
       }
-      //  status.published = dateTimeFormat.format(desc.getPublishedMillis()); TODO fake it
+      cons.published = dateTimeFormat.format(desc.getValidAfterMillis());
       cons.vote_status = desc.getNetworkStatusVersion();
       cons.consensus_method = desc.getConsensusMethod();
       cons.consensus_flavor = desc.getConsensusFlavor();
@@ -739,7 +814,7 @@ public class ConvertToJson {
           cons.directory_footer.bandwidth_weights = new ArrayList<StringInt> ();
           SortedMap<String,Integer> bwWeights = desc.getBandwidthWeights();
           for(Map.Entry<String,Integer> bw : bwWeights.entrySet()) {
-            cons.params.add(new StringInt(bw.getKey(), bw.getValue()));
+            cons.directory_footer.bandwidth_weights.add(new StringInt(bw.getKey(), bw.getValue()));
           }
         }
         cons.directory_footer.consensus_digest = desc.getConsensusDigest();
@@ -1206,8 +1281,7 @@ public class ConvertToJson {
 
 
   /* Convert everything to a JSON string and return that.
-   * If flag '-v' (for "verbose") is set serialize null-values too
-   * If flag '-a' (for "archive") is set generate gzip compressed archive
+   * If flag 'verbose' is set also serialize attributes evaluating to null.
    */
   static class ToJson {
     static String serialize(JsonDescriptor json) {
@@ -1220,9 +1294,6 @@ public class ConvertToJson {
         gson = new GsonBuilder().create();
       }
       output = gson.toJson(json);
-      if (archive) {
-        // TODO
-      }
       return output;
     }
   }

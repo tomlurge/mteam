@@ -961,7 +961,10 @@ JSON SERIALIZATION
 						"digest": ""                
 					}                             
 					...                           
-				]                               
+				],
+				"id": {
+				  "ed25519": ""                 // so far not implemented in collecTor
+				},                            
 			}                                 
 			...                               
 		],                                  
@@ -976,9 +979,6 @@ JSON SERIALIZATION
 	}
 	
 	POSTPONED
-		"id": {
-			"ed25519": ""    // so far not implemented in collecTor
-		},
 	
 	
 	
