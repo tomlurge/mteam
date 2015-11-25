@@ -106,12 +106,12 @@ public class ConvertToJson {
                   .convert((TorperfResult) descriptor);
         }
 
-//        if (!descriptor.getUnrecognizedLines().isEmpty()) {
-//          System.err.println("Unrecognized lines in "
-//                  + descriptorFile.getFileName() + ":");
-//          System.err.println(descriptor.getUnrecognizedLines());
-//          continue;
-//        }
+        if (!descriptor.getUnrecognizedLines().isEmpty()) {
+          System.err.println("Unrecognized lines in "
+                  + descriptorFile.getFileName() + ":");
+          System.err.println(descriptor.getUnrecognizedLines());
+          continue;
+        }
         if (jsonDescriptor != null) {
           // TODO remove this comma -v- after testing
           bw.write((written++ > 0 ? ",\n" : "") + jsonDescriptor);
@@ -738,12 +738,12 @@ public class ConvertToJson {
     }
     List<Router> router_status;
     static class Router {
-      R r; // router description
-      List<String> a; // additinal OR adresses and ports
-      List<String> s; // flags
-      String v; // version
-      W w; // bandwidths
-      Policy p; // policies
+      R r;  // router description
+      List<String> a;  // additinal OR adresses and ports
+      List<String> s;  // flags
+      String v;  // version
+      W w;  // bandwidths
+      Policy p;  // policies
     }
     static class R {
       String nickname;
@@ -945,12 +945,12 @@ public class ConvertToJson {
     }
     List<Router> router_status;
     static class Router {
-      R r; // router description
-      List<String> a; // additinal OR adresses and ports
-      List<String> s; // flags
-      String v; // version
-      W w; // bandwidths
-      Policy p; // policies
+      R r;  // router description
+      List<String> a;  // additinal OR adresses and ports
+      List<String> s;  // flags
+      String v;  // version
+      W w;  // bandwidths
+      Policy p;  // policies
     }
     static class R {
       String nickname;
@@ -1352,8 +1352,8 @@ public class ConvertToJson {
   }
 
 
-  /* Convert everything to a JSON string and return that.
-   * If flag 'verbose' is set also serialize attributes evaluating to null.
+  /*  Convert everything to a JSON string and return that.
+   *  If flag 'verbose' is set also serialize attributes evaluating to null.
    */
   static class ToJson {
     static String serialize(JsonDescriptor json) {

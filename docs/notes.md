@@ -1,15 +1,32 @@
+# TODO
+
 * think through the process of mass ingestion  
 * and periodic ingestion  
-* check the correctnes of singles in one file  
-* and streamlien attribute names and structures (at least check for it)
+* and streamline attribute names and structures (at least check for it)
+* convert to Parquet 
+* check sizes
+  + a bunch of Collector descriptors (say: 1 month)
+  + converted to verbose and gzipped JSON
+  + converted to non-verbose and gzipped JSON
+  + converted to - the same - in Parquet
 
 
-NON-VERBOSE OUTPUT
+# BUGS
 
-  TODO check...
+## DirSourceEntry
 
+is missing getter for 'adress', only has 'ip'  
+spec specifies fields for 'adress' and 'ip'
 
-METRICS-LIB COVERAGE
+## NetworkStatusEntry
+
+mapping is unclear:  
+   
+    identity <-> getFingerprint,   
+    digest <-> getDescriptor ?
+  
+
+## METRICS-LIB COVERAGE
   
   ServerDescriptor
     never called: String getIpv6PortList()
@@ -46,7 +63,7 @@ METRICS-LIB COVERAGE
   TorperfResult
     okay
 
-  
+## UNRECOGNIZED LINES  
 
 EXIT-LIST / TORDNSEL
 Unrecognized lines in /Users/tl/tor/analyticsServer/mteam/data/in/exit-list/2015-09-01-09-02-03:
@@ -72,48 +89,19 @@ Unrecognized lines in /Users/tl/tor/analyticsServer/mteam/data/in/votes/2015-09-
   ... id ed25519 none, id ed25519 none, id ed25519 none, id ed25519 none, iid ed25519 none, id ed25519 none, id ed25519 none, id ed25519 none, id ed25519 none, id ed25519 none, id ed25519 none, id ed25519 JGn65DiDJLfj0tDtKQwP8lkVBg0pRb1sXgg9/sMHGNQ, id ed25519 none, ... id ed25519 none]
 
 
-TORPERF
-is okay
-
-CONSENSUSES
-is okay
-
-BRIDGE SERVER DECSRIPTOR 
-is okay
-
-BRIDGE STATUS
-is okay
-
-EXTRA INFO
-is okay
-
-SERVER DESCRIPTOR
-is okay
 
 
+# CONSTRUCTION MATERIALS
 
 
-
-
-
-
-
-
-
-
-
-
-/* CONSTRUCTION MATERIALS
-
-
-  SORTEDMAP TEMPLATE
+## SORTEDMAP TEMPLATE
 
       SortedMap<String,Integer> MAP = desc.GETTER();
       for(Map.Entry<String,Integer> kv : MAP.entrySet()) {
         extra.ATTRIBUTE.add(new StringInt(kv.getKey(), kv.getValue()));
       }
 
-  USEFUL CHECKS TO DEFEND AGAINST NULL POINTER EXCEPTIONS
+## USEFUL CHECKS TO DEFEND AGAINST NULL POINTER EXCEPTIONS
 
       can return -1
         if (desc.XXX() >= 0) {
@@ -130,7 +118,7 @@ is okay
       List: first check that the list is not null, then if it's empty
           if (desc.XXX() != null && !desc.XXX().isEmpty()) {
 
-  ADD VERBOSITY TO SORTED MAPS
+## ADD VERBOSITY TO SORTED MAPS
   
 
             if (verbose) {
@@ -143,4 +131,3 @@ is okay
               cons.ZZZ = desc.AAA();
             }
 
- */
