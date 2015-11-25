@@ -625,21 +625,21 @@ flags, heuristics used for relay selection, etc.
 
 JSON SERIALIZATION
 
-                                        metrics-lib class/method
-	{                                     RelayNetworkStatusConsensus
+                                       metrics-lib class/method
+	{                                    RelayNetworkStatusConsensus
 		"descriptor_type": "network-status-consensus-3 1.0",
-		"vote_status": #,                   int getNetworkStatusVersion
-    "consensus_method": #,              int getConsensusMethod
-		"consensus_flavor": ""              getConsensusFlavor
-		"valid_after": "",                  long getValidAfterMillis
-		"fresh_until": "",                  long getFreshUntilMillis
-		"valid_until": "",                  long getValidUntilMillis
-		"voting_delay": {                   
-			"vote_seconds": #,                long getVoteSeconds
-			"dist_seconds": #                 long getDistSeconds
+		"vote_status": #,                  int getNetworkStatusVersion
+    "consensus_method": #,             int getConsensusMethod
+		"consensus_flavor": ""             getConsensusFlavor
+		"valid_after": "",                 long getValidAfterMillis
+		"fresh_until": "",                 long getFreshUntilMillis
+		"valid_until": "",                 long getValidUntilMillis
+		"voting_delay": {                  
+			"vote_seconds": #,               long getVoteSeconds
+			"dist_seconds": #                long getDistSeconds
 		},                                  
-		"client_versions": ["","",""...],   getRecommendedClientVersions
-		"server_versions": ["","",""...],   getRecommendedServerVersions
+		"client_versions": ["","",""...],  getRecommendedClientVersions
+		"server_versions": ["","",""...],  getRecommendedServerVersions
 		"package": [                        
 			{                                 
 				"package_name": "",             
@@ -655,15 +655,15 @@ JSON SERIALIZATION
 			}                                 
 			...                               
 		],                                  
-		"known_flags": ["","",""...],       getKnownFlags
-		"params": [                         getConsensusParams
+		"known_flags": ["","",""...],      getKnownFlags
+		"params": [                        getConsensusParams
 			{                                 
 				"key": "",                    
 				"value": #                      
 			}                                 
 			...                               
 		],                                  
-		"dir_source": [                      DirSourceEntry
+		"dir_source": [                     DirSourceEntry
 			{                                 
 				"nickname": "",                 getNickname
 				"identity": "",                 getIdentity
@@ -676,11 +676,9 @@ JSON SERIALIZATION
 			}                                 
 			...                               
 		],                                  
-		"router_status": [                  SortedMap<String, NetworkStatusEntry> getStatusEntries()
-			{
-			  "key": "",                      the String in SortedMap<String, NetworkStatusEntry>
-			  "descriptor_identity",          getDescriptor
-				"r": {                          
+		"router_status": [                  NetworkStatusEntry 
+			{                                 getStatusEntries()
+			  "r": {                          
 					"nickname": "",               getNickname
 					"identity": "",               getFingerprint
 					"digest": "",                 getDescriptor
