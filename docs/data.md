@@ -95,11 +95,7 @@ and common attributes (from which to construct a key in HBase, eventually)
 	- each on a new row
 	- without commas between them
 	- and without a surrounding array
-	
-		no "%"
-		- "network status vote" and "bridge network status" collector entries can 
-		  contain one percentage value each. these values shall be imported as 
-		  numbers, omitting the "%" sign
+
 
 #### collecTor examples
 

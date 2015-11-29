@@ -16,8 +16,8 @@ import org.torproject.descriptor.*;
 public class ConvertToJson {
 
   /*  argument defaults  */
-  static boolean verbose = false;
-  static boolean unzipped = false;
+  static boolean verbose = false; // defaults to 'false'
+  static boolean compress = true; // defaults to 'true'
   static String dir = "";
 
   /*  Read all descriptors in the provided directory and
@@ -29,13 +29,18 @@ public class ConvertToJson {
      *    -u                uncompressed: do not generate .gz archive
      *    -t                testing: verbose and uncompressed
      *    <directory name>  scan only a given subdirectory of data/in
+     *
+     *    TODO add options for
+     *      - output directory
+     *      - JSON / AVRO / Parquet
+     *
      */
     for(String arg : args) {
       if (arg.equals("-v")) verbose = true;
-      else if (arg.equals("-u")) unzipped = true;
+      else if (arg.equals("-u")) compress = false;
       else if (arg.equals("-t")) {
-        unzipped = true;
         verbose = true;
+        compress = false;
       }
       else dir = arg;
     }
@@ -46,21 +51,21 @@ public class ConvertToJson {
 
     int written = 0;
     String outputPath = "data/out/";
-    String outputName = "testTordnsel.json";
+    String outputName = "singles.json";
     Writer JsonWriter;
-    if (unzipped) {
-      JsonWriter = new FileWriter(outputPath + outputName);
-    }
-    else {
+    if (compress) {
       JsonWriter = new OutputStreamWriter(new GZIPOutputStream(
               new FileOutputStream(outputPath + outputName + ".gz")));
+    }
+    else {
+      JsonWriter = new FileWriter(outputPath + outputName);
     }
     BufferedWriter bw = new BufferedWriter(JsonWriter);
 
     // TODO remove after testing
     bw.write(
       "{\"verbose\": " + verbose +
-      ", \"unzipped\": " + unzipped  +
+      ", \"compress\": " + compress +
       ", \"starting at directory\" : \"data/in/" + dir + "\"},\n"
     );
 
@@ -1292,12 +1297,12 @@ public class ConvertToJson {
 
     static String convert(TorperfResult desc) {
       JsonTorperfResult torperf = new JsonTorperfResult();
-      torperf.descriptor_type = "torperf 1.0";
-      /*  TODO  probably a bug in metrics-lib. should be:
+      /*  torperf.descriptor_type = "torperf 1.0";
+        TODO  probably a bug in metrics-lib  */
       for (String annotation : desc.getAnnotations()) {
         torperf.descriptor_type = annotation.substring("@type ".length());
       }
-       */
+
       torperf.source = desc.getSource();
       torperf.filesize = desc.getFileSize();
       torperf.start = dateTimeFormat.format(desc.getStartMillis());
@@ -1354,18 +1359,24 @@ public class ConvertToJson {
 
   /*  Convert everything to a JSON string and return that.
    *  If flag 'verbose' is set also serialize attributes evaluating to null.
+   *  Gson docs: https://google-gson.googlecode.com/svn/trunk/gson/docs/javadocs/com/google/gson/GsonBuilder.html
    */
   static class ToJson {
-    static String serialize(JsonDescriptor json) {
-      Gson gson;
+    static String serialize(JsonDescriptor jsonDescriptor) {
+      Gson gsonBuilder;
       String output;
       if (verbose) {
-        gson = new GsonBuilder().serializeNulls().create();
+        gsonBuilder = new GsonBuilder()
+                .serializeNulls()
+                .disableHtmlEscaping()
+                .create();
       }
       else {
-        gson = new GsonBuilder().create();
+        gsonBuilder = new GsonBuilder()
+                .disableHtmlEscaping()
+                .create();
       }
-      output = gson.toJson(json);
+      output = gsonBuilder.toJson(jsonDescriptor);
       return output;
     }
   }

@@ -1,0 +1,9 @@
+{"namespace": "org.torproject.metrics.descriptor",
+  "type": "record",
+  "name": "server",
+  "fields": [
+    {"name": "name", "type": "string"},
+    {"name": "favorite_number",  "type": ["int", "null"]},
+    {"name": "favorite_color", "type": ["string", "null"]}
+  ]
+}
