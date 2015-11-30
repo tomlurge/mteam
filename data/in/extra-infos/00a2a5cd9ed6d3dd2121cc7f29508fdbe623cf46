@@ -1,0 +1,21 @@
+@type extra-info 1.0
+extra-info Eggs2 2FBF152FC4CB6CDD23A66CF87CBB7D78DCE05EC4
+published 2015-09-15 19:23:46
+write-history 2015-09-15 17:23:05 (14400 s) 2149268480,1875634176,2037525504,4188257280,3597894656,2452524032
+read-history 2015-09-15 17:23:05 (14400 s) 2089999360,1826984960,1982697472,4117437440,3514645504,2375940096
+dirreq-write-history 2015-09-15 17:23:05 (14400 s) 62000128,52294656,58815488,68341760,77402112,86703104
+dirreq-read-history 2015-09-15 17:23:05 (14400 s) 3496960,4213760,4146176,4540416,4856832,4620288
+geoip-db-digest D095D62E8A1607C2C3AF61366929BCAD0E6D3184
+geoip6-db-digest AC1BE3D0707D16AB04092FE00C9732658C926CD8
+dirreq-stats-end 2015-09-14 23:19:28 (86400 s)
+dirreq-v3-ips us=48,de=32,fr=32,br=24,es=24,it=24,ru=24,ar=16,gb=16,jp=16,mx=16,pl=16,tw=16,??=8,ae=8,at=8,au=8,ba=8,be=8,bg=8,bh=8,bn=8,bo=8,by=8,ca=8,cl=8,co=8,cr=8,cz=8,dk=8,ec=8,eg=8,fi=8,ge=8,gq=8,gr=8,hk=8,hr=8,hu=8,id=8,ie=8,in=8,ir=8,ky=8,lb=8,lk=8,lt=8,lv=8,md=8,mg=8,my=8,nl=8,pa=8,ph=8,pk=8,pt=8,ro=8,rs=8,sa=8,se=8,sg=8,sk=8,th=8,tn=8,tr=8,ua=8,uy=8,ve=8,vn=8,za=8
+dirreq-v3-reqs us=56,de=32,fr=32,br=24,es=24,it=24,ru=24,ar=16,au=16,gb=16,jp=16,mx=16,pl=16,tw=16,??=8,ae=8,at=8,ba=8,be=8,bg=8,bh=8,bn=8,bo=8,by=8,ca=8,cl=8,co=8,cr=8,cz=8,dk=8,ec=8,eg=8,fi=8,ge=8,gq=8,gr=8,hk=8,hr=8,hu=8,id=8,ie=8,in=8,ir=8,ky=8,lb=8,lk=8,lt=8,lv=8,md=8,mg=8,my=8,nl=8,pa=8,ph=8,pk=8,pt=8,ro=8,rs=8,sa=8,se=8,sg=8,sk=8,th=8,tn=8,tr=8,ua=8,uy=8,ve=8,vn=8,za=8
+dirreq-v3-resp ok=392,not-enough-sigs=0,unavailable=0,not-found=0,not-modified=48,busy=0
+dirreq-v3-direct-dl complete=0,timeout=0,running=0
+dirreq-v3-tunneled-dl complete=380,timeout=4,running=4,min=2858,d1=81034,d2=164707,q1=230812,d3=272136,d4=345203,md=405640,d6=460894,d7=544272,q3=592880,d8=656546,d9=1053982,max=7739183
+router-signature
+-----BEGIN SIGNATURE-----
+lP0rG1AIbA737nQyHJOWtLbdfq5gN4ezCsOElKI4VhZv1xOaW2Ol0mjBGTym6D0w
+EVfabiNzJH1gGA+rYMSHDoiS2RtrmBLKwDUgQrKjDYmFkvg27HAOCv5U/A0sKD2s
+Z/DjOBuppOT4SIzamLuWJLzmkdadxX4sOMw8gWYGgm4=
+-----END SIGNATURE-----

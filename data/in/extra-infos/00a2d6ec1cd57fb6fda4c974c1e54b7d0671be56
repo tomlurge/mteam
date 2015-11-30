@@ -1,0 +1,21 @@
+@type extra-info 1.0
+extra-info donaTor 6CB49A538797E515F29100F6618E271DC895914B
+published 2015-09-30 18:46:42
+write-history 2015-09-30 15:31:11 (14400 s) 57387238400,67944985600,45894023168,59983969280,56104049664,67080270848
+read-history 2015-09-30 15:31:11 (14400 s) 55730926592,66428837888,44595963904,58558700544,54499899392,65280419840
+dirreq-write-history 2015-09-30 15:31:11 (14400 s) 1526732800,1375696896,1256570880,1333213184,1517509632,1670759424
+dirreq-read-history 2015-09-30 15:31:11 (14400 s) 80392192,97068032,87471104,96662528,91347968,99752960
+geoip-db-digest D095D62E8A1607C2C3AF61366929BCAD0E6D3184
+geoip6-db-digest AC1BE3D0707D16AB04092FE00C9732658C926CD8
+dirreq-stats-end 2015-09-29 22:11:28 (86400 s)
+dirreq-v3-ips us=1056,de=872,fr=832,es=616,it=552,br=496,jp=344,pl=336,ar=328,gb=312,ru=240,mx=232,nl=168,tw=168,ca=152,in=152,th=120,gr=104,ua=96,be=88,co=88,se=88,at=80,au=80,ch=80,cz=72,id=72,ir=72,ph=72,pt=72,ve=72,vn=72,cl=64,my=64,ro=64,hu=56,sa=56,tr=56,pe=48,bg=40,dk=40,za=40,ae=32,eg=32,hk=32,hr=32,lt=32,no=32,rs=32,uy=32,ec=24,fi=24,ie=24,il=24,kr=24,ma=24,nz=24,sg=24,sk=24,tn=24,al=16,ba=16,by=16,cr=16,do=16,dz=16,lb=16,lv=16,pk=16,pr=16,si=16,??=8,af=8,ai=8,am=8,ao=8,az=8,bb=8,bd=8,bh=8,bj=8,bn=8,bo=8,bs=8,cm=8,cu=8,cy=8,ee=8,ge=8,gg=8,gh=8,gm=8,gp=8,gt=8,gu=8,hn=8,im=8,iq=8,is=8,jm=8,jo=8,ke=8,kg=8,kh=8,kw=8,kz=8,la=8,li=8,lu=8,ly=8,mc=8,md=8,me=8,mk=8,mn=8,mo=8,mq=8,mt=8,mu=8,mw=8,mz=8,na=8,nc=8,ng=8,ni=8,np=8,om=8,pa=8,pf=8,pm=8,ps=8,py=8,qa=8,re=8,sd=8,sn=8,sr=8,sv=8,sy=8,tm=8,tt=8,uz=8,ye=8,zw=8
+dirreq-v3-reqs us=1192,de=944,fr=856,es=624,it=560,br=512,jp=344,pl=344,ar=336,gb=320,ru=296,mx=232,nl=176,tw=168,ca=160,in=160,th=120,ua=120,gr=104,ir=96,au=88,be=88,ch=88,co=88,ro=88,se=88,at=80,cz=80,id=72,ph=72,pt=72,ve=72,vn=72,cl=64,my=64,hu=56,sa=56,tr=56,pe=48,bg=40,dk=40,hk=40,za=40,ae=32,by=32,eg=32,hr=32,il=32,lt=32,lv=32,no=32,rs=32,uy=32,ec=24,fi=24,ie=24,kr=24,ma=24,nz=24,sg=24,sk=24,tn=24,??=16,al=16,ba=16,cr=16,do=16,dz=16,lb=16,mk=16,pk=16,pr=16,si=16,af=8,ai=8,am=8,ao=8,az=8,bb=8,bd=8,bh=8,bj=8,bn=8,bo=8,bs=8,cm=8,cu=8,cy=8,ee=8,ge=8,gg=8,gh=8,gm=8,gp=8,gt=8,gu=8,hn=8,im=8,iq=8,is=8,jm=8,jo=8,ke=8,kg=8,kh=8,kw=8,kz=8,la=8,li=8,lu=8,ly=8,mc=8,md=8,me=8,mn=8,mo=8,mq=8,mt=8,mu=8,mw=8,mz=8,na=8,nc=8,ng=8,ni=8,np=8,om=8,pa=8,pf=8,pm=8,ps=8,py=8,qa=8,re=8,sd=8,sn=8,sr=8,sv=8,sy=8,tm=8,tt=8,uz=8,ye=8,zw=8
+dirreq-v3-resp ok=9896,not-enough-sigs=0,unavailable=0,not-found=0,not-modified=1440,busy=0
+dirreq-v3-direct-dl complete=4,timeout=4,running=0
+dirreq-v3-tunneled-dl complete=9724,timeout=164,running=4,min=1870,d1=67183,d2=145350,q1=184844,d3=215863,d4=279894,md=394846,d6=533881,d7=738905,q3=858796,d8=1020520,d9=1399437,max=8139714
+router-signature
+-----BEGIN SIGNATURE-----
+o201SEyHuK1yUv3/YrlDuSlKB/Hp+LMZHztCh8tdsEk5ORVE5MQJXiVm6pT6VsF3
+sO2NocKO7kK0rcsbDlCTmdD9b8jQA/qxehrg+wzptQKYTOoc97e6/Fzygdqh+VFQ
+gFYADrOF8pItdWGfO9MrnNDZiJcWsOjnXUeDNZbfcjI=
+-----END SIGNATURE-----

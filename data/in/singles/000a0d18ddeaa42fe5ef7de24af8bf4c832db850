@@ -1,0 +1,21 @@
+@type extra-info 1.0
+extra-info moriarty B34B40B3EFCC1F40EAB01CE3B22C13ADA694765E
+published 2015-09-25 08:33:11
+write-history 2015-09-25 07:34:36 (14400 s) 113746944,111004672,108476416,98019328,92381184,95155200
+read-history 2015-09-25 07:34:36 (14400 s) 133614592,149231616,148308992,129772544,112099328,120804352
+dirreq-write-history 2015-09-25 07:34:36 (14400 s) 21904384,14827520,12581888,12393472,16252928,15477760
+dirreq-read-history 2015-09-25 07:34:36 (14400 s) 67584,58368,313344,111616,128000,87040
+geoip-db-digest D095D62E8A1607C2C3AF61366929BCAD0E6D3184
+geoip6-db-digest AC1BE3D0707D16AB04092FE00C9732658C926CD8
+dirreq-stats-end 2015-09-24 17:14:37 (86400 s)
+dirreq-v3-ips ar=8,ca=8,de=8,es=8,fr=8,it=8,jp=8,kz=8,nl=8,ru=8,tn=8,ua=8,us=8,vn=8
+dirreq-v3-reqs de=32,us=24,nl=16,ar=8,ca=8,es=8,fr=8,it=8,jp=8,kz=8,ru=8,tn=8,ua=8,vn=8
+dirreq-v3-resp ok=88,not-enough-sigs=0,unavailable=0,not-found=0,not-modified=0,busy=0
+dirreq-v3-direct-dl complete=0,timeout=0,running=0
+dirreq-v3-tunneled-dl complete=88,timeout=0,running=0,min=8986,d1=216688,d2=296420,q1=319770,d3=326776,d4=344067,md=352655,d6=371179,d7=395380,q3=490757,d8=561358,d9=1605219,max=3402475
+router-signature
+-----BEGIN SIGNATURE-----
+mIZWFTKXYopPTT2tOnSCLzLXj2PYZMFLi0SV4Gyj2Xa326/A/fR38oZgSj7+BdGd
+gRL5vIXT1+cAMrQpB2UIpk/3geohc+WqhIEm5okAo9KGbxyA+SkaFYBB6ypIIbSI
+95Q92D3qCrY803XALVfKsLUtcxURictjDEnHc5GM5nw=
+-----END SIGNATURE-----

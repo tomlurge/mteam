@@ -1,0 +1,31 @@
+@type server-descriptor 1.0
+router Unnamed 76.167.215.227 9001 0 0
+platform Tor 0.2.5.12 on Linux
+protocols Link 1 2 Circuit 1
+published 2015-09-24 07:23:27
+fingerprint A0B7 4DBA 870D 8D66 9E8A 583B EA39 609A B254 1C51
+uptime 1
+bandwidth 204800 307200 234833
+extra-info-digest 7DA22FEC37B2F117A244A160C913FD025E6C04E3
+onion-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBANWlw0W9U76FFwpt+1kjLCwQiG1it00oLziuFTVuHmoPuV/tsiZTe/7w
+6tlMBgk0og2fei1IXvAbgsMRVH4twiDb52T69s8KG53yDWbLGZZggSTBFEnTK581
+QOBdq3zicJOHuVRBFV9kaCXLpBhwbfZzlqFjJIQ0mGpPXu4PDK1vAgMBAAE=
+-----END RSA PUBLIC KEY-----
+signing-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBAK1Foazr2+t6HhGIrnI3nnXHQ3AhJxRRV3LcC6kaOTdUQU6pj5EzePuE
+r/aMovUfITEaKnenH9RrcOe9IkHi0gd3Q6mRIq/6VzZVG303HIZ3JeI4aZkeWMhR
+KMCBqXdwXeoflh+aMN/pAEX1Mg2uRwkg+EmUwCQVapEaHuGjw5wtAgMBAAE=
+-----END RSA PUBLIC KEY-----
+hidden-service-dir
+contact Phil Karn <karn@ka9q.net>
+ntor-onion-key +8//0R3WpfIl3OXduiiuHt3xD96jzMs4Lgw6rVh372Y=
+reject *:*
+router-signature
+-----BEGIN SIGNATURE-----
+dnuoFse4yMW66eSMQ9D0kvH31ssfVI90sYGRoaNu3sO7F/CLZMhTVQwqtdtlDfGm
+sSEbZfUGXBqjtmvC30nTqELK1BsrjC8nY91XzP4zn6rHVxDImxcsUHdjhn+VtbMO
+J0+p7Ev5d1sMlWoKk+mwUC0uaPd37b3g6RNpA0dKp6k=
+-----END SIGNATURE-----

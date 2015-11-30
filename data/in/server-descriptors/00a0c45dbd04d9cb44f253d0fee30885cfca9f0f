@@ -1,0 +1,102 @@
+@type server-descriptor 1.0
+router torexit5109 188.209.52.13 8080 0 80
+platform Tor 0.2.6.10 on Linux
+protocols Link 1 2 Circuit 1
+published 2015-09-30 00:00:47
+fingerprint D416 307D 35E4 A2B5 CF1A B82A C402 EB36 064F BF86
+uptime 2160052
+bandwidth 1073741824 1073741824 2071249
+extra-info-digest 9930CCA878D42D361A5D690D19B7A7F2DA785D50
+onion-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBAKWdwpaLqnsHZGLT1QFK/hP9ETwzELK22Jn6T3/52EH30829h1bTzVZc
++TXcmAx5aegvqnkT4cPOwFQVbU2mYldiYeokZFuk7Z78J7UepApxyNRpQTo25Zhb
+42s5zEV4Gi81p6jU09qSEOuidY8nFVre+rr2B3chfZcoYjR7+tSHAgMBAAE=
+-----END RSA PUBLIC KEY-----
+signing-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBANB9m1uhaEqflCHa8FgXWjcylyIC2o5FFJRinSXBBVbMytIRcEGY23gJ
+mNVLppZqteHIqA21QnMr2lDxlNTIpOnYSPZncJOn3fDo3hY5FgDj5al9vK0aAVUe
+0YxFWM5mtSHpVw88Y1iIpYbN28mDJs9licj2tqg+lZmLql8ud5NhAgMBAAE=
+-----END RSA PUBLIC KEY-----
+hidden-service-dir
+ntor-onion-key /WWkay9+wFzCEuY2pDv6VESI3bzbCnhlaRX+VzEbykk=
+reject 0.0.0.0/8:*
+reject 169.254.0.0/16:*
+reject 127.0.0.0/8:*
+reject 192.168.0.0/16:*
+reject 10.0.0.0/8:*
+reject 172.16.0.0/12:*
+reject 188.209.52.13:*
+accept *:20-21
+accept *:43
+accept *:53
+accept *:79-81
+accept *:88
+accept *:110
+accept *:143
+accept *:194
+accept *:220
+accept *:389
+accept *:443
+accept *:464
+accept *:531
+accept *:543-544
+accept *:554
+accept *:563
+accept *:636
+accept *:706
+accept *:749
+accept *:873
+accept *:902-904
+accept *:981
+accept *:1194
+accept *:1220
+accept *:1293
+accept *:1500
+accept *:1533
+accept *:1677
+accept *:1723
+accept *:1755
+accept *:1863
+accept *:2082
+accept *:2083
+accept *:2086-2087
+accept *:2095-2096
+accept *:2102-2104
+accept *:3128
+accept *:3389
+accept *:3690
+accept *:4321
+accept *:4643
+accept *:5050
+accept *:5190
+accept *:5222-5223
+accept *:5228
+accept *:5900
+accept *:6697
+accept *:8008
+accept *:8074
+accept *:8080
+accept *:8082
+accept *:8087-8088
+accept *:8332-8333
+accept *:8443
+accept *:8888
+accept *:9418
+accept *:10000
+accept *:11371
+accept *:12350
+accept *:19294
+accept *:19638
+accept *:23456
+accept *:33033
+accept *:50002
+accept *:64738
+reject *:*
+router-signature
+-----BEGIN SIGNATURE-----
+xeMESp2jNZniUX/UIINf/MAqKehhsfed0Fco4r5jh21cC6u6oJ4W6pYjinIrphbK
+NnOOVPPRGm5UhNaoE9mVrbw3ypbRcBegLGSI9cS3BLyyfEo6kqbe/2zQNRsW8YT9
+kH1t0zPDC9sLq4EpB7XglX5Qg0jEy91Z/lrLQxmWGYA=
+-----END SIGNATURE-----

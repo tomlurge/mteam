@@ -1,0 +1,13 @@
+@type bridge-server-descriptor 1.1
+router Unnamed 10.103.17.187 631 0 0
+platform Tor 0.2.6.10 on Linux
+protocols Link 1 2 Circuit 1
+published 2015-09-17 20:19:59
+fingerprint 9763 F90F FF80 2A86 8C56 C155 9C6E 5661 BB70 5187
+uptime 2706631
+bandwidth 1073741824 1073741824 8185
+extra-info-digest 1349E46E553038290593D3409BFE7771D7164A15
+hidden-service-dir
+ntor-onion-key CaI4NF/wTumw6HoLO5igyC33L5I9FwLnm3eG+zSzV0g=
+reject *:*
+router-digest 00A0EDE55D0AE2558842D47D468AA3E4FBAC91D7

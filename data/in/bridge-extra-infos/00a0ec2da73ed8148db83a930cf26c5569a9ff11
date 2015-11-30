@@ -1,0 +1,20 @@
+@type bridge-extra-info 1.3
+extra-info Unnamed 6672F8B08D9C8307DBB0D993FEFD840DD98CDBDE
+published 2015-09-21 17:59:19
+write-history 2015-09-21 15:49:10 (14400 s) 8645632,20833280,7928832,20516864,130376704,226789376
+read-history 2015-09-21 15:49:10 (14400 s) 12214272,21114880,10232832,19668992,127327232,224719872
+dirreq-write-history 2015-09-21 15:20:48 (14400 s) 1176576,3613696,604160,5445632,7447552,5842944
+dirreq-read-history 2015-09-21 15:20:48 (14400 s) 6144,48128,5120,288768,206848,355328
+geoip-db-digest D095D62E8A1607C2C3AF61366929BCAD0E6D3184
+geoip6-db-digest AC1BE3D0707D16AB04092FE00C9732658C926CD8
+dirreq-stats-end 2015-09-21 12:30:58 (86400 s)
+dirreq-v3-ips ar=8,dz=8,il=8,ru=8,tn=8
+dirreq-v3-reqs dz=16,ar=8,il=8,ru=8,tn=8
+dirreq-v3-resp ok=24,not-enough-sigs=0,unavailable=0,not-found=0,not-modified=0,busy=0
+dirreq-v3-direct-dl complete=0,timeout=0,running=0
+dirreq-v3-tunneled-dl complete=24,timeout=4,running=0,min=88227,d1=121112,d2=137969,q1=176354,d3=204725,d4=236502,md=506900,d6=554916,d7=1176838,q3=1180363,d8=1212586,d9=1231660,max=1324448
+bridge-stats-end 2015-09-21 12:31:06 (86400 s)
+bridge-ips ar=8,dz=8,il=8,ro=8,ru=8,th=8,tn=8
+bridge-ip-versions v4=16,v6=0
+bridge-ip-transports <OR>=16
+router-digest 00A0EC2DA73ED8148DB83A930CF26C5569A9FF11

@@ -1,0 +1,30 @@
+@type server-descriptor 1.0
+router sasquatch 184.35.16.140 9001 0 0
+platform Tor 0.2.6.8 on Linux
+protocols Link 1 2 Circuit 1
+published 2015-09-29 22:07:48
+fingerprint D0B7 90D3 BA0C 6C1F ADED 3EF0 791B 7297 6EBD F725
+uptime 244
+bandwidth 512000 716800 53792
+extra-info-digest 9DE85C4385385BD1E4ECE7548B21DE2566D09857
+onion-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBAL7ZWH4pUDfsPiOs0WcupyBXi/szGWwsOLcNow6SaqpZqtwiaaBoNbeL
+yEXXpiRIqqeKeknTdLMwoENccla8Q2tAm97tvopynpubWevq+NIQBTpKsgtplB2l
+5KJtx1ae/IjrWAM/kbA7nwx1E2Due/DtOtYGVLKgNClCdLUJLrW1AgMBAAE=
+-----END RSA PUBLIC KEY-----
+signing-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBALKtXtOjrwYq9paDA+RKNOJwjMphjujhFI7Z7T80cj5IoU7iFdgXpuKU
+ayNA1lL9eKKlVYG1gIkGOglqT7P0dwxYxgRYR7lOz24pefcFyz2e7YH9HML/EUY7
+btznAnEitUCxtLLZFvOEAuTx+dsSSfqPFUEbMoi9TSHXOaS+ym5FAgMBAAE=
+-----END RSA PUBLIC KEY-----
+hidden-service-dir
+ntor-onion-key HalpUrf9FBaZGA6AaGwJhQmfrj1XRv1hLQ9t8lF8dQ8=
+reject *:*
+router-signature
+-----BEGIN SIGNATURE-----
+PHqEzui8TjFqmclXl4DqYfgxxgBe+1WiR+zCKG4t8qavcE4eLAp4NVON/MlW/WTm
+/RT5UUtZY12n0Vw6F05Ax2ibxU4Ea6VAfHXc2HOJZHKbD/+PPKm8A6ZmYKPzFil2
+JOGiV0/7SH53ucCHWdDEbquc4ri7tSHMYfNgCpxp7Zo=
+-----END SIGNATURE-----

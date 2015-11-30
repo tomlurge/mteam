@@ -1,0 +1,24 @@
+@type bridge-extra-info 1.3
+extra-info Unnamed D38A157492E3F4CDAAFD6BDAFC5908CFF7255806
+published 2015-09-27 23:04:01
+write-history 2015-09-27 19:16:46 (14400 s) 46851072,1771520,9085952,2136064,85985280,64917504
+read-history 2015-09-27 19:16:46 (14400 s) 50480128,4490240,11934720,6256640,89082880,66740224
+dirreq-write-history 2015-09-27 19:16:46 (14400 s) 1113088,1165312,1201152,625664,1170432,3538944
+dirreq-read-history 2015-09-27 19:16:46 (14400 s) 100352,5120,17408,8192,7168,135168
+geoip-db-digest D095D62E8A1607C2C3AF61366929BCAD0E6D3184
+geoip6-db-digest AC1BE3D0707D16AB04092FE00C9732658C926CD8
+dirreq-stats-end 2015-09-27 04:47:05 (86400 s)
+dirreq-v3-ips cz=8,ir=8,ru=8,sv=8,us=8
+dirreq-v3-reqs cz=8,ir=8,ru=8,sv=8,us=8
+dirreq-v3-resp ok=16,not-enough-sigs=0,unavailable=0,not-found=0,not-modified=0,busy=0
+dirreq-v3-direct-dl complete=0,timeout=0,running=0
+dirreq-v3-tunneled-dl complete=16,timeout=0,running=0,min=11874,d1=11874,d2=12283,q1=24858,d3=195862,d4=312620,md=387808,d6=446494,d7=1730520,q3=5403163,d8=5586742,d9=5687171,max=5795541
+transport scramblesuit
+transport obfs3
+transport obfs4
+transport fte
+bridge-stats-end 2015-09-27 08:41:48 (86400 s)
+bridge-ips us=24,cz=8,fr=8,gb=8,ir=8,ru=8,sv=8
+bridge-ip-versions v4=32,v6=0
+bridge-ip-transports <OR>=8,obfs3=8,obfs4=32
+router-digest 00A0BC18393D1CC4162998A06CE5B4FD606F268E

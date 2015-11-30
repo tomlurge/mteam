@@ -1,0 +1,14 @@
+@type bridge-server-descriptor 1.1
+router anarchy 10.68.9.197 9001 0 0
+platform Tor 0.2.6.10 on Linux
+protocols Link 1 2 Circuit 1
+published 2015-09-19 15:18:23
+fingerprint D1C7 6CB0 0EB4 98B6 E670 8349 DD45 E6D2 279C DEBA
+uptime 3882833
+bandwidth 104857600 104857600 265318
+extra-info-digest D8B68E7025F3B79A491A3F596B27BB556D4661ED
+hidden-service-dir
+contact somebody
+ntor-onion-key k2BipaktO2ueWtmdthuHdhpbkOGY4g/KiMsH0HW8tEY=
+reject *:*
+router-digest 00A1A70BA4D7115F6DDB42D3393122830450BF08

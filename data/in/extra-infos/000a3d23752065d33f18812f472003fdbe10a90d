@@ -1,0 +1,21 @@
+@type extra-info 1.0
+extra-info lituanianpro D7BEF27E9A9F957113B21F2E7CF14D56CECB169F
+published 2015-09-27 08:03:00
+write-history 2015-09-27 05:22:59 (14400 s) 33231013888,36540403712,33726597120,37571051520,22463738880,20709261312
+read-history 2015-09-27 05:22:59 (14400 s) 32658475008,35878681600,33118095360,36855640064,22050120704,20307486720
+dirreq-write-history 2015-09-27 05:22:59 (14400 s) 839680,13957120,91136,4823040,13972480,9323520
+dirreq-read-history 2015-09-27 05:22:59 (14400 s) 50176,34816,18432,31744,36864,35840
+geoip-db-digest D095D62E8A1607C2C3AF61366929BCAD0E6D3184
+geoip6-db-digest AC1BE3D0707D16AB04092FE00C9732658C926CD8
+dirreq-stats-end 2015-09-26 20:01:30 (86400 s)
+dirreq-v3-ips ir=8,nl=8,us=8
+dirreq-v3-reqs ir=8,nl=8,us=8
+dirreq-v3-resp ok=8,not-enough-sigs=8,unavailable=0,not-found=0,not-modified=8,busy=0
+dirreq-v3-direct-dl complete=4,timeout=0,running=0
+dirreq-v3-tunneled-dl complete=4,timeout=4,running=0
+router-signature
+-----BEGIN SIGNATURE-----
+hrGaZ0dhj5fGZaetGCM4CSEm7iUJfBVqzQ6Oho2O59yIxTYRDAdF79aKgJerP4mP
+aHWnQWgx2P5HkdTOQwvgOxeVa2F4voIV+eleqMX2K5QSe3NjhZeHOf/m2LSOZJv4
+nj5bcp2k3Wrr68ALlu2xI44fY+UJWMyupgXOfrDDnrY=
+-----END SIGNATURE-----

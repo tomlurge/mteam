@@ -1,0 +1,13 @@
+@type bridge-server-descriptor 1.1
+router Unnamed 10.120.73.224 443 0 0
+platform Tor 0.2.4.23 on Windows 8
+protocols Link 1 2 Circuit 1
+published 2015-09-23 09:18:01
+fingerprint 6C87 9463 2E4C 6D29 51D9 989F 7450 1824 27CB CE02
+uptime 1039
+bandwidth 5242880 10485760 59837
+extra-info-digest D0851BE405339FB5C55B105823938DBBB67BE2A4
+hidden-service-dir
+ntor-onion-key /RavQVQZ6HrqF500fYEIh//zRSWu6bwlC8C4y0VIKh8=
+reject *:*
+router-digest 00A0FB05106826D8C685CD50AD7D92CE9DF07658

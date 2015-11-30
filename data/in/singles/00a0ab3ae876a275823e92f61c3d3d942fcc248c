@@ -1,0 +1,31 @@
+@type server-descriptor 1.0
+router DimentoR 95.52.181.129 9001 0 9030
+platform Tor 0.2.4.23 on Windows 8
+protocols Link 1 2 Circuit 1
+published 2015-09-26 01:01:29
+fingerprint CE67 6E21 2A1A 6F13 5E3E AE4F 6844 5ACA FC47 23F2
+uptime 4
+bandwidth 5242880 10485760 2721792
+extra-info-digest BEEAACD7C30536202F24BAA140BEE792DE6F15BF
+onion-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBAK2fxv6R3axbLHg6vLc14HmmtSyhsJXTkj93uH4J9jKN276q4eKSrhbs
+5J0tbTt6sCrh8/PtOM/LcMfJtIb0FvYk22IgwYqGfolyjn0ZYztZ0vz/2h+2bLPS
+ushNU+Lx5EKoZiQXetra77ONyYNcff5rvKmebz/VPbt99/Slh6XZAgMBAAE=
+-----END RSA PUBLIC KEY-----
+signing-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBAK9TYgqpmUDyotlYYohzBbxFCwa/UaY8caDyWc2tsk5vD2/DP0v7WKBf
+sY/tfHWjpkRQGAEk6s5xikEitLyyVpr6JmhUlFAKLWeEPrvcYUEK48WaJ7ITFgGQ
+w5v3jS98qXwV3tTus5FXG+qsaH+f6kvy2tH/tWJnFypeq13iF55lAgMBAAE=
+-----END RSA PUBLIC KEY-----
+hidden-service-dir
+contact <_taurus_ at mail dot ru>
+ntor-onion-key 5dZwYsrLkvdlrAqgBbFRMDHgTvFyitosFExQJGAFh3E=
+reject *:*
+router-signature
+-----BEGIN SIGNATURE-----
+HFp4cTZaT2/zP06q4OXzHErldYUxClDRvl7vBzW8tDx8Ku7aIzImQTbbWt9BeamR
+DizKvRgyktzsQGxjr4YbaQ0TFPwmed969kz1AlEjXR1YHNK2ja8VaqCNz6dLtGtL
+XH81YkrlkdOHWGPr3Gc7BB1OAT/qAzzSC9YFf+V8EGo=
+-----END SIGNATURE-----

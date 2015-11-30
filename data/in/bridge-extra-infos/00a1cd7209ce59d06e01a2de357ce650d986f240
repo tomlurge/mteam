@@ -1,0 +1,18 @@
+@type bridge-extra-info 1.3
+extra-info Unnamed 3796C2ABE5069BAF86BCB55259FC2AA60596EF99
+published 2015-09-12 06:46:23
+write-history 2015-09-12 03:38:22 (14400 s) 357376,455680,939008,545792,478208,388096
+read-history 2015-09-12 03:38:22 (14400 s) 3084288,4829184,4297728,5300224,4700160,4188160
+geoip-db-digest D095D62E8A1607C2C3AF61366929BCAD0E6D3184
+geoip6-db-digest AC1BE3D0707D16AB04092FE00C9732658C926CD8
+dirreq-stats-end 2015-09-11 23:01:32 (86400 s)
+dirreq-v3-ips 
+dirreq-v3-reqs 
+dirreq-v3-resp ok=0,not-enough-sigs=0,unavailable=0,not-found=0,not-modified=0,busy=0
+dirreq-v3-direct-dl complete=0,timeout=0,running=0
+dirreq-v3-tunneled-dl complete=0,timeout=0,running=0
+bridge-stats-end 2015-09-11 23:01:55 (86400 s)
+bridge-ips 
+bridge-ip-versions v4=0,v6=0
+bridge-ip-transports 
+router-digest 00A1CD7209CE59D06E01A2DE357CE650D986F240

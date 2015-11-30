@@ -1,0 +1,20 @@
+@type extra-info 1.0
+extra-info pataTORhead 479F69EA49CFE61836294C819E96E4026571AF76
+published 2015-09-25 12:03:16
+write-history 2015-09-25 09:57:53 (14400 s) 18729984,6893568,14242816,4102144,16302080,9028608
+read-history 2015-09-25 09:57:53 (14400 s) 23582720,11748352,19212288,9502720,19867648,14134272
+dirreq-write-history 2015-09-25 09:57:53 (14400 s) 861184,922624,669696,191488,1891328,557056
+dirreq-read-history 2015-09-25 09:57:53 (14400 s) 344064,311296,303104,248832,355328,303104
+geoip-db-digest 3282B96D5CBE01E0B2B7E2CB71C2DCAE904A8966
+dirreq-stats-end 2015-09-24 17:57:53 (86400 s)
+dirreq-v3-ips ar=8,br=8,de=8,fr=8,us=8
+dirreq-v3-reqs ar=8,br=8,de=8,fr=8,us=8
+dirreq-v3-resp ok=8,not-enough-sigs=0,unavailable=0,not-found=0,not-modified=0,busy=8
+dirreq-v3-direct-dl complete=0,timeout=0,running=0
+dirreq-v3-tunneled-dl complete=8,timeout=0,running=0
+router-signature
+-----BEGIN SIGNATURE-----
+okyZjHbRPaByG7GMhYUP1NTKvmQVNz8ocwZIEvcunEjX46DWXV7kdGX197LK6gig
+EDfxOtWG6AuR3vEJ2zy81LpZx+2hsCclTCK2oRACuvju4CXIHrPTqPAYvj7IAHlh
+wMoNNf8Gj23NVrufCG8TvlwdNLYzacG4QjdnzsToOMs=
+-----END SIGNATURE-----

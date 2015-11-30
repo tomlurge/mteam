@@ -1,0 +1,30 @@
+@type server-descriptor 1.0
+router default 176.199.30.206 443 0 9030
+platform Tor 0.2.4.23 on Windows 7
+protocols Link 1 2 Circuit 1
+published 2015-09-09 12:34:46
+fingerprint C41D FA06 DA59 BE2C B317 C6C0 8BA9 8CCE 9B01 1CB1
+uptime 139976
+bandwidth 5242880 10485760 58128
+extra-info-digest 55A14BBC089158C4F20775B883A362378B15A71F
+onion-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBANhR2VG4sOz1uLO4WuCynr0iYIKslLkuS6r15Z74zu38AW1w4KkJwXaA
+SCnSUd0uw389VB9k+k/56ed8jAKxHS0IcrSTrEqfqJwaqOKFQXT6lTFFcjpv/mJL
+FOIvPn1uLCAE54B3GB/ni8exUx3KJbogtWPP8iQQmA02pIhf0FmHAgMBAAE=
+-----END RSA PUBLIC KEY-----
+signing-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBALxXtq4HgRwNKT+mzpWQZYtmtsajnBG1UnUnoofW1hMAZTW8Ih+IMhS3
+p+UM6WXCa0lr6KywWpC8rkO9Ltcad5RGryUqGH+CdgKMkyR/+8OtNikruvqa8Xgp
+GzSQRly671ri7WB/CYf0P32rXOzq+JEdD8ojdOWNL8Xit7X3fxSPAgMBAAE=
+-----END RSA PUBLIC KEY-----
+hidden-service-dir
+ntor-onion-key mkpvAsjiY6g+JXRSC+o3vQBFHxayn2jgnHx3AQQH3hQ=
+reject *:*
+router-signature
+-----BEGIN SIGNATURE-----
+MyEgbS/61Hyz+rgQx8U9N4jT+PByfuDxwx3MHiO53pb32vqPOYIArf/0WZYUP5/Z
+LXV/VqkeFGA/+7DH0wa+BI19m2QE1c8C7Tcc3xy9SIAr4YgLhpgxyX3O3xDMU8a2
+HT1klIyNVTOD9t8uYUg14tGA+H95HWQC0seUjqzJ0UQ=
+-----END SIGNATURE-----

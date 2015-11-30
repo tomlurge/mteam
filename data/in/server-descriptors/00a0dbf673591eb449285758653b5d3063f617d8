@@ -1,0 +1,31 @@
+@type server-descriptor 1.0
+router torpi 50.160.193.49 9001 0 9030
+platform Tor 0.2.4.27 on Linux
+protocols Link 1 2 Circuit 1
+published 2015-09-18 01:59:30
+fingerprint 089F E1ED 6498 9AFE 444C 166E 55CE 14C4 6E59 0810
+uptime 2691805
+bandwidth 51200 76800 5985
+extra-info-digest 34AB9472D77D234F1FC3D84228FC5ECB3C8C3C6C
+onion-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBAMJeyI4IpGssFy4hmKAfrJ/4upZw46tPy1QTSzyjoKd4/JrF+r+36MHb
+I96Y9VUVbvQD5BiqxBGvHr5NrH4S7f2l84c5XUw6pj23QoWOLR92WAgrs5TTBWul
+0wMgUuq+su2d6MuMB/ezEZ4U/8vlRzFiF2bHfmYMu1rGyeOs/rnFAgMBAAE=
+-----END RSA PUBLIC KEY-----
+signing-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBALLhgeLBd8GSVUhOOSSZvJ9zINUgbU3kKhr090l87UexCn8BhPbiA7WW
+vIltN/uM2Ec02QdtCWdAAB3Z5YstACWR4Uj0FDrezYAkqEYpEF0uSEdtOoE+Lubl
+M477rE6Zrdw+4P+5ilMzjrpOHG5f7GD24V8gCpaVR7zvx6si+vBFAgMBAAE=
+-----END RSA PUBLIC KEY-----
+hidden-service-dir
+contact mac garrison <macgarrison871 AT gmail dot com>
+ntor-onion-key E/fwzeCzbElVv6OEIf2GUMfjQwvaoyLbmCxWe/KjTlw=
+reject *:*
+router-signature
+-----BEGIN SIGNATURE-----
+d0LSsg/4cjdRf+t0WVID7JaXvkDE2jA6WPNb69ax8c9URSNcnwfP+PRML2fJUZMz
+WaieNkjvCwDDrMluaGOQVdZB65sihg/oGeiUF+59qzRSej08ixRwnT4wdmBioUIV
+bEIZfhqv0d6t48gB/rYnfJh+Fx5Or+Hz7nSiGw3shJ4=
+-----END SIGNATURE-----

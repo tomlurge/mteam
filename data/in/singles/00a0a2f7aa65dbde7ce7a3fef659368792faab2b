@@ -1,0 +1,13 @@
+@type bridge-server-descriptor 1.1
+router Unnamed 10.143.227.19 9001 0 0
+platform Tor 0.2.6.2-alpha on Windows Server 2003 [server]
+protocols Link 1 2 Circuit 1
+published 2015-09-29 21:36:18
+fingerprint 5E59 0229 A5CB 92A1 C40A A2D8 2021 AFA4 C860 69D5
+uptime 236
+bandwidth 1073741824 1073741824 70549
+extra-info-digest C457007438B350FABBA6AD75B08E0674A944E30D
+hidden-service-dir
+ntor-onion-key cjj99BMgt2DdqglDgQgZyM0HSW4ZUzvYeL3s0IG+tzE=
+reject *:*
+router-digest 00A0A2F7AA65DBDE7CE7A3FEF659368792FAAB2B

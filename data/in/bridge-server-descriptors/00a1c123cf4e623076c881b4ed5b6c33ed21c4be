@@ -1,0 +1,13 @@
+@type bridge-server-descriptor 1.1
+router entertainectopar 10.139.116.188 8443 0 0
+platform Tor 0.2.5.10 on Linux
+protocols Link 1 2 Circuit 1
+published 2015-09-27 05:24:40
+fingerprint 96CB 377E 86D9 700B BEA9 2996 353A F9E9 E826 7DB3
+uptime 19980167
+bandwidth 1073741824 1073741824 217084
+extra-info-digest B83E83A0F405D1B6832ADE87A1A3492CAFCD6D9A
+hidden-service-dir
+ntor-onion-key viuGRYjsTUkH5I8c5CBfDPgIyGJARKvAEA9AY0u9hGc=
+reject *:*
+router-digest 00A1C123CF4E623076C881B4ED5B6C33ED21C4BE

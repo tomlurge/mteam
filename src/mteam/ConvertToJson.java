@@ -51,7 +51,7 @@ public class ConvertToJson {
 
     int written = 0;
     String outputPath = "data/out/";
-    String outputName = "singles.json";
+    String outputName = "tordnsel.json";
     Writer JsonWriter;
     if (compress) {
       JsonWriter = new OutputStreamWriter(new GZIPOutputStream(
@@ -104,6 +104,9 @@ public class ConvertToJson {
         if (descriptor instanceof ExitList) {
           jsonDescriptor = JsonExitList
                   .convert((ExitList) descriptor);
+          if(null != descriptorFile.getException()){
+            System.err.print(descriptorFile.getException());
+          }
         }
         //  torperf
         if (descriptor instanceof TorperfResult) {

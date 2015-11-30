@@ -1,0 +1,10 @@
+@type microdescriptor 1.0
+onion-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBAMfOgbHazXRHwNolIRmRUclOfBmy/HWf7XJGVIoUs9l3pjcfpBl+oMD+
+1uaJ3yyiiwI04F+Heq3rRecjcT40aXM8E7Iminmx/HiMBuv0oYPbT9R16WH80zfW
+Y6buXlpIeuM9trlm05NlV7ZJdykuwpg324yw4HKGvxfEJuRMQwB9AgMBAAE=
+-----END RSA PUBLIC KEY-----
+ntor-onion-key R438ituGGueNJwjY+72x2or1Vn9Z8Ed8P75JbhtZPiw=
+family $18CDB71ED173668F075C7DD2CF6EA7E0F083F25C
+id rsa1024 UOHenYpHs1B2RuWQ6v3+uUpI/Uw

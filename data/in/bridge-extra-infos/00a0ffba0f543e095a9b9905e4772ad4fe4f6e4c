@@ -1,0 +1,14 @@
+@type bridge-extra-info 1.3
+extra-info Uluru EB107B45A844D994BEA07E362E3D5BE53F75A468
+published 2015-09-21 20:18:16
+write-history 2015-09-21 18:54:09 (14400 s) 0,0,0,1610752,489472,498688
+read-history 2015-09-21 18:54:09 (14400 s) 0,0,0,10036224,5060608,5608448
+dirreq-write-history 2015-09-20 03:53:16 (14400 s) 0,0,0,0,0,0
+dirreq-read-history 2015-09-20 03:53:16 (14400 s) 0,0,0,0,0,0
+geoip-db-digest C1EB5237F2FBAF63381D8551157F13D12EFCCA25
+geoip6-db-digest 1F99B6B0EC78E9DB34D61AE7E0FC261D558E8E5D
+bridge-stats-end 2015-09-20 07:53:24 (86400 s)
+bridge-ips lb=8
+bridge-ip-versions v4=8,v6=0
+bridge-ip-transports <OR>=8
+router-digest 00A0FFBA0F543E095A9B9905E4772AD4FE4F6E4C

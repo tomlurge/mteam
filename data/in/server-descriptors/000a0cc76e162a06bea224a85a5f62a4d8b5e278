@@ -1,0 +1,30 @@
+@type server-descriptor 1.0
+router ClassroomRealm 104.237.129.78 9006 0 9035
+platform Tor 0.2.4.27 on Linux
+protocols Link 1 2 Circuit 1
+published 2015-09-13 19:44:00
+fingerprint BCBA E937 DC60 F51E 1F56 3580 DA73 536A A8E9 3725
+uptime 478911
+bandwidth 1048576 2097152 54891
+extra-info-digest A95003AD55FE30D976C4AA28F921F7A56C86B99E
+onion-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBALIyWsNKDEKJNqo+CnL4gqokQZHfl8Za9qm8llb2XyfUX7JcriU/nuhN
+gytj++03oRjMCBeNU+tvUyoEAjuo/R+YxEZtHXj3glC1mND0rkZpjG/2Fl3d0bL7
+ZdXqWp8Hmtb/1soPWs6Ev6A8u/0pP+f9oNgxiLcYh8jseoiD56A9AgMBAAE=
+-----END RSA PUBLIC KEY-----
+signing-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBAMDXMjbUenBhXBHAH7Rn1xHGZVnDy+KfkaH+nXOAjEPY2qhO4k6DcHH7
+13gqTevvta7XWS5KYvEqe9jqBNP5cTiqOdefsvWz99z/1b2BbYWHT1TYoZkbuasV
+3ZI0Wxv7vtzxhk1SP4Mgb38Dbwq51nCWnk2jVMiY3BoJQDKYHkOLAgMBAAE=
+-----END RSA PUBLIC KEY-----
+hidden-service-dir
+ntor-onion-key y8vGoSaj6LD0rdtseDV2iO4XbV0U/BIuptYCS8uPSyY=
+reject *:*
+router-signature
+-----BEGIN SIGNATURE-----
+lFWnmZ505xYEJ0KJO4y0R1/ULFx1tCf8WHk3Nz0ogParf7Kp823DUf2q9NIvyEK+
+KkYrr4xGFn0sE+wjn2tfpkPo8iPM3d8RlKj3v2Pm6oX8QM+AvdhkOoOXbT0pAC6N
+werLDkA9K2iSKZhk1iHrvPOQLHfUQ0VzAhI9p30xVPo=
+-----END SIGNATURE-----

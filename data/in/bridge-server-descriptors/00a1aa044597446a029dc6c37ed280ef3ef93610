@@ -1,0 +1,13 @@
+@type bridge-server-descriptor 1.1
+router evilizm1 10.56.172.137 31338 0 0
+platform Tor 0.2.4.27 on Linux
+protocols Link 1 2 Circuit 1
+published 2015-09-14 20:32:36
+fingerprint 7211 DABA 2B0C 02F9 251C 92A8 C2D0 8722 8EC1 612C
+uptime 2753426
+bandwidth 716800 1024000 59276
+extra-info-digest 3DDCC173359ADD17547E6DD9AE9B4E02648E8AAF
+hidden-service-dir
+ntor-onion-key h3hKo1/YWwc87awtABFQoXripJbJKEb3h7e1Lm9rP1A=
+reject *:*
+router-digest 00A1AA044597446A029DC6C37ED280EF3EF93610

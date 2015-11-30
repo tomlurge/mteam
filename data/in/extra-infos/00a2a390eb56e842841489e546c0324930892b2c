@@ -1,0 +1,19 @@
+@type extra-info 1.0
+extra-info thuban 2592323844571C517EA7577D4376EE7DE1AEE4F7
+published 2015-09-06 02:14:43
+write-history 2015-09-05 22:22:58 (14400 s) 151552,118784,132096,157696,140288,153600
+read-history 2015-09-05 22:22:58 (14400 s) 1633280,1107968,1111040,1647616,1649664,1641472
+geoip-db-digest C1EB5237F2FBAF63381D8551157F13D12EFCCA25
+geoip6-db-digest 1F99B6B0EC78E9DB34D61AE7E0FC261D558E8E5D
+dirreq-stats-end 2015-09-05 10:31:48 (86400 s)
+dirreq-v3-ips 
+dirreq-v3-reqs 
+dirreq-v3-resp ok=0,not-enough-sigs=0,unavailable=0,not-found=0,not-modified=0,busy=0
+dirreq-v3-direct-dl complete=0,timeout=0,running=0
+dirreq-v3-tunneled-dl complete=0,timeout=0,running=0
+router-signature
+-----BEGIN SIGNATURE-----
+Flpgrfa/YZtiD7X9bgdw5KmJ2V9kd9fiV13p68yydAf68PK+10AjgegGcas3Hsm1
+IZgLBS7llMFOk0iVqQ9cNe61RirYi9lPn+OkERm6+ZP9dFIzmrGc1EOFzuiXUKZS
+0isLImuMJIPwlfguqLnuZ/8IuPuX1TR4TDODVSoDf3o=
+-----END SIGNATURE-----

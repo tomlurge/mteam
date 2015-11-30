@@ -1,0 +1,24 @@
+@type bridge-extra-info 1.3
+extra-info Unnamed 24266E0FDDCD8A98FC21B7C492EF779011290374
+published 2015-09-14 05:41:16
+write-history 2015-09-14 04:38:17 (14400 s) 5422080,9031680,425984,2200958976,1685320704,594989056
+read-history 2015-09-14 04:38:17 (14400 s) 9653248,11747328,4289536,2202985472,1686306816,598347776
+dirreq-write-history 2015-09-14 04:38:17 (14400 s) 628736,1857536,13312,2849792,1726464,954368
+dirreq-read-history 2015-09-14 04:38:17 (14400 s) 15360,43008,4096,130048,19456,82944
+geoip-db-digest D095D62E8A1607C2C3AF61366929BCAD0E6D3184
+geoip6-db-digest AC1BE3D0707D16AB04092FE00C9732658C926CD8
+dirreq-stats-end 2015-09-14 04:47:07 (86400 s)
+dirreq-v3-ips fr=8,gb=8,id=8,ir=8
+dirreq-v3-reqs fr=8,gb=8,id=8,ir=8
+dirreq-v3-resp ok=16,not-enough-sigs=0,unavailable=0,not-found=0,not-modified=0,busy=0
+dirreq-v3-direct-dl complete=0,timeout=0,running=0
+dirreq-v3-tunneled-dl complete=12,timeout=4,running=0
+transport scramblesuit
+transport obfs3
+transport obfs4
+transport fte
+bridge-stats-end 2015-09-13 07:01:47 (86400 s)
+bridge-ips fr=8,gb=8,id=8,ir=8
+bridge-ip-versions v4=8,v6=0
+bridge-ip-transports <OR>=8,obfs3=8,obfs4=8
+router-digest 00A0FE4DF5BA42343E8514D2E023B3BEC005E08F

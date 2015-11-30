@@ -1,0 +1,31 @@
+@type server-descriptor 1.0
+router duuuuude 178.27.37.28 9001 0 9030
+platform Tor 0.2.6.10 on Linux
+protocols Link 1 2 Circuit 1
+published 2015-09-13 22:11:44
+fingerprint 96AA 5D18 5F36 CD6A 8BB1 ED99 7C84 EF6E 353F A879
+uptime 15
+bandwidth 102400 204800 119808
+extra-info-digest F0BFF2C0F547133223C0DC3F9AE45CD43FCC68A9
+onion-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBANLcnbh1LqzRmzyGJ7NCFq99N9arrB3c43BrEtzFo5suTfFW+db5Yy+i
+XGCDqL2dxCK2463vvv4ZxlFi0FxEBEqByVzqM7cATuWiwT820MQ/OejfVrSXylbA
+/4Ubtg7kg5OfljDT+0wmTW0vY25ED+xh7U93qUJ7SKKDbgSgRpiBAgMBAAE=
+-----END RSA PUBLIC KEY-----
+signing-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBALxDAzmVv1nzZT7XzSr9dnuCQ11gPxv5gNmIGeWHOQuUm6kRv9AGVXOe
+TyKDefXlBX+YSsc1Eta6bd30/NEzb4/sI6Uw10hM3O2r7OFHdN+6gAZsi2LNRMcs
+4/XpXXmAdEYm8LcdpcmVhwqIKPFDrvDLcVc3mVaeK5ruu5WaNAwvAgMBAAE=
+-----END RSA PUBLIC KEY-----
+hidden-service-dir
+contact Random Person <nobody AT example dot com>
+ntor-onion-key zpoZxM3X9UosCAPkPdQeWaL1qJTHlXwTvKj9HghZ7Hw=
+reject *:*
+router-signature
+-----BEGIN SIGNATURE-----
+T7utjuUhjhC4ZkkWvPRhRxdqlKyudD3hM6hTwA+axGCAiehNTaX/W/SafXyhE5Fp
+xsgQhOOUQlOujfLiBwpgDqG8ldntyzV357RCrNhhe+aBI8cwf0psU/Mja89FsuAt
+w0i6rUHt4raE/m/NmPKwggWo20lC1fD7lpiNV7bQcyk=
+-----END SIGNATURE-----

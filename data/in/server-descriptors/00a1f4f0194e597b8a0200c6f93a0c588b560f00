@@ -1,0 +1,31 @@
+@type server-descriptor 1.0
+router nasrelay 79.203.100.148 4433 0 9090
+platform Tor 0.2.4.23 on Linux
+protocols Link 1 2 Circuit 1
+published 2015-09-13 19:59:32
+fingerprint 41D4 2E69 D544 5F40 D4DC E32A C346 BDAD 6B73 3B3B
+uptime 259679
+bandwidth 1073741824 1073741824 1204038
+extra-info-digest C9D955264D73CD9C2BB4031E681BA9C20C534944
+onion-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBANQn7G/LzHLpeNrYitFMoum0A/IlIPfaW3gSADGX28podf4HmWyRI/AX
+tofdR71XpgWu2WOLUdZ+sYG4dlYQSoulTyt0DzLiUudN75zpYCVHf7R5kB0JAPu0
+wYui4Ljlw2j/5WGkkSQAfV0QMCvl46YehdnNEAAbEnQumpuNNPCNAgMBAAE=
+-----END RSA PUBLIC KEY-----
+signing-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBAKTT1IW0Zh2iYAfHbADNTqkElDGeO33yHUhwMInjfh6/D1xd0OkDYZ4T
+NSaVkB97ychIZd0mYDM2U90/kjVs59X5WHb4LX9aUpGFaXY3QjAT7/bz7EH+1PKp
+ZHOxl1ippydY0tG1yN4zEuZ/Pl2IUQ3T2U7s7uBNohkw4kPOD1whAgMBAAE=
+-----END RSA PUBLIC KEY-----
+hidden-service-dir
+contact nasrelay <uli.ries@gmail.com>
+ntor-onion-key Ke4+RY1a06nd72ZGil6qKsMep/eFbny7GBtiTZyGmn8=
+reject *:*
+router-signature
+-----BEGIN SIGNATURE-----
+OURWF+cLw8WuWZ8MxdwlWbm8x+s1ngBuY76DGm4HiB9ocPymcv2NtxZTztMdrxn7
+j8q9+6eJWacVqDuM0ahsZKWjYFKFJrx3ipiwv51UB1uqHUCZshm7lLxia+nEQnzM
+PTQcHlEkIB68Y0EDCRjjDPWWW3dYJke5Xrs2qViz080=
+-----END SIGNATURE-----
