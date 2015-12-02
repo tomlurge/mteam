@@ -1,0 +1,290 @@
+{
+  "namespace": "org.torproject.metrics.descriptor",
+  "type": "record",
+  "name": "relayExtra",
+  "aliases": ["extra_info"],
+  "doc": "extra-info 1.0'",
+  "fields": [
+    {"name": "descriptor_type", "type": "string", "doc": "",
+      "default": "extra-info 1.0"},
+    {"name": "published", "type": ["null", "string"], "doc": ""},
+    {"name": "fingerprint","type": ["null", "string"], "doc": ""},
+    {"name": "nickname", "type": ["null", "string"], "doc": ""},
+    {"name": "extra_info_digest", "type": ["null", "string"], "doc": ""},
+    {"name": "read_history", "type": "record", "fields":
+      [
+        {"name": "date", "type": ["null", "string"]},
+        {"name": "interval", "type": "long", "default": 86400},
+        {"name": "bytes", "type":
+          {
+            "type": "array", "items": "long"
+          }
+        }
+      ], "doc": ""
+    },
+    {"name": "write_history", "type": "record", "fields":
+      [
+        {"name": "date", "type": ["null", "string"]},
+        {"name": "interval", "type": "long", "default": 86400},
+        {"name": "bytes", "type":
+          {
+            "type": "array", "items": "long"
+          }
+        }
+      ], "doc": ""
+    },
+    {"name": "geoip_db_digest", "type": ["null", "string"], "doc": ""},
+    {"name": "geoip6_db_digest", "type": ["null", "string"], "doc": ""},
+    {"name": "geoip_start_time", "type": ["null", "string"], "doc": ""},
+    {"name": "dirreq_stats_end", "type": "record", "fields":
+      [
+        {"name": "date", "type": ["null", "string"], "doc": ""},
+        {"name": "interval", "type": "long", "default": 86400, "doc": ""}
+      ]
+    },
+    {"name": "dirreq_v2_ips", "type":
+      {
+        "type": "array", "items": {
+          "type": "record",
+          "name": "dirreq_v2_ips_record",
+          "fields": [
+            {"name": "countryCode", "type": "string"},
+            {"name": "value", "type": "int"}
+          ]
+        }
+      }, "doc": ""
+    },
+    {"name": "dirreq_v3_ips", "type":
+      {
+        "type": "array", "items": {
+          "type": "record",
+          "name": "dirreq_v3_ips_record",
+          "fields": [
+            {"name": "countryCode", "type": "string"},
+            {"name": "value", "type": "int"}
+          ]
+        }
+      }, "doc": ""
+    },
+    {"name": "dirreq_v2_reqs", "type":
+      {
+        "type": "array", "items": {
+          "type": "record",
+          "name": "dirreq_v2_reqs_record",
+          "fields": [
+            {"name": "countryCode", "type": "string"},
+            {"name": "value", "type": "int"}
+          ]
+        }
+      }, "doc": ""
+    },
+    {"name": "dirreq_v3_reqs", "type":
+      {
+        "type": "array", "items": {
+          "type": "record",
+          "name": "dirreq_v3_reqs_record",
+          "fields": [
+            {"name": "countryCode", "type": "string"},
+            {"name": "value", "type": "int"}
+          ]
+        }
+      }, "doc": ""
+    },
+    {"name": "dirreq_v2_share", "type": ["null", "double"], "doc": ""},
+    {"name": "dirreq_v3_share", "type": ["null", "double"], "doc": ""},
+    {"name": "dirreq_v2_resp", "type":
+      {
+        "type": "array", "items": {
+          "type": "record",
+          "name": "dirreq_v2_resp_record",
+          "fields": [
+            {"name": "status", "type": "string"},
+            {"name": "value", "type": "int"}
+          ]
+        }
+      }, "doc": ""
+    },
+    {"name": "dirreq_v3_resp", "type":
+      {
+        "type": "array", "items": {
+          "type": "record",
+          "name": "dirreq_v3_resp_record",
+          "fields": [
+            {"name": "status", "type": "string"},
+            {"name": "value", "type": "int"}
+          ]
+        }
+      }, "doc": ""
+    },
+    {"name": "dirreq_v2_direct_dl", "type":
+      {
+        "type": "array", "items": {
+          "type": "record",
+          "name": "dirreq_v2_direct_dl_record",
+          "fields": [
+            {"name": "download", "type": "string"},
+            {"name": "value", "type": "int"}
+          ]
+        }
+      }, "doc": ""
+    },
+    {"name": "dirreq_v3_direct_dl", "type":
+      {
+        "type": "array", "items": {
+          "type": "record",
+          "name": "dirreq_v3_direct_dl_record",
+          "fields": [
+            {"name": "download", "type": "string"},
+            {"name": "value", "type": "int"}
+          ]
+        }
+      }, "doc": ""
+    },
+    {"name": "dirreq_v2_tunneled_dl", "type":
+      {
+        "type": "array", "items": {
+          "type": "record",
+          "name": "dirreq_v2_tunneled_dl_record",
+          "fields": [
+            {"name": "download", "type": "string"},
+            {"name": "value", "type": "int"}
+          ]
+        }
+      }, "doc": ""
+    },
+    {"name": "dirreq_v3_tunneled_dl", "type":
+      {
+        "type": "array", "items": {
+          "type": "record",
+          "name": "dirreq_v3_tunneled_dl_record",
+          "fields": [
+            {"name": "download", "type": "string"},
+            {"name": "value", "type": "int"}
+          ]
+        }
+      }, "doc": ""
+    },
+    {"name": "dirreq_read_history", "type": "record", "fields":
+      [
+        {"name": "date", "type": ["null", "string"]},
+        {"name": "interval", "type": ["null", "long"]},
+        {"name": "bytes", "type":
+          {
+            "type": "array", "items": "long"
+          }
+        }
+      ], "doc": ""
+    },
+    {"name": "dirreq_write_history",  "type": "record", "fields":
+      [
+        {"name": "date", "type": ["null", "string"]},
+        {"name": "interval", "type": ["null", "long"]},
+        {"name": "bytes", "type":
+          {
+            "type": "array", "items": "long"
+          }
+        }
+      ], "doc": ""
+    },
+    {"name": "entry_stats_end", "type": "record", "fields":
+      [
+        {"name": "date", "type": ["null", "string"], "doc": ""},
+        {"name": "interval", "type": "long", "default": 86400, "doc": ""}
+      ]
+    },
+    {"name": "entry_ips", "type":
+      {
+        "type": "array", "items": {
+          "type": "record",
+          "name": "entry_ips_record",
+          "fields": [
+            {"name": "countryCode", "type": "string"},
+            {"name": "value", "type": "int"}
+          ]
+        }
+      }, "doc": ""
+    },
+    {"name": "cell_stats_end", "type": "record", "fields":
+      [
+        {"name": "date", "type": ["null", "string"], "doc": ""},
+        {"name": "interval", "type": "long", "default": 86400, "doc": ""}
+      ]
+    },
+    {"name": "cell_processed_cells", "type":
+      {
+        "type": "array", "items": "int"
+      }, "doc": ""
+    },
+    {"name": "cell_queued_cells", "type":
+      {
+        "type": "array", "items": "double"
+      }, "doc": ""
+    },
+    {"name": "cell_time_in_queue", "type":
+      {
+        "type": "array", "items": "int"
+      }, "doc": ""
+    },
+    {"name": "cell_circuits_per_decile", "type": ["null", "int"], "doc": ""},
+    {"name": "conn_bi_direct", "type": "record", "fields":
+      [
+        {"name": "date", "type": ["null", "string"]},
+        {"name": "interval", "type": "long", "default": 86400},
+        {"name": "below", "type": ["null", "int"]},
+        {"name": "read", "type": ["null", "int"]},
+        {"name": "write", "type": ["null", "int"]},
+        {"name": "both", "type": ["null", "int"]}
+      ], "doc": ""
+    },
+    {"name": "exit_stats_end", "type": "record", "fields":
+      [
+        {"name": "date", "type": ["null", "string"], "doc": ""},
+        {"name": "interval", "type": "long", "default": 86400, "doc": ""}
+      ]
+    },
+    {"name": "exit_kibibytes_written", "type":
+      {
+        "type": "array", "items":
+        {
+          "type": "record",
+          "name": "exit_kibibytes_written_record",
+          "fields": [
+            {"name": "port", "type": "string"},
+            {"name": "value", "type": "long"}
+          ]
+        }
+      }, "doc": ""
+    },
+    {"name": "exit_kibibytes_read", "type":
+      {
+        "type": "array", "items":
+        {
+          "type": "record",
+          "name": "exit_kibibytes_read_record",
+          "fields": [
+            {"name": "port", "type": "string"},
+            {"name": "value", "type": "long"}
+          ]
+        }
+      }, "doc": ""
+    },
+    {"name": "exit_streams_opened", "type":
+      {
+        "type": "array", "items":
+        {
+          "type": "record",
+          "name": "exit_streams_opened_record",
+          "fields": [
+            {"name": "port", "type": "string"},
+            {"name": "value", "type": "long"}
+          ]
+        }
+      }, "doc": ""
+    },
+    {"name": "transport", "type":
+      {
+        "type": "array", "items": "string"
+      }, "doc": ""
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "namespace": "org.torproject.metrics.descriptor",
+  "type": "record",
+  "name": "bridge",
+  "aliases": ["bridge_server_descriptor"],
+  "doc": "server-descriptor 1.0 - same as relay apart from field 'router_signature'",
+  "fields": [
+    {"name": "descriptor_type", "type": "string", "default": "server-descriptor 1.0", "doc": ""},
+    {"name": "published", "type": ["null", "string"], "doc": ""},
+    {"name": "fingerprint","type": ["null", "string"], "doc": ""},
+    {"name": "router", "type": "record", "fields":
+      [
+        {"name": "nickname", "type": ["null", "string"], "doc": ""},
+        {"name": "address", "type": ["null", "string"], "doc": ""},
+        {"name": "or_port", "type": ["null", "int"], "doc": ""},
+        {"name": "socks_port", "type": ["null", "int"], "doc": ""},
+        {"name": "dir_port", "type": ["null", "int"], "doc": ""}
+      ]
+    },
+    {"name": "bandwidth", "type": "record", "fields":
+      [
+        {"name": "avg", "type": ["null", "int"], "doc": ""},
+        {"name": "burst", "type": ["null", "int"], "doc": ""},
+        {"name": "observed", "type": ["null", "int"], "doc": ""}
+      ]
+    },
+    {"name": "onion_key", "type": ["null", "boolean"], "doc": ""},
+    {"name": "signing_key", "type": ["null", "boolean"], "doc": ""},
+    {"name": "exit_policy", "type":
+      {
+        "type": "array", "items": "string"
+      }, "doc": ""
+    },
+    {"name": "or_addresses", "type":
+      {
+        "type": "array", "items": {
+          "type": "record",
+          "name": "or_addresses_record",
+          "fields": [
+            {"name": "adress", "type": "string"},
+            {"name": "port", "type": "int"}
+          ]
+        }
+      }, "doc": ""
+    },
+    {"name": "platform", "type": ["null", "string"], "doc": ""},
+    {"name": "hibernating", "type": ["null", "boolean"], "doc": ""},
+    {"name": "uptime", "type": ["null", "long"], "doc": ""},
+    {"name": "ipv6_policy", "type": ["null", "string"], "doc": ""},
+    {"name": "contact", "type": ["null", "string"], "doc": ""},
+    {"name": "family", "type":
+      {
+        "type": "array", "items": "string"
+      }, "doc": ""
+    },
+    {"name": "read_history", "type": "record", "fields":
+      [
+        {"name": "date", "type": ["null", "string"]},
+        {"name": "interval", "type": ["null", "long"]},
+        {"name": "bytes", "type":
+          {
+            "type": "array", "items": "long"
+          }
+        }
+      ], "doc": ""
+    },
+    {"name": "write_history", "type": "record", "fields":
+      [
+        {"name": "date", "type": ["null", "string"]},
+        {"name": "interval", "type": ["null", "long"]},
+        {"name": "bytes", "type":
+          {
+            "type": "array", "items": "long"
+          }
+        }
+      ], "doc": ""
+    },
+    {"name": "eventdns", "type": ["null", "boolean"], "doc": ""},
+    {"name": "caches_extra_info", "type": ["null", "boolean"], "doc": ""},
+    {"name": "extra_info_digest", "type": ["null", "string"], "doc": ""},
+    {"name": "hidden_service_dir_versions", "type":
+      {
+        "type": "array", "items": "int"
+      }, "doc": ""
+    },
+    {"name": "link_protocol_versions", "type":
+      {
+        "type": "array", "items": "int"
+      }, "doc": ""
+    },
+    {"name": "circuit_protocol_versions", "type":
+      {
+        "type": "array", "items": "int"
+      }, "doc": ""
+    },
+    {"name": "allow_single_hop_exits", "type": ["null", "boolean"], "doc": ""},
+    {"name": "ntor_onion_key", "type": ["null", "boolean"], "doc": ""},
+    {"name": "router_digest", "type": ["null", "string"], "doc": ""}
+  ]
+}
