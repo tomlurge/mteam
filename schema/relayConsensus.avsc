@@ -1,0 +1,138 @@
+{
+  "namespace": "org.torproject.metrics.descriptor",
+  "type": "record",
+  "name": "relayConsensus",
+  "aliases": ["relay_network_status_consensus_3"],
+  "doc": "network-status-consensus-3 1.0",
+  "fields": [
+    {"name": "descriptor_type", "type": "string", "default": "network-status-consensus-3 1.0", "doc": ""},
+    {"name": "published", "type": ["null", "string"], "doc": ""},
+    {"name": "vote_status","type": ["null", "int"], "doc": ""},
+    {"name": "consensus_method", "type": ["null", "int"], "doc": ""},
+    {"name": "consensus_flavor", "type": ["null", "string"], "doc": ""},
+    {"name": "valid_after", "type": ["null", "string"], "doc": ""},
+    {"name": "fresh_until", "type": ["null", "string"], "doc": ""},
+    {"name": "valid_until", "type": ["null", "string"], "doc": ""},
+    {"name": "voting_delay", "type": "record", "fields":
+      [
+        {"name": "vote_seconds", "type": ["null", "long"], "doc": ""},
+        {"name": "dist_seconds", "type": ["null", "long"], "doc": ""}
+      ]
+    },
+    {"name": "client_version", "type":
+      {
+        "type": "array", "items": "string"
+      }, "doc": ""
+    },
+    {"name": "server_versions", "type":
+      {
+        "type": "array", "items": "string"
+      }, "doc": ""
+    },
+    {"name": "known_flags", "type":
+      {
+        "type": "array", "items": "string"
+      }, "doc": ""
+    },
+    {"name": "params", "type":
+      {
+        "type": "array", "items": {
+          "type": "record",
+          "name": "params_entry",
+          "fields": [
+            {"name": "param", "type": "string"},
+            {"name": "value", "type": "int"}
+          ]
+        }
+      }, "doc": ""
+    },
+    {"name": "dir_source", "type":
+      {
+        "type": "array", "items": {
+          "type": "record",
+          "name": "authority",
+          "fields": [
+            {"name": "nickname", "type": ["null", "string"]},
+            {"name": "identity", "type": ["null", "string"]},
+            {"name": "adress", "type": ["null", "string"]},
+            {"name": "dir_port", "type": ["null", "int"]},
+            {"name": "or_port", "type": ["null", "int"]},
+            {"name": "contact", "type": ["null", "string"]},
+            {"name": "vote_digest", "type": ["null", "string"]},
+            {"name": "legacy", "type": ["null", "boolean"]}
+          ]
+        }
+      }, "doc": ""
+    },
+    {"name": "router_status", "type":
+      {
+        "type": "array", "items": {
+          "type": "record",
+          "name": "router",
+          "fields": [
+            {"name": "r", "type": "record", "fields": [
+              {"name": "nickname", "type": ["null", "string"]},
+              {"name": "identity", "type": ["null", "string"]},
+              {"name": "digest", "type": ["null", "string"]},
+              {"name": "publication", "type": ["null", "string"]},
+              {"name": "ip", "type": ["null", "string"]},
+              {"name": "dir_port", "type": ["null", "int"]},
+              {"name": "or_port", "type": ["null", "int"]}
+            ]},
+            {"name": "a", "type":
+              {
+                "type": "array", "items": "string"
+              }, "doc": "port summary"
+            },
+            {"name": "s", "type":
+              {
+                "type": "array", "items": "string"
+              }, "doc": "flags"
+            },
+            {"name": "v", "type": ["null", "string"], "doc": ""},
+            {"name": "w", "type": "record", "fields": [
+              {"name": "bandwidth", "type": ["null", "long"]},
+              {"name": "measured_bw", "type": ["null", "long"]},
+              {"name": "unmeasured_bw", "type": ["null", "boolean"]}
+            ]},
+            {"name": "p", "type": "record", "fields": [
+              {"name": "default_policy", "type": ["null", "string"]},
+              {"name": "port_summary", "type": ["null", "string"]}
+            ]}
+          ]
+        }
+      }, "doc": ""
+    },
+    {"name": "directory_footer", "type": "record", "fields":
+      [
+        {"name": "bandwidth_weights", "type":
+          {
+            "type": "array", "items": {
+              "type": "record",
+              "name": "bw_entry",
+              "fields": [
+                {"name": "bw", "type": "string"},
+                {"name": "value", "type": "int"}
+              ]
+            }
+          }, "doc": ""
+        },
+        {"name": "consensus_digest", "type": ["null", "string"], "doc": ""},
+        {"name": "directory_signature", "type":
+          {
+            "type": "array", "items": {
+              "type": "record",
+              "name": "directory_signature_entry",
+              "fields": [
+                {"name": "algorithm", "type": ["null", "string"]},
+                {"name": "identity", "type": ["null", "string"]},
+                {"name": "signing_key_digest", "type": ["null", "string"]},
+                {"name": "signature", "type": ["null", "boolean"]}
+              ]
+            }
+          }
+        }
+      ], "doc": ""
+    }
+  ]
+}

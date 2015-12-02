@@ -46,7 +46,7 @@
       {
         "type": "array", "items": {
           "type": "record",
-          "name": "dirreq_v2_ips_record",
+          "name": "dirreq_v2_ips_entry",
           "fields": [
             {"name": "countryCode", "type": "string"},
             {"name": "value", "type": "int"}
@@ -58,7 +58,7 @@
       {
         "type": "array", "items": {
           "type": "record",
-          "name": "dirreq_v3_ips_record",
+          "name": "dirreq_v3_ips_entry",
           "fields": [
             {"name": "countryCode", "type": "string"},
             {"name": "value", "type": "int"}
@@ -70,7 +70,7 @@
       {
         "type": "array", "items": {
           "type": "record",
-          "name": "dirreq_v2_reqs_record",
+          "name": "dirreq_v2_reqs_entry",
           "fields": [
             {"name": "countryCode", "type": "string"},
             {"name": "value", "type": "int"}
@@ -82,7 +82,7 @@
       {
         "type": "array", "items": {
           "type": "record",
-          "name": "dirreq_v3_reqs_record",
+          "name": "dirreq_v3_reqs_entry",
           "fields": [
             {"name": "countryCode", "type": "string"},
             {"name": "value", "type": "int"}
@@ -96,7 +96,7 @@
       {
         "type": "array", "items": {
           "type": "record",
-          "name": "dirreq_v2_resp_record",
+          "name": "dirreq_v2_resp_entry",
           "fields": [
             {"name": "status", "type": "string"},
             {"name": "value", "type": "int"}
@@ -108,7 +108,7 @@
       {
         "type": "array", "items": {
           "type": "record",
-          "name": "dirreq_v3_resp_record",
+          "name": "dirreq_v3_resp_entry",
           "fields": [
             {"name": "status", "type": "string"},
             {"name": "value", "type": "int"}
@@ -120,7 +120,7 @@
       {
         "type": "array", "items": {
           "type": "record",
-          "name": "dirreq_v2_direct_dl_record",
+          "name": "dirreq_v2_direct_dl_entry",
           "fields": [
             {"name": "download", "type": "string"},
             {"name": "value", "type": "int"}
@@ -132,7 +132,7 @@
       {
         "type": "array", "items": {
           "type": "record",
-          "name": "dirreq_v3_direct_dl_record",
+          "name": "dirreq_v3_direct_dl_entry",
           "fields": [
             {"name": "download", "type": "string"},
             {"name": "value", "type": "int"}
@@ -144,7 +144,7 @@
       {
         "type": "array", "items": {
           "type": "record",
-          "name": "dirreq_v2_tunneled_dl_record",
+          "name": "dirreq_v2_tunneled_dl_entry",
           "fields": [
             {"name": "download", "type": "string"},
             {"name": "value", "type": "int"}
@@ -156,7 +156,7 @@
       {
         "type": "array", "items": {
           "type": "record",
-          "name": "dirreq_v3_tunneled_dl_record",
+          "name": "dirreq_v3_tunneled_dl_entry",
           "fields": [
             {"name": "download", "type": "string"},
             {"name": "value", "type": "int"}
@@ -196,7 +196,7 @@
       {
         "type": "array", "items": {
           "type": "record",
-          "name": "entry_ips_record",
+          "name": "entry_ips_entry",
           "fields": [
             {"name": "countryCode", "type": "string"},
             {"name": "value", "type": "int"}
@@ -247,7 +247,7 @@
         "type": "array", "items":
         {
           "type": "record",
-          "name": "exit_kibibytes_written_record",
+          "name": "exit_kibibytes_written_entry",
           "fields": [
             {"name": "port", "type": "string"},
             {"name": "value", "type": "long"}
@@ -260,7 +260,7 @@
         "type": "array", "items":
         {
           "type": "record",
-          "name": "exit_kibibytes_read_record",
+          "name": "exit_kibibytes_read_entry",
           "fields": [
             {"name": "port", "type": "string"},
             {"name": "value", "type": "long"}
@@ -273,7 +273,7 @@
         "type": "array", "items":
         {
           "type": "record",
-          "name": "exit_streams_opened_record",
+          "name": "exit_streams_opened_entry",
           "fields": [
             {"name": "port", "type": "string"},
             {"name": "value", "type": "long"}

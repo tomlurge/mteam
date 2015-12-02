@@ -1,0 +1,135 @@
+{
+  "namespace": "org.torproject.metrics.descriptor",
+  "type": "record",
+  "name": "relayVote",
+  "aliases": ["relay_network_status_vote_3"],
+  "doc": "network-status-vote-3 1.0",
+  "fields": [
+    {"name": "descriptor_type", "type": "string", "default": "network-status-vote-3 1.0", "doc": ""},
+    {"name": "published", "type": ["null", "string"], "doc": ""},
+    {"name": "vote_status","type": ["null", "int"], "doc": ""},
+    {"name": "consensus_method", "type":
+      {
+        "type": "array", "items": "int"
+      }, "doc": ""
+    },
+    {"name": "valid_after", "type": ["null", "string"], "doc": ""},
+    {"name": "fresh_until", "type": ["null", "string"], "doc": ""},
+    {"name": "valid_until", "type": ["null", "string"], "doc": ""},
+    {"name": "voting_delay", "type": "record", "fields":
+      [
+        {"name": "vote_seconds", "type": ["null", "long"], "doc": ""},
+        {"name": "dist_seconds", "type": ["null", "long"], "doc": ""}
+      ]
+    },
+    {"name": "client_version", "type":
+      {
+        "type": "array", "items": "string"
+      }, "doc": ""
+    },
+    {"name": "server_versions", "type":
+      {
+        "type": "array", "items": "string"
+      }, "doc": ""
+    },
+    {"name": "flagTreshold", "type": "record", "fields":
+      [
+        {"name": "stable_uptime", "type": ["null", "long"]},
+        {"name": "stable_mtbf", "type": ["null", "long"]},
+        {"name": "enough_mtbf", "type": ["null", "int"]},
+        {"name": "fast_speed", "type": ["null", "long"]},
+        {"name": "guard_wfu", "type": ["null", "double"]},
+        {"name": "guard_tk", "type": ["null", "long"]},
+        {"name": "guard_bw_inc_exits", "type": ["null", "long"]},
+        {"name": "guard_bw_exc_exits", "type": ["null", "long"]},
+        {"name": "ignoring_advertised", "type": ["null", "int"]}
+      ], "doc": ""
+    },
+    {"name": "known_flags", "type":
+      {
+        "type": "array", "items": "string"
+      }, "doc": ""
+    },
+    {"name": "params", "type":
+      {
+        "type": "array", "items": {
+          "type": "record",
+          "name": "params_entry",
+          "fields": [
+            {"name": "param", "type": "string"},
+            {"name": "value", "type": "int"}
+          ]
+        }
+      }, "doc": ""
+    },
+    {"name": "authority", "type": "record", "fields":
+      [
+        {"name": "nickname", "type": ["null", "string"]},
+        {"name": "identity", "type": ["null", "string"]},
+        {"name": "adress", "type": ["null", "string"]},
+        {"name": "dir_port", "type": ["null", "int"]},
+        {"name": "or_port", "type": ["null", "int"]},
+        {"name": "contact", "type": ["null", "string"]},
+        {"name": "legacy_dir_key", "type": ["null", "string"]},
+        {"name": "key_certificate", "type": "record", "fields":
+          [
+            {"name": "version", "type": ["null", "int"]},
+            {"name": "dir_key_published", "type": ["null", "string"]},
+            {"name": "dir_key_expires", "type": ["null", "string"]},
+            {"name": "dir_signing_key", "type": ["null", "boolean"]}
+          ]
+        }
+      ], "doc": ""
+    },
+    {"name": "router_status", "type":
+      {
+        "type": "array", "items": {
+          "type": "record",
+          "name": "router",
+          "fields": [
+            {"name": "r", "type": "record", "fields": [
+              {"name": "nickname", "type": ["null", "string"]},
+              {"name": "identity", "type": ["null", "string"]},
+              {"name": "digest", "type": ["null", "string"]},
+              {"name": "publication", "type": ["null", "string"]},
+              {"name": "ip", "type": ["null", "string"]},
+              {"name": "dir_port", "type": ["null", "int"]},
+              {"name": "or_port", "type": ["null", "int"]}
+            ]},
+            {"name": "a", "type":
+              {
+                "type": "array", "items": "string"
+              }, "doc": "port summary"
+            },
+            {"name": "s", "type":
+              {
+                "type": "array", "items": "string"
+              }, "doc": "flags"
+            },
+            {"name": "v", "type": ["null", "string"], "doc": ""},
+            {"name": "w", "type": "record", "fields": [
+              {"name": "bandwidth", "type": ["null", "long"]},
+              {"name": "measured_bw", "type": ["null", "long"]},
+              {"name": "unmeasured_bw", "type": ["null", "boolean"]}
+            ]},
+            {"name": "p", "type": "record", "fields": [
+              {"name": "default_policy", "type": ["null", "string"]},
+              {"name": "port_summary", "type": ["null", "string"]}
+            ]}
+          ]
+        }
+      }, "doc": ""
+    },
+    {"name": "directory_footer", "type": "record", "fields":
+      [
+        {"name": "directory_signature", "type": "record", "fields": [
+            {"name": "algorithm", "type": ["null", "string"]},
+            {"name": "identity", "type": ["null", "string"]},
+            {"name": "signing_key_digest", "type": ["null", "string"]},
+            {"name": "signature", "type": ["null", "boolean"]}
+          ]
+        }
+      ], "doc": ""
+    }
+  ]
+}

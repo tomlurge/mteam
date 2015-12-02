@@ -35,7 +35,7 @@
       {
         "type": "array", "items": {
           "type": "record",
-          "name": "or_addresses_record",
+          "name": "or_addresses_entry",
           "fields": [
             {"name": "adress", "type": "string"},
             {"name": "port", "type": "int"}

@@ -1,0 +1,49 @@
+{
+  "namespace": "org.torproject.metrics.descriptor",
+  "type": "record",
+  "name": "torperf",
+  "aliases": ["torperfResult"],
+  "doc": "torperf 1.0",
+  "fields": [
+    {"name": "descriptor_type", "type": "string", "default": "torperf 1.0", "doc": ""},
+    {"name": "source", "type": ["null", "string"], "doc": ""},
+    {"name": "filesize", "type": ["null", "int"], "doc": ""},
+    {"name": "start", "type": ["null", "string"], "doc": ""},
+    {"name": "socket", "type": ["null", "string"], "doc": ""},
+    {"name": "connect", "type": ["null", "string"], "doc": ""},
+    {"name": "negotiate", "type": ["null", "string"], "doc": ""},
+    {"name": "request", "type": ["null", "string"], "doc": ""},
+    {"name": "response", "type": ["null", "string"], "doc": ""},
+    {"name": "datarequest", "type": ["null", "string"], "doc": ""},
+    {"name": "dataresponse", "type": ["null", "string"], "doc": ""},
+    {"name": "datacomplete", "type": ["null", "string"], "doc": ""},
+    {"name": "writebytes", "type": ["null", "int"], "doc": ""},
+    {"name": "readbytes", "type": ["null", "int"], "doc": ""},
+    {"name": "didtimeout", "type": ["null", "boolean"], "doc": ""},
+    {"name": "dataperc10", "type": ["null", "long"], "doc": ""},
+    {"name": "dataperc20", "type": ["null", "long"], "doc": ""},
+    {"name": "dataperc30", "type": ["null", "long"], "doc": ""},
+    {"name": "dataperc40", "type": ["null", "long"], "doc": ""},
+    {"name": "dataperc50", "type": ["null", "long"], "doc": ""},
+    {"name": "dataperc60", "type": ["null", "long"], "doc": ""},
+    {"name": "dataperc70", "type": ["null", "long"], "doc": ""},
+    {"name": "dataperc80", "type": ["null", "long"], "doc": ""},
+    {"name": "dataperc90", "type": ["null", "long"], "doc": ""},
+    {"name": "launch", "type": ["null", "string"], "doc": ""},
+    {"name": "used_at", "type": ["null", "string"], "doc": ""},
+    {"name": "path", "type":
+      {
+        "type": "array", "items": "string"
+      }, "doc": ""
+    },
+    {"name": "buildtimes", "type":
+      {
+        "type": "array", "items": "long"
+      }, "doc": ""
+    },
+    {"name": "timeout", "type": ["null", "string"], "doc": ""},
+    {"name": "quantile", "type": ["null", "double"], "doc": ""},
+    {"name": "circ_id", "type": ["null", "int"], "doc": ""},
+    {"name": "used_by", "type": ["null", "int"], "doc": ""}
+  ]
+}

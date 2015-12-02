@@ -888,7 +888,7 @@ JSON SERIALIZATION
 			"guard-bw-inc-exits": #,         long getGuardBandwidthIncludingExits
 			"guard-bw-exc-exits": #,         long getGuardBandwidthExcludingExits
 			"ignoring-advertised-bws": #     int getIgnoringAdvertisedBws
-			}
+		},
 		"known_flags": ["","",""...],      getKnownFlags
 		"params": [                        getConsensusParams SortedMap<String, Integer>
 			{                                
@@ -1147,8 +1147,10 @@ JSON SERIALIZATION
 		"published": "",           long getPublishedMillis
 		"flag_tresholds": [        missing (https://trac.torproject.org/projects/tor/ticket/17617#ticket)
 			{
-			  "flag": "",
-			  "treshold": #
+			  
+			  see relay status vote
+			  
+			  
 			}
 			...
 		],
@@ -1730,10 +1732,13 @@ JSON SERIALIZATION
 				"fingerprint": "",     getFingerprint
 				"published": "",       long getPublishedMillis
 				"last_status": "",     long getLastStatusMillis
-				"exit_address": {                    
-					"adress": "",        getExitAddress
-					"date": ""           long getScanMillis
-				}                     
+				"exits": [             // TODO bug in metrics-lib
+          exit_address": {                    
+            "adress": "",      getExitAddress
+            "date": ""         long getScanMillis
+          }                 
+          ...
+        ]
 			},                       
 			...                      
 		]                          

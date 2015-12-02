@@ -1138,7 +1138,7 @@ public class ConvertToJson {
       R r; // bridge description
       SortedSet<String> s; // flags
       W w; // bandwidths
-      String p; // policies
+      String p; // policy
       String a; // port summary
       String v;
     }
@@ -1234,6 +1234,7 @@ public class ConvertToJson {
       String fingerprint;
       String published;
       String last_status;
+      // TODO List<Exit>
       Exit exit_adress;
     }
     static class Exit {

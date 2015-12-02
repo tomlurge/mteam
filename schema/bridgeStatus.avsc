@@ -1,0 +1,56 @@
+{
+  "namespace": "org.torproject.metrics.descriptor",
+  "type": "record",
+  "name": "bridgeStatus",
+  "aliases": ["bridge_network_status"],
+  "doc": "bridge-network-status 1.0",
+  "fields": [
+    {"name": "descriptor_type", "type": "string", "default": "bridge-network-status 1.0", "doc": ""},
+    {"name": "published", "type": ["null", "string"], "doc": ""},
+    {"name": "flagTreshold", "type": "record", "fields":
+      [
+        {"name": "stable_uptime", "type": ["null", "long"]},
+        {"name": "stable_mtbf", "type": ["null", "long"]},
+        {"name": "enough_mtbf", "type": ["null", "int"]},
+        {"name": "fast_speed", "type": ["null", "long"]},
+        {"name": "guard_wfu", "type": ["null", "double"]},
+        {"name": "guard_tk", "type": ["null", "long"]},
+        {"name": "guard_bw_inc_exits", "type": ["null", "long"]},
+        {"name": "guard_bw_exc_exits", "type": ["null", "long"]},
+        {"name": "ignoring_advertised", "type": ["null", "int"]}
+      ], "doc": ""
+    },
+    {"name": "bridges", "type":
+      {
+        "type": "array", "items": {
+          "type": "record",
+          "name": "bridge",
+          "fields": [
+            {"name": "r", "type": "record", "fields": [
+              {"name": "nickname", "type": ["null", "string"]},
+              {"name": "identity", "type": ["null", "string"]},
+              {"name": "digest", "type": ["null", "string"]},
+              {"name": "date", "type": ["null", "string"]},
+              {"name": "ip", "type": ["null", "string"]},
+              {"name": "dir_port", "type": ["null", "int"]},
+              {"name": "or_port", "type": ["null", "int"]}
+            ]},
+            {"name": "a", "type": "string", "doc": "port list"},
+            {"name": "s", "type":
+              {
+                "type": "array", "items": "string"
+              }, "doc": "flags"
+            },
+            {"name": "v", "type": ["null", "string"], "doc": "version"},
+            {"name": "w", "type": "record", "fields": [
+              {"name": "bandwidth", "type": ["null", "long"]},
+              {"name": "measured_bw", "type": ["null", "long"]},
+              {"name": "unmeasured_bw", "type": ["null", "boolean"]}
+            ]},
+            {"name": "p", "type": ["null", "string"], "doc": "policy"}
+          ]
+        }
+      }, "doc": ""
+    }
+  ]
+}

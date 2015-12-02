@@ -1,0 +1,36 @@
+{
+  "namespace": "org.torproject.metrics.descriptor",
+  "type": "record",
+  "name": "tordnsel",
+  "aliases": ["exitList"],
+  "doc": "tordnsel 1.0",
+  "fields": [
+    {"name": "descriptor_type", "type": "string", "default": "tordnsel 1.0", "doc": ""},
+    {"name": "downloaded", "type": ["null", "long"], "doc": ""},
+    {"name": "relays", "type":
+      {
+        "type": "array", "items": {
+          "type": "record",
+          "name": "relay_entry",
+          "fields": [
+            {"name": "fingerprint", "type": ["null", "string"], "doc": ""},
+            {"name": "published", "type": ["null", "string"], "doc": ""},
+            {"name": "last_status", "type": ["null", "string"], "doc": ""},
+            {"name": "exit_list", "type":
+              {
+                "type": "array", "items": {
+                  "type": "record",
+                  "name": "exit_adress",
+                  "fields": [
+                    {"name": "ip", "type": "string"},
+                    {"name": "date", "type": "string"}
+                  ]
+                }
+              }, "doc": ""
+            }
+          ]
+        }
+      }, "doc": ""
+    }
+  ]
+}
