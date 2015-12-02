@@ -8,10 +8,11 @@
     {"name": "descriptor_type", "type": "string", "default": "network-status-vote-3 1.0", "doc": ""},
     {"name": "published", "type": ["null", "string"], "doc": ""},
     {"name": "vote_status","type": ["null", "int"], "doc": ""},
-    {"name": "consensus_method", "type":
+    {"name": "consensus_method", "type": [
+      "null",
       {
         "type": "array", "items": "int"
-      }, "doc": ""
+      }], "doc": ""
     },
     {"name": "valid_after", "type": ["null", "string"], "doc": ""},
     {"name": "fresh_until", "type": ["null", "string"], "doc": ""},
@@ -22,15 +23,17 @@
         {"name": "dist_seconds", "type": ["null", "long"], "doc": ""}
       ]
     },
-    {"name": "client_version", "type":
+    {"name": "client_version", "type": [
+      "null",
       {
         "type": "array", "items": "string"
-      }, "doc": ""
+      }], "doc": ""
     },
-    {"name": "server_versions", "type":
+    {"name": "server_versions", "type": [
+      "null",
       {
         "type": "array", "items": "string"
-      }, "doc": ""
+      }], "doc": ""
     },
     {"name": "flagTreshold", "type": "record", "fields":
       [
@@ -45,22 +48,22 @@
         {"name": "ignoring_advertised", "type": ["null", "int"]}
       ], "doc": ""
     },
-    {"name": "known_flags", "type":
+    {"name": "known_flags", "type": [
+      "null",
       {
         "type": "array", "items": "string"
-      }, "doc": ""
+      }], "doc": ""
     },
-    {"name": "params", "type":
+    {"name": "params", "type": [
+      "null",
       {
         "type": "array", "items": {
-          "type": "record",
-          "name": "params_entry",
-          "fields": [
+          "name": "params_entry", "type": "record", "fields": [
             {"name": "param", "type": "string"},
             {"name": "value", "type": "int"}
           ]
         }
-      }, "doc": ""
+      }], "doc": ""
     },
     {"name": "authority", "type": "record", "fields":
       [
@@ -81,7 +84,8 @@
         }
       ], "doc": ""
     },
-    {"name": "router_status", "type":
+    {"name": "router_status", "type": [
+      "null",
       {
         "type": "array", "items": {
           "type": "record",
@@ -96,15 +100,17 @@
               {"name": "dir_port", "type": ["null", "int"]},
               {"name": "or_port", "type": ["null", "int"]}
             ]},
-            {"name": "a", "type":
+            {"name": "a", "type": [
+              "null",
               {
                 "type": "array", "items": "string"
-              }, "doc": "port summary"
+              }], "doc": "port summary"
             },
-            {"name": "s", "type":
+            {"name": "s", "type": [
+              "null",
               {
                 "type": "array", "items": "string"
-              }, "doc": "flags"
+              }], "doc": "flags"
             },
             {"name": "v", "type": ["null", "string"], "doc": ""},
             {"name": "w", "type": "record", "fields": [
@@ -118,7 +124,7 @@
             ]}
           ]
         }
-      }, "doc": ""
+      }], "doc": ""
     },
     {"name": "directory_footer", "type": "record", "fields":
       [

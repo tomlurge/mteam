@@ -19,22 +19,26 @@
         {"name": "dist_seconds", "type": ["null", "long"], "doc": ""}
       ]
     },
-    {"name": "client_version", "type":
+    {"name": "client_version", "type": [
+      "null",
       {
         "type": "array", "items": "string"
-      }, "doc": ""
+      }], "doc": ""
     },
-    {"name": "server_versions", "type":
+    {"name": "server_versions", "type": [
+      "null",
       {
         "type": "array", "items": "string"
-      }, "doc": ""
+      }], "doc": ""
     },
-    {"name": "known_flags", "type":
+    {"name": "known_flags", "type": [
+      "null",
       {
         "type": "array", "items": "string"
-      }, "doc": ""
+      }], "doc": ""
     },
-    {"name": "params", "type":
+    {"name": "params", "type": [
+      "null",
       {
         "type": "array", "items": {
           "type": "record",
@@ -44,9 +48,10 @@
             {"name": "value", "type": "int"}
           ]
         }
-      }, "doc": ""
+      }], "doc": ""
     },
-    {"name": "dir_source", "type":
+    {"name": "dir_source", "type": [
+      "null",
       {
         "type": "array", "items": {
           "type": "record",
@@ -62,9 +67,10 @@
             {"name": "legacy", "type": ["null", "boolean"]}
           ]
         }
-      }, "doc": ""
+      }], "doc": ""
     },
-    {"name": "router_status", "type":
+    {"name": "router_status", "type": [
+      "null",
       {
         "type": "array", "items": {
           "type": "record",
@@ -79,15 +85,17 @@
               {"name": "dir_port", "type": ["null", "int"]},
               {"name": "or_port", "type": ["null", "int"]}
             ]},
-            {"name": "a", "type":
+            {"name": "a", "type": [
+              "null",
               {
                 "type": "array", "items": "string"
-              }, "doc": "port summary"
+              }], "doc": "port summary"
             },
-            {"name": "s", "type":
+            {"name": "s", "type": [
+              "null",
               {
                 "type": "array", "items": "string"
-              }, "doc": "flags"
+              }], "doc": "flags"
             },
             {"name": "v", "type": ["null", "string"], "doc": ""},
             {"name": "w", "type": "record", "fields": [
@@ -101,11 +109,12 @@
             ]}
           ]
         }
-      }, "doc": ""
+      }], "doc": ""
     },
     {"name": "directory_footer", "type": "record", "fields":
       [
-        {"name": "bandwidth_weights", "type":
+        {"name": "bandwidth_weights", "type": [
+          "null",
           {
             "type": "array", "items": {
               "type": "record",
@@ -115,10 +124,11 @@
                 {"name": "value", "type": "int"}
               ]
             }
-          }, "doc": ""
+          }], "doc": ""
         },
         {"name": "consensus_digest", "type": ["null", "string"], "doc": ""},
-        {"name": "directory_signature", "type":
+        {"name": "directory_signature", "type": [
+          "null",
           {
             "type": "array", "items": {
               "type": "record",
@@ -131,7 +141,7 @@
               ]
             }
           }
-        }
+        ], "doc": ""}
       ], "doc": ""
     }
   ]

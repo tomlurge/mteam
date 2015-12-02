@@ -7,7 +7,8 @@
   "fields": [
     {"name": "descriptor_type", "type": "string", "default": "tordnsel 1.0", "doc": ""},
     {"name": "downloaded", "type": ["null", "long"], "doc": ""},
-    {"name": "relays", "type":
+    {"name": "relays", "type":[
+      "null",
       {
         "type": "array", "items": {
           "type": "record",
@@ -19,9 +20,8 @@
             {"name": "exit_list", "type":
               {
                 "type": "array", "items": {
-                  "type": "record",
-                  "name": "exit_adress",
-                  "fields": [
+                "name": "exit_entry", "type": "record", "fields":
+                  [
                     {"name": "ip", "type": "string"},
                     {"name": "date", "type": "string"}
                   ]
@@ -30,7 +30,7 @@
             }
           ]
         }
-      }, "doc": ""
+      }], "doc": ""
     }
   ]
 }

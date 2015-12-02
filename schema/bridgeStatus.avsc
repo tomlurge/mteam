@@ -20,37 +20,39 @@
         {"name": "ignoring_advertised", "type": ["null", "int"]}
       ], "doc": ""
     },
-    {"name": "bridges", "type":
+    {"name": "bridges", "type":[
+      "null",
       {
         "type": "array", "items": {
-          "type": "record",
-          "name": "bridge",
-          "fields": [
+          "name": "bridge", "type": "record", "fields": [
             {"name": "r", "type": "record", "fields": [
-              {"name": "nickname", "type": ["null", "string"]},
-              {"name": "identity", "type": ["null", "string"]},
-              {"name": "digest", "type": ["null", "string"]},
-              {"name": "date", "type": ["null", "string"]},
-              {"name": "ip", "type": ["null", "string"]},
-              {"name": "dir_port", "type": ["null", "int"]},
-              {"name": "or_port", "type": ["null", "int"]}
-            ]},
+                {"name": "nickname", "type": ["null", "string"]},
+                {"name": "identity", "type": ["null", "string"]},
+                {"name": "digest", "type": ["null", "string"]},
+                {"name": "date", "type": ["null", "string"]},
+                {"name": "ip", "type": ["null", "string"]},
+                {"name": "dir_port", "type": ["null", "int"]},
+                {"name": "or_port", "type": ["null", "int"]}
+              ]
+            },
             {"name": "a", "type": "string", "doc": "port list"},
-            {"name": "s", "type":
+            {"name": "s", "type": [
+              "null",
               {
                 "type": "array", "items": "string"
-              }, "doc": "flags"
+              }], "doc": "flags"
             },
             {"name": "v", "type": ["null", "string"], "doc": "version"},
             {"name": "w", "type": "record", "fields": [
-              {"name": "bandwidth", "type": ["null", "long"]},
-              {"name": "measured_bw", "type": ["null", "long"]},
-              {"name": "unmeasured_bw", "type": ["null", "boolean"]}
-            ]},
+                {"name": "bandwidth", "type": ["null", "long"]},
+                {"name": "measured_bw", "type": ["null", "long"]},
+                {"name": "unmeasured_bw", "type": ["null", "boolean"]}
+              ]
+            },
             {"name": "p", "type": ["null", "string"], "doc": "policy"}
           ]
         }
-      }, "doc": ""
+      }], "doc": ""
     }
   ]
 }
