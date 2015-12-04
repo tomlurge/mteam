@@ -1323,6 +1323,7 @@ public class ConvertToJson {
       torperf.descriptor_type = "torperf 1.0";
       /*  TODO  hardcoding the descriptor type is a workaround to bug #17696 in
           metrics-lib (https://trac.torproject.org/projects/tor/ticket/17696)
+          which actually is a bug in CollecTor
       for (String annotation : desc.getAnnotations()) {
         torperf.descriptor_type = annotation.substring("@type ".length());
       }
