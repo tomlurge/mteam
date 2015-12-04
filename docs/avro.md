@@ -124,7 +124,7 @@ serialize record to output stream
     % java -jar $AVRO_HOME/avro-tools-*.jar tojson myFile.avro
     
     compile a schema
-    % java -jar avro-tools-1.7.7.jar compile schema ~/desc.avsc ~/desc
+    % java -jar avro-tools-1.7.7.jar compile schema ~/desc.avsc /desc
 
 
 ## java 
@@ -219,3 +219,41 @@ the following:
       required binary left (UTF8);
       required binary right (UTF8);
     }
+
+
+## CONSTRUCTOR or BUILDER
+
+After completing code generation, let's create some Users and set their fields.
+    
+    // Constructor
+    User user1 = new User();
+    user1.setName("Alyssa");
+    user1.setFavoriteNumber(256);
+    // Leave favorite color null
+    
+    // Alternate constructor
+    User user2 = new User("Ben", 7, "red");
+    
+    // Construct via builder
+    User user3 = User.newBuilder()
+                 .setName("Charlie")
+                 .setFavoriteColor("blue")
+                 .setFavoriteNumber(null)
+                 .build();
+            
+As shown in this example, Avro objects can be created either by invoking a 
+constructor directly or by using a builder. Unlike constructors, builders will 
+automatically set any default values specified in the schema. Additionally, 
+builders validate the data as it set, whereas objects constructed directly will 
+not cause an error until the object is serialized. However, using constructors 
+directly generally offers better performance, as builders create a copy of the 
+datastructure before it is written. 
+
+Builder
+  
+  - automatically set any default values specified in the schema
+  - validate the data as it's set
+  - however less performant
+    
+    
+    
