@@ -5,25 +5,31 @@ TODO
 think: are the null's/defaults rightly laid out?
 integrate avro builder objects
 avro schema is not always like json schema (more records/sub-objects)
-  -> consequeces ?!
+  -> consequences ?!
 
  */
 package mteam;
-
-import org.torproject.descriptor.*;
 
 import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import org.apache.avro.file.DataFileReader;
+import org.apache.avro.file.DataFileWriter;
+import org.apache.avro.io.DatumReader;
+import org.apache.avro.io.DatumWriter;
+import org.apache.avro.specific.SpecificDatumReader;
+import org.apache.avro.specific.SpecificDatumWriter;
+
 /*  metrics-lib  */
+import org.torproject.descriptor.*;
 
 
 public class ConvertToAvro {
 
   /*  argument defaults  */
-  static String format = "parquet";
+  static String format = "avro";
   static String dir = "";
 
   /*  Read all descriptors in the provided directory and
@@ -31,15 +37,15 @@ public class ConvertToAvro {
   public static void main(String[] args) throws IOException {
 
     /*  optional command line arguments
-     *    -a                Avro output
-     *    -p                Parquet output
-     *    -j                JSON output
-     *    <directory name>  scan only a given subdirectory of data/in
-     *
+     *    -a, -avro         convert to Avro (default)
+     *    -p, -parquet      convert to Parquet
+     *    -j, -json         convert to JSON
+     *    <directory name>  scan only given subdirectory of default dir data/in/
      */
     for (String arg : args) {
-      if (arg.equals("-avro")) format = "avro";
-      else if (arg.equals("-json")) format = "json";
+      if (arg.equals("-a") || arg.equals("--avro")) format = "avro";
+      else if (arg.equals("-p") || arg.equals("--parquet")) format = "parquet";
+      else if (arg.equals("-j") || arg.equals("--json")) format = "json";
       else dir = arg;
     }
 
@@ -59,6 +65,8 @@ public class ConvertToAvro {
       DescriptorFile descriptorFile = descriptorFiles.next();
 
       for (Descriptor descriptor : descriptorFile.getDescriptors()) {
+
+        // TODO which type?!
         String avroDescriptor = null;
 
         //  relays & bridges descriptors
@@ -90,14 +98,15 @@ public class ConvertToAvro {
         if (descriptor instanceof ExitList) {
           avroDescriptor = AvroExitList
                   .convert((ExitList) descriptor);
-          if(null != descriptorFile.getException()){
-            System.err.print(descriptorFile.getException());
-          }
+          //  TODO can be removed?
+          //  if(null != descriptorFile.getException()){
+          //    System.err.print(descriptorFile.getException());
+          //  }
         }
         //  torperf
         if (descriptor instanceof TorperfResult) {
           avroDescriptor = AvroTorperfResult
-                  .convert((TorperfResult) descriptor);
+                  .construct((TorperfResult) descriptor);
         }
 
         if (!descriptor.getUnrecognizedLines().isEmpty()) {
@@ -1119,101 +1128,169 @@ public class ConvertToAvro {
     }
   }
 
-  static class AvroTorperfResult extends AvroDescriptor {
-    String descriptor_type;
-    String source;
-    Integer filesize;
-    String start;
-    String socket;
-    String connect;
-    String negotiate;
-    String request;
-    String response;
-    String datarequest;
-    String dataresponse;
-    String datacomplete;
-    Integer writebytes;
-    Integer readbytes;
-    Boolean didtimeout;
-    Long dataperc10;
-    Long dataperc20;
-    Long dataperc30;
-    Long dataperc40;
-    Long dataperc50;
-    Long dataperc60;
-    Long dataperc70;
-    Long dataperc80;
-    Long dataperc90;
-    String launch;
-    String used_at;
-    List<String> path;
-    List<Long> buildtimes;
-    String timeout;
-    Double quantile;
-    Integer circ_id;
-    Integer used_by;
+//  static class AvroTorperfResult extends AvroDescriptor {
+//    String descriptor_type;
+//    String source;
+//    Integer filesize;
+//    String start;
+//    String socket;
+//    String connect;
+//    String negotiate;
+//    String request;
+//    String response;
+//    String datarequest;
+//    String dataresponse;
+//    String datacomplete;
+//    Integer writebytes;
+//    Integer readbytes;
+//    Boolean didtimeout;
+//    Long dataperc10;
+//    Long dataperc20;
+//    Long dataperc30;
+//    Long dataperc40;
+//    Long dataperc50;
+//    Long dataperc60;
+//    Long dataperc70;
+//    Long dataperc80;
+//    Long dataperc90;
+//    String launch;
+//    String used_at;
+//    List<String> path;
+//    List<Long> buildtimes;
+//    String timeout;
+//    Double quantile;
+//    Integer circ_id;
+//    Integer used_by;
+//
+//    static String convert(TorperfResult desc) {
+//      AvroTorperfResult torperf = new AvroTorperfResult();
+//      torperf.descriptor_type = "torperf 1.0";
+//      /*  TODO  hardcoding the descriptor type is a workaround to bug #17696 in
+//          metrics-lib (https://trac.torproject.org/projects/tor/ticket/17696)
+//      for (String annotation : desc.getAnnotations()) {
+//        torperf.descriptor_type = annotation.substring("@type ".length());
+//      }
+//      */
+//      torperf.source = desc.getSource();
+//      torperf.filesize = desc.getFileSize();
+//      torperf.start = dateTimeFormat.format(desc.getStartMillis());
+//      torperf.socket = dateTimeFormat.format(desc.getSocketMillis());
+//      torperf.connect = dateTimeFormat.format(desc.getConnectMillis());
+//      torperf.negotiate = dateTimeFormat.format(desc.getNegotiateMillis());
+//      torperf.request = dateTimeFormat.format(desc.getRequestMillis());
+//      torperf.response = dateTimeFormat.format(desc.getResponseMillis());
+//      torperf.datarequest = dateTimeFormat.format(desc.getDataRequestMillis());
+//      torperf.dataresponse = dateTimeFormat.format(desc.getDataResponseMillis());
+//      torperf.datacomplete = dateTimeFormat.format(desc.getDataCompleteMillis());
+//      torperf.writebytes = desc.getWriteBytes();
+//      torperf.readbytes = desc.getReadBytes();
+//      torperf.didtimeout = desc.didTimeout();
+//      if (desc.getDataPercentiles() != null && !desc.getDataPercentiles().isEmpty()) {
+//        torperf.dataperc10 = desc.getDataPercentiles().get(10);
+//        torperf.dataperc20 = desc.getDataPercentiles().get(20);
+//        torperf.dataperc30 = desc.getDataPercentiles().get(30);
+//        torperf.dataperc40 = desc.getDataPercentiles().get(40);
+//        torperf.dataperc50 = desc.getDataPercentiles().get(50);
+//        torperf.dataperc60 = desc.getDataPercentiles().get(60);
+//        torperf.dataperc70 = desc.getDataPercentiles().get(70);
+//        torperf.dataperc80 = desc.getDataPercentiles().get(80);
+//        torperf.dataperc90 = desc.getDataPercentiles().get(90);
+//      }
+//      if (desc.getLaunchMillis() >= 0) {
+//        torperf.launch = dateTimeFormat.format(desc.getLaunchMillis());
+//      }
+//      if (desc.getUsedAtMillis() >= 0) {
+//        torperf.used_at = dateTimeFormat.format(desc.getUsedAtMillis());
+//      }
+//      if (desc.getPath() != null && !desc.getPath().isEmpty()) {
+//        torperf.path = desc.getPath();
+//      }
+//      if (desc.getBuildTimes() != null && !desc.getBuildTimes().isEmpty()) {
+//        torperf.buildtimes = desc.getBuildTimes();
+//      }
+//      if (desc.getTimeout() >= 0) {
+//        torperf.timeout = dateTimeFormat.format(desc.getTimeout());
+//      }
+//      if (desc.getQuantile() >= 0) {
+//        torperf.quantile = desc.getQuantile();
+//      }
+//      if (desc.getCircId() >= 0) {
+//        torperf.circ_id = desc.getCircId();
+//      }
+//      if (desc.getUsedBy() >= 0) {
+//        torperf.used_by = desc.getUsedBy();
+//      }
+//      return ToAvro.serialize(torperf);
+//    }
+//  }
 
-    static String convert(TorperfResult desc) {
-      AvroTorperfResult torperf = new AvroTorperfResult();
-      torperf.descriptor_type = "torperf 1.0";
+
+  static class AvroTorperfResult extends AvroDescriptor {
+    static Torperf construct(TorperfResult desc) {
+
+      Torperf torperf = Torperf.newBuilder();
       /*  TODO  hardcoding the descriptor type is a workaround to bug #17696 in
           metrics-lib (https://trac.torproject.org/projects/tor/ticket/17696)
       for (String annotation : desc.getAnnotations()) {
-        torperf.descriptor_type = annotation.substring("@type ".length());
+        torperf.setDescriptorType(annotation.substring("@type ".length()));
       }
       */
-      torperf.source = desc.getSource();
-      torperf.filesize = desc.getFileSize();
-      torperf.start = dateTimeFormat.format(desc.getStartMillis());
-      torperf.socket = dateTimeFormat.format(desc.getSocketMillis());
-      torperf.connect = dateTimeFormat.format(desc.getConnectMillis());
-      torperf.negotiate = dateTimeFormat.format(desc.getNegotiateMillis());
-      torperf.request = dateTimeFormat.format(desc.getRequestMillis());
-      torperf.response = dateTimeFormat.format(desc.getResponseMillis());
-      torperf.datarequest = dateTimeFormat.format(desc.getDataRequestMillis());
-      torperf.dataresponse = dateTimeFormat.format(desc.getDataResponseMillis());
-      torperf.datacomplete = dateTimeFormat.format(desc.getDataCompleteMillis());
-      torperf.writebytes = desc.getWriteBytes();
-      torperf.readbytes = desc.getReadBytes();
-      torperf.didtimeout = desc.didTimeout();
+      //  TODO check CamelCasing with generated classes
+      torperf.setDescriptorType("torperf 1.0");
+      torperf.setSource(desc.getSource());
+      torperf.setFilesize(desc.getFileSize());
+      torperf.setStart(dateTimeFormat.format(desc.getStartMillis()));
+      torperf.setSocket(dateTimeFormat.format(desc.getSocketMillis()));
+      torperf.setConnect(dateTimeFormat.format(desc.getConnectMillis()));
+      torperf.setNegotiate(dateTimeFormat.format(desc.getNegotiateMillis()));
+      torperf.setRequest(dateTimeFormat.format(desc.getRequestMillis()));
+      torperf.setResponse(dateTimeFormat.format(desc.getResponseMillis()));
+      torperf.setDatarequest(dateTimeFormat.format(desc.getDataRequestMillis()));
+      torperf.setDataresponse(dateTimeFormat.format(desc.getDataResponseMillis()));
+      torperf.setDatacomplete(dateTimeFormat.format(desc.getDataCompleteMillis()));
+      torperf.setWritebytes(desc.getWriteBytes());
+      torperf.setReadBytes(desc.getReadBytes());
+      torperf.setDidTimeout(desc.didTimeout());
       if (desc.getDataPercentiles() != null && !desc.getDataPercentiles().isEmpty()) {
-        torperf.dataperc10 = desc.getDataPercentiles().get(10);
-        torperf.dataperc20 = desc.getDataPercentiles().get(20);
-        torperf.dataperc30 = desc.getDataPercentiles().get(30);
-        torperf.dataperc40 = desc.getDataPercentiles().get(40);
-        torperf.dataperc50 = desc.getDataPercentiles().get(50);
-        torperf.dataperc60 = desc.getDataPercentiles().get(60);
-        torperf.dataperc70 = desc.getDataPercentiles().get(70);
-        torperf.dataperc80 = desc.getDataPercentiles().get(80);
-        torperf.dataperc90 = desc.getDataPercentiles().get(90);
+        torperf.setDataperc10(desc.getDataPercentiles().get(10));
+        torperf.setDataperc20(desc.getDataPercentiles().get(20));
+        torperf.setDataperc30(desc.getDataPercentiles().get(30));
+        torperf.setDataperc40(desc.getDataPercentiles().get(40));
+        torperf.setDataperc50(desc.getDataPercentiles().get(50));
+        torperf.setDataperc60(desc.getDataPercentiles().get(60));
+        torperf.setDataperc70(desc.getDataPercentiles().get(70));
+        torperf.setDataperc80(desc.getDataPercentiles().get(80));
+        torperf.setDataperc90(desc.getDataPercentiles().get(90));
       }
       if (desc.getLaunchMillis() >= 0) {
-        torperf.launch = dateTimeFormat.format(desc.getLaunchMillis());
+        torperf.setLaunch(dateTimeFormat.format(desc.getLaunchMillis()));
       }
       if (desc.getUsedAtMillis() >= 0) {
-        torperf.used_at = dateTimeFormat.format(desc.getUsedAtMillis());
+        torperf.setUsedAt(dateTimeFormat.format(desc.getUsedAtMillis()));
       }
       if (desc.getPath() != null && !desc.getPath().isEmpty()) {
-        torperf.path = desc.getPath();
+        torperf.setPath(desc.getPath());
       }
       if (desc.getBuildTimes() != null && !desc.getBuildTimes().isEmpty()) {
-        torperf.buildtimes = desc.getBuildTimes();
+      torperf.setBuildtimes(desc.getBuildTimes());
       }
       if (desc.getTimeout() >= 0) {
-        torperf.timeout = dateTimeFormat.format(desc.getTimeout());
+        torperf.setTimeout(dateTimeFormat.format(desc.getTimeout()));
       }
       if (desc.getQuantile() >= 0) {
-        torperf.quantile = desc.getQuantile();
+        torperf.setQuantile(desc.getQuantile());
       }
       if (desc.getCircId() >= 0) {
-        torperf.circ_id = desc.getCircId();
+        torperf.setCircId(desc.getCircId());
       }
       if (desc.getUsedBy() >= 0) {
-        torperf.used_by = desc.getUsedBy();
+        torperf.setUsedBy(desc.getUsedBy());
       }
-      return ToAvro.serialize(torperf);
+      torperf.build();
+      return torperf;
     }
   }
+
 
 
   /*  Convert everything to a JSON string and return that.

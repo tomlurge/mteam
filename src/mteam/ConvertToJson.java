@@ -197,7 +197,7 @@ public class ConvertToJson {
     Boolean signing_key;  // usually false b/c sanitization
     List<String> exit_policy;
     Integer bandwidth_observed;  // missing in older descriptors!
-    Object or_addresses;  // addresses sanitized!
+    List<StringInt> or_addresses;  // addresses sanitized!
     String platform;  // though usually set
     Boolean hibernating;
     Long uptime;  // though usually set
@@ -249,6 +249,24 @@ public class ConvertToJson {
         server.bandwidth_observed = desc.getBandwidthObserved();
       }
       if (desc.getOrAddresses() != null && !desc.getOrAddresses().isEmpty()) {
+        server.or_addresses = new ArrayList<StringInt>();
+        for (String orAddress : desc.getOrAddresses()) {
+          if (!orAddress.contains(":")) {
+            continue;
+          }
+          int lastColon = orAddress.lastIndexOf(":");
+          try {
+            int val = Integer.parseInt(orAddress.substring(lastColon + 1));
+            server.or_addresses.add(
+                    new StringInt(orAddress.substring(0, lastColon), val)
+            );
+          } catch (NumberFormatException e) {
+            continue;
+          }
+        }
+        /*  TODO the above solution always returns verbose results
+                 but the non-verbose 'else' clause below needs review
+
         if(verbose) {
           ArrayList<StringInt> verboseOR = new ArrayList<StringInt>();
           server.or_addresses = new ArrayList<StringInt>();
@@ -270,6 +288,10 @@ public class ConvertToJson {
         } else {
           server.or_addresses = desc.getOrAddresses();
         }
+
+        // don't forget to define 'or_addresses' as type 'Object' above
+
+        */
       }
       server.platform = desc.getPlatform();
       server.published = dateTimeFormat.format(desc.getPublishedMillis());
