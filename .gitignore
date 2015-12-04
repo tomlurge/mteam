@@ -11,6 +11,7 @@ gson-2.3.1-sources.jar
 
 
 # tomlurge
+/collected
 /bin
 /lib
 /src/org
