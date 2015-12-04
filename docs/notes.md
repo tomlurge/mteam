@@ -18,7 +18,17 @@ ich habe gerade mal versucht, den converter über ein paar tar.xz archive von co
 
 reicht mein heap space nicht oder ist da ein fehler im programm aufgetreten?
 
-* compression as XZ or GZ ???
+karsten:
+[3:37PM] DescriptorReader.setMaxDescriptorFilesInQueue()
+[3:37PM] karsten: just set that to 5
+[3:38PM] karsten: it's currently at 100.
+[3:38PM] karsten: well, by default at 100.
+[3:38PM] karsten: do that before you call readDescriptors().
+
+-Xmx8g 
+
+
+* compression as GZ !!! (not XZ, as was previously asked)
 * output wird komplett in eine datei geschrieben
   + verzeichnisstruktur wird igoriert und geht verloren
   + ist das schlimm? wollen wir das?
@@ -27,6 +37,10 @@ reicht mein heap space nicht oder ist da ein fehler im programm aufgetreten?
 * and periodic ingestion  
 * streamline attribute names and structures (at least check for it)
 * convert to Parquet 
+* in Avro schema
+  + make optional fields optional
+  + add documentation
+  + unify formatting (either automatic or handmade)
 * check sizes
   + a bunch of Collector descriptors (say: 1 month)
   + converted to verbose and gzipped JSON
@@ -39,13 +53,29 @@ reicht mein heap space nicht oder ist da ein fehler im programm aufgetreten?
     - the same as JSON, but verbose, uncompressed        -> 72 MB
                                                  compressed 15,1 MB
    
-* replace Gson by Jackson
 * modularize
 * write tests
   + that would involve writing test descriptors too i guess
   + which would mean learning how to write collector data
   + well well well
   
+* usecase
+  [c] https://blog.torproject.org/blog/did-fbi-pay-university-attack-tor-users     
+  [c] f. hat mich um 2 uhr morgens geweckt, kurz nachdem er den angriff entdeckt hat.
+  [c] war gerade dev meeting in paris.
+  [c] und er hat einen der relays beim angriff entdeckt.
+  [c] jetzt ging es darum möglichst alles über diesen relay und ähnliche relays im netzwerk herauszufinden.
+  [c] seit wann sind die da,
+  [c] wie viele sind es,
+  [c] welche ip-präfixe,
+  [c] wie viele andere gibt es in diesen ip-präfixen.
+  [c] wie schnell sind die, sind es exits,
+  [c] contacts?
+  [c] platforms?
+  [c] versions?
+  [c] alles.
+  [c] angenommen f. hätte so eine datenbank gehabt,
+  [c] was hätte er machen können?
   
 # BUGS
 
@@ -101,14 +131,6 @@ mapping is unclear:
 
 ## UNRECOGNIZED LINES  
 
-EXIT-LIST / TORDNSEL
-Unrecognized lines in /Users/tl/tor/analyticsServer/mteam/data/in/exit-list/2015-09-01-09-02-03:
-[
-  @type tordnsel 1.0
-]
-IN ALLEN EXIT-LIST DATEIEN
-
-
 BRIDGE EXTRA INFO
 Unrecognized lines in /Users/tl/tor/analyticsServer/mteam/data/in/bridge-extra-infos/00a1c16516d4624cf467fceaa4198bbe76eb8cf8:
 [
@@ -130,13 +152,6 @@ Unrecognized lines in /Users/tl/tor/analyticsServer/mteam/data/in/votes/2015-09-
 # CONSTRUCTION MATERIALS
 
 
-## SORTEDMAP TEMPLATE
-
-      SortedMap<String,Integer> MAP = desc.GETTER();
-      for(Map.Entry<String,Integer> kv : MAP.entrySet()) {
-        extra.ATTRIBUTE.add(new StringInt(kv.getKey(), kv.getValue()));
-      }
-
 ## USEFUL CHECKS TO DEFEND AGAINST NULL POINTER EXCEPTIONS
 
       can return -1
@@ -153,17 +168,4 @@ Unrecognized lines in /Users/tl/tor/analyticsServer/mteam/data/in/votes/2015-09-
 
       List: first check that the list is not null, then if it's empty
           if (desc.XXX() != null && !desc.XXX().isEmpty()) {
-
-## ADD VERBOSITY TO SORTED MAPS
-  
-
-            if (verbose) {
-              ArrayList<StringInt> verboseXXX = new ArrayList<StringInt>();
-
-                verboseXXX.add(new StringInt(kv.getKey(), kv.getValue()));
-              }
-              cons.ZZZ = verboseXXX;
-            } else {
-              cons.ZZZ = desc.AAA();
-            }
 

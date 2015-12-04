@@ -1,23 +1,29 @@
+/*
+
+TODO
+
+think: are the null's/defaults rightly laid out?
+integrate avro builder objects
+avro schema is not always like json schema (more records/sub-objects)
+  -> consequeces ?!
+
+ */
 package mteam;
+
+import org.torproject.descriptor.*;
 
 import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.zip.GZIPOutputStream;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 /*  metrics-lib  */
-import org.torproject.descriptor.*;
 
 
-public class ConvertToJson {
+public class ConvertToAvro {
 
   /*  argument defaults  */
-  static boolean verbose = false; // defaults to 'false'
-  static boolean compress = true; // defaults to 'true'
+  static String format = "parquet";
   static String dir = "";
 
   /*  Read all descriptors in the provided directory and
@@ -25,19 +31,15 @@ public class ConvertToJson {
   public static void main(String[] args) throws IOException {
 
     /*  optional command line arguments
-     *    -v                verbose: emit attributes with null values
-     *    -u                uncompressed: do not generate .gz archive
-     *    -t                testing: verbose and uncompressed
+     *    -a                Avro output
+     *    -p                Parquet output
+     *    -j                JSON output
      *    <directory name>  scan only a given subdirectory of data/in
      *
      */
     for (String arg : args) {
-      if (arg.equals("-v")) verbose = true;
-      else if (arg.equals("-u")) compress = false;
-      else if (arg.equals("-t")) {
-        verbose = true;
-        compress = false;
-      }
+      if (arg.equals("-avro")) format = "avro";
+      else if (arg.equals("-json")) format = "json";
       else dir = arg;
     }
 
@@ -47,59 +49,46 @@ public class ConvertToJson {
     Iterator<DescriptorFile> descriptorFiles = descriptorReader.readDescriptors();
 
     int written = 0;
-    String outputPath = "data/out/";
-    String outputName = "tordnsel.json";
-    Writer JsonWriter;
-    if (compress) {
-      JsonWriter = new OutputStreamWriter(new GZIPOutputStream(
-              new FileOutputStream(outputPath + outputName + ".gz")));
-    }
-    else {
-      JsonWriter = new FileWriter(outputPath + outputName);
-    }
-    BufferedWriter bw = new BufferedWriter(JsonWriter);
+    String outputPath = "data/out/" + format + "/";
+    String outputName = "";
+    Writer AvroWriter = new FileWriter(outputPath + outputName);
+    BufferedWriter bw = new BufferedWriter(AvroWriter);
 
-    /*  TODO remove after testing
-      bw.write(
-        "{\"verbose\": " + verbose +
-        ", \"compress\": " + compress +
-        ", \"starting at directory\" : \"data/in/" + dir + "\"},\n"
-      );  */
 
     while (descriptorFiles.hasNext()) {
       DescriptorFile descriptorFile = descriptorFiles.next();
 
       for (Descriptor descriptor : descriptorFile.getDescriptors()) {
-        String jsonDescriptor = null;
+        String avroDescriptor = null;
 
         //  relays & bridges descriptors
         if (descriptor instanceof ServerDescriptor) {
-          jsonDescriptor = JsonServerDescriptor
+          avroDescriptor = AvroServerDescriptor
                   .convert((ServerDescriptor) descriptor);
         }
         //  relays & bridges descriptors - extra info
         if (descriptor instanceof ExtraInfoDescriptor) {
-          jsonDescriptor = JsonExtraInfoDescriptor
+          avroDescriptor = AvroExtraInfoDescriptor
                   .convert((ExtraInfoDescriptor) descriptor);
         }
         //  network status consensus
         if (descriptor instanceof RelayNetworkStatusConsensus) {
-          jsonDescriptor = JsonRelayNetworkStatusConsensus
+          avroDescriptor = AvroRelayNetworkStatusConsensus
                   .convert((RelayNetworkStatusConsensus) descriptor);
         }
         //  network status vote
         if (descriptor instanceof RelayNetworkStatusVote) {
-          jsonDescriptor = JsonRelayNetworkStatusVote
+          avroDescriptor = AvroRelayNetworkStatusVote
                   .convert((RelayNetworkStatusVote) descriptor);
         }
         //  bridge network status
         if (descriptor instanceof BridgeNetworkStatus) {
-          jsonDescriptor = JsonBridgeNetworkStatus
+          avroDescriptor = AvroBridgeNetworkStatus
                   .convert((BridgeNetworkStatus) descriptor);
         }
         //  tordnsel
         if (descriptor instanceof ExitList) {
-          jsonDescriptor = JsonExitList
+          avroDescriptor = AvroExitList
                   .convert((ExitList) descriptor);
           if(null != descriptorFile.getException()){
             System.err.print(descriptorFile.getException());
@@ -107,7 +96,7 @@ public class ConvertToJson {
         }
         //  torperf
         if (descriptor instanceof TorperfResult) {
-          jsonDescriptor = JsonTorperfResult
+          avroDescriptor = AvroTorperfResult
                   .convert((TorperfResult) descriptor);
         }
 
@@ -117,9 +106,9 @@ public class ConvertToJson {
           System.err.println(descriptor.getUnrecognizedLines());
           continue;
         }
-        if (jsonDescriptor != null) {
+        if (avroDescriptor != null) {
           // TODO remove this comma -v- after testing
-          bw.write((written++ > 0 ? "\n" : "") + jsonDescriptor);
+          bw.write((written++ > 0 ? ",\n" : "") + avroDescriptor);
         }
       }
     }
@@ -127,7 +116,7 @@ public class ConvertToJson {
   }
 
 
-  static class JsonDescriptor {
+  static class AvroDescriptor {
 
     /*  generic key/value objects for verbose output  */
     static class StringInt {
@@ -174,7 +163,7 @@ public class ConvertToJson {
 
   }
 
-  static class JsonServerDescriptor extends JsonDescriptor {
+  static class AvroServerDescriptor extends AvroDescriptor {
     String descriptor_type;
     /*  only relays  */
     Boolean router_signature;
@@ -197,7 +186,7 @@ public class ConvertToJson {
     Boolean signing_key;  // usually false b/c sanitization
     List<String> exit_policy;
     Integer bandwidth_observed;  // missing in older descriptors!
-    Object or_addresses;  // addresses sanitized!
+    List<StringInt> or_addresses;  // addresses sanitized!
     String platform;  // though usually set
     Boolean hibernating;
     Long uptime;  // though usually set
@@ -219,7 +208,7 @@ public class ConvertToJson {
     /*  Take a single server descriptor, test if it is a server-descriptor or a
      *  bridge-server-descriptor and return a JSON string representation. */
     static String convert(ServerDescriptor desc) {
-      JsonServerDescriptor server = new JsonServerDescriptor();
+      AvroServerDescriptor server = new AvroServerDescriptor();
       for (String annotation : desc.getAnnotations()) {
         server.descriptor_type = annotation.substring("@type ".length());
         //  relay specific attributes
@@ -249,26 +238,20 @@ public class ConvertToJson {
         server.bandwidth_observed = desc.getBandwidthObserved();
       }
       if (desc.getOrAddresses() != null && !desc.getOrAddresses().isEmpty()) {
-        if(verbose) {
-          ArrayList<StringInt> verboseOR = new ArrayList<StringInt>();
-          server.or_addresses = new ArrayList<StringInt>();
-          for (String orAddress : desc.getOrAddresses()) {
-            if (!orAddress.contains(":")) {
-              continue;
-            }
-            int lastColon = orAddress.lastIndexOf(":");
-            try {
-              int val = Integer.parseInt(orAddress.substring(lastColon + 1));
-              verboseOR.add(
-                      new StringInt(orAddress.substring(0, lastColon), val)
-              );
-            } catch (NumberFormatException e) {
-              continue;
-            }
+        server.or_addresses = new ArrayList<StringInt>();
+        for (String orAddress : desc.getOrAddresses()) {
+          if (!orAddress.contains(":")) {
+            continue;
           }
-          server.or_addresses = verboseOR;
-        } else {
-          server.or_addresses = desc.getOrAddresses();
+          int lastColon = orAddress.lastIndexOf(":");
+          try {
+            int val = Integer.parseInt(orAddress.substring(lastColon + 1));
+            server.or_addresses.add(
+                    new StringInt(orAddress.substring(0, lastColon), val)
+            );
+          } catch (NumberFormatException e) {
+            continue;
+          }
         }
       }
       server.platform = desc.getPlatform();
@@ -306,19 +289,19 @@ public class ConvertToJson {
       server.ntor_onion_key = desc.getNtorOnionKey() != null;
       server.router_digest = desc.getServerDescriptorDigest().toUpperCase();
 
-      return ToJson.serialize(server);
+      return ToAvro.serialize(server);
     }
   }
 
-  static class JsonExtraInfoDescriptor extends JsonDescriptor {
+  static class AvroExtraInfoDescriptor extends AvroDescriptor {
     String descriptor_type;
     /*  only bridges  */
-    Object geoip_client_origins;
+    List<StringInt> geoip_client_origins;
     String bridge_stats_end_date;
     Long bridge_stats_end_interval;
-    Object bridge_ips;
-    Object bridge_ip_versions;
-    Object bridge_ip_transports;
+    List<StringInt> bridge_ips;
+    List<StringInt> bridge_ip_versions;
+    List<StringInt> bridge_ip_transports;
     /*  relays + bridges  */
     String nickname;
     String fingerprint;
@@ -331,23 +314,23 @@ public class ConvertToJson {
     String geoip_start_time;
     String dirreq_stats_end_date;
     Long dirreq_stats_end_interval;
-    Object dirreq_v2_ips;
-    Object dirreq_v3_ips;
-    Object dirreq_v2_reqs;
-    Object dirreq_v3_reqs;
+    List<StringInt> dirreq_v2_ips;
+    List<StringInt> dirreq_v3_ips;
+    List<StringInt> dirreq_v2_reqs;
+    List<StringInt> dirreq_v3_reqs;
     Double dirreq_v2_share;
     Double dirreq_v3_share;
-    Object dirreq_v2_resp;
-    Object dirreq_v3_resp;
-    Object dirreq_v2_direct_dl;
-    Object dirreq_v3_direct_dl;
-    Object dirreq_v2_tunneled_dl;
-    Object dirreq_v3_tunneled_dl;
+    List<StringInt> dirreq_v2_resp;
+    List<StringInt> dirreq_v3_resp;
+    List<StringInt> dirreq_v2_direct_dl;
+    List<StringInt> dirreq_v3_direct_dl;
+    List<StringInt> dirreq_v2_tunneled_dl;
+    List<StringInt> dirreq_v3_tunneled_dl;
     BandwidthHistory dirreq_read_history;
     BandwidthHistory dirreq_write_history;
     String entry_stats_end_date;
     Long entry_stats_end_interval;
-    Object entry_ips;
+    List<StringInt> entry_ips;
     String cell_stats_end_date;
     Long cell_stats_end_interval;
     List<Integer> cell_processed_cells;
@@ -365,9 +348,9 @@ public class ConvertToJson {
     }
     String exit_stats_end_date;
     Long exit_stats_end_interval;
-    Object exit_kibibytes_written;
-    Object exit_kibibytes_read;
-    Object exit_streams_opened;
+    List<StringLong> exit_kibibytes_written;
+    List<StringLong> exit_kibibytes_read;
+    List<StringLong> exit_streams_opened;
     //  StringInt hidserv_stats_end;
     //  Object hidserv_rend_relayed_cells;
     //  Object hidserv_dir_onions_seen;
@@ -376,22 +359,16 @@ public class ConvertToJson {
     //  Boolean router_signature;
 
     static String convert(ExtraInfoDescriptor desc) {
-      JsonExtraInfoDescriptor extra = new JsonExtraInfoDescriptor();
+      AvroExtraInfoDescriptor extra = new AvroExtraInfoDescriptor();
       for (String annotation : desc.getAnnotations()) {
         extra.descriptor_type = annotation.substring("@type ".length());
         //  bridge specific attributes
         if (annotation.startsWith("@type bridge-extra-info")) {
           if (desc.getGeoipClientOrigins() != null && !desc.getGeoipClientOrigins().isEmpty()) {
-            if(verbose) {
-              ArrayList<StringInt> verboseGeo = new ArrayList<StringInt>();
-              extra.geoip_client_origins = new ArrayList<StringInt>();
-              SortedMap<String, Integer> origins = desc.getGeoipClientOrigins();
-              for (Map.Entry<String, Integer> geo : origins.entrySet()) {
-                verboseGeo.add(new StringInt(geo.getKey(), geo.getValue()));
-              }
-              extra.geoip_client_origins = verboseGeo;
-            } else {
-              extra.geoip_client_origins = desc.getGeoipClientOrigins();
+            extra.geoip_client_origins = new ArrayList<StringInt>();
+            SortedMap<String, Integer> origins = desc.getGeoipClientOrigins();
+            for (Map.Entry<String, Integer> geo : origins.entrySet()) {
+              extra.geoip_client_origins.add(new StringInt(geo.getKey(), geo.getValue()));
             }
           }
           if (desc.getBridgeStatsEndMillis() >= 0) {
@@ -401,42 +378,24 @@ public class ConvertToJson {
             extra.bridge_stats_end_interval = desc.getBridgeStatsIntervalLength();
           }
           if (desc.getBridgeIps() != null && !desc.getBridgeIps().isEmpty()) {
-            if (verbose) {
-              ArrayList<StringInt> verboseIP = new ArrayList<StringInt>();
-              extra.bridge_ips = new ArrayList<StringInt>();
-              SortedMap<String, Integer> b_ips = desc.getBridgeIps();
-              for (Map.Entry<String, Integer> b_ip : b_ips.entrySet()) {
-                verboseIP.add(new StringInt(b_ip.getKey(), b_ip.getValue()));
-              }
-              extra.bridge_ips = verboseIP;
-            } else {
-              extra.bridge_ips = desc.getBridgeIps();
+            extra.bridge_ips = new ArrayList<StringInt>();
+            SortedMap<String, Integer> b_ips = desc.getBridgeIps();
+            for (Map.Entry<String, Integer> b_ip : b_ips.entrySet()) {
+              extra.bridge_ips.add(new StringInt(b_ip.getKey(), b_ip.getValue()));
             }
           }
           if (desc.getBridgeIpVersions() != null && !desc.getBridgeIpVersions().isEmpty()) {
-            if (verbose) {
-              ArrayList<StringInt> verboseIPversions = new ArrayList<StringInt>();
-              extra.bridge_ip_versions = new ArrayList<StringInt>();
-              SortedMap<String, Integer> b_ips_v = desc.getBridgeIpVersions();
-              for (Map.Entry<String, Integer> b_ip_v : b_ips_v.entrySet()) {
-                verboseIPversions.add(new StringInt(b_ip_v.getKey(), b_ip_v.getValue()));
-              }
-              extra.bridge_ip_versions = verboseIPversions;
-            } else {
-              extra.bridge_ip_versions = desc.getBridgeIpVersions();
+            extra.bridge_ip_versions = new ArrayList<StringInt>();
+            SortedMap<String, Integer> b_ips_v = desc.getBridgeIpVersions();
+            for (Map.Entry<String, Integer> b_ip_v : b_ips_v.entrySet()) {
+              extra.bridge_ip_versions.add(new StringInt(b_ip_v.getKey(), b_ip_v.getValue()));
             }
           }
           if (desc.getBridgeIpTransports() != null && !desc.getBridgeIpTransports().isEmpty()) {
-            if (verbose) {
-              ArrayList<StringInt> verboseIPtrans = new ArrayList<StringInt>();
-              extra.bridge_ip_transports = new ArrayList<StringInt>();
-              SortedMap<String, Integer> b_ips_t = desc.getBridgeIpTransports();
-              for (Map.Entry<String, Integer> b_ip_t : b_ips_t.entrySet()) {
-                verboseIPtrans.add(new StringInt(b_ip_t.getKey(), b_ip_t.getValue()));
-              }
-              extra.bridge_ip_transports = verboseIPtrans;
-            } else {
-              extra.bridge_ip_transports = desc.getBridgeIps();
+            extra.bridge_ip_transports = new ArrayList<StringInt>();
+            SortedMap<String, Integer> b_ips_t = desc.getBridgeIpTransports();
+            for (Map.Entry<String, Integer> b_ip_t : b_ips_t.entrySet()) {
+              extra.bridge_ip_transports.add(new StringInt(b_ip_t.getKey(), b_ip_t.getValue()));
             }
           }
         }
@@ -464,55 +423,31 @@ public class ConvertToJson {
         extra.dirreq_stats_end_interval = desc.getDirreqStatsIntervalLength();
       }
       if (desc.getDirreqV2Ips() != null && !desc.getDirreqV2Ips().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseV2Ips = new ArrayList<StringInt>();
-          extra.dirreq_v2_ips = new ArrayList<StringInt>();
-          SortedMap<String, Integer> v2_ips = desc.getDirreqV2Ips();
-          for (Map.Entry<String, Integer> v2_ip : v2_ips.entrySet()) {
-            verboseV2Ips.add(new StringInt(v2_ip.getKey(), v2_ip.getValue()));
-          }
-          extra.dirreq_v2_ips = verboseV2Ips;
-        } else {
-          extra.dirreq_v2_ips = desc.getDirreqV2Ips();
+        extra.dirreq_v2_ips = new ArrayList<StringInt>();
+        SortedMap<String, Integer> v2_ips = desc.getDirreqV2Ips();
+        for (Map.Entry<String, Integer> v2_ip : v2_ips.entrySet()) {
+          extra.dirreq_v2_ips.add(new StringInt(v2_ip.getKey(), v2_ip.getValue()));
         }
       }
       if (desc.getDirreqV3Ips() != null && !desc.getDirreqV3Ips().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseV3Ips = new ArrayList<StringInt>();
-          extra.dirreq_v3_ips = new ArrayList<StringInt>();
-          SortedMap<String, Integer> v3_ips = desc.getDirreqV3Ips();
-          for (Map.Entry<String, Integer> v3_ip : v3_ips.entrySet()) {
-            verboseV3Ips.add(new StringInt(v3_ip.getKey(), v3_ip.getValue()));
-          }
-          extra.dirreq_v3_ips = verboseV3Ips;
-        } else {
-          extra.dirreq_v3_ips = desc.getDirreqV3Ips();
+        extra.dirreq_v3_ips = new ArrayList<StringInt>();
+        SortedMap<String, Integer> v3_ips = desc.getDirreqV3Ips();
+        for (Map.Entry<String, Integer> v3_ip : v3_ips.entrySet()) {
+          extra.dirreq_v3_ips.add(new StringInt(v3_ip.getKey(), v3_ip.getValue()));
         }
       }
       if (desc.getDirreqV2Reqs() != null && !desc.getDirreqV2Reqs().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseV2Reqs = new ArrayList<StringInt>();
-          extra.dirreq_v2_reqs = new ArrayList<StringInt>();
-          SortedMap<String, Integer> v2_reqs = desc.getDirreqV2Reqs();
-          for (Map.Entry<String, Integer> v2_req : v2_reqs.entrySet()) {
-            verboseV2Reqs.add(new StringInt(v2_req.getKey(), v2_req.getValue()));
-          }
-          extra.dirreq_v2_reqs = verboseV2Reqs;
-        } else {
-          extra.dirreq_v2_reqs = desc.getDirreqV2Reqs();
+        extra.dirreq_v2_reqs = new ArrayList<StringInt>();
+        SortedMap<String, Integer> v2_reqs = desc.getDirreqV2Reqs();
+        for (Map.Entry<String, Integer> v2_req : v2_reqs.entrySet()) {
+          extra.dirreq_v2_reqs.add(new StringInt(v2_req.getKey(), v2_req.getValue()));
         }
       }
       if (desc.getDirreqV3Reqs() != null && !desc.getDirreqV3Reqs().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseV3Reqs = new ArrayList<StringInt>();
-          extra.dirreq_v3_reqs = new ArrayList<StringInt>();
-          SortedMap<String, Integer> v3_reqs = desc.getDirreqV3Reqs();
-          for (Map.Entry<String, Integer> v3_req : v3_reqs.entrySet()) {
-            verboseV3Reqs.add(new StringInt(v3_req.getKey(), v3_req.getValue()));
-          }
-          extra.dirreq_v3_reqs = verboseV3Reqs;
-        } else {
-          extra.dirreq_v3_reqs = desc.getDirreqV3Reqs();
+        extra.dirreq_v3_reqs = new ArrayList<StringInt>();
+        SortedMap<String, Integer> v3_reqs = desc.getDirreqV3Reqs();
+        for (Map.Entry<String, Integer> v3_req : v3_reqs.entrySet()) {
+          extra.dirreq_v3_reqs.add(new StringInt(v3_req.getKey(), v3_req.getValue()));
         }
       }
       if (desc.getDirreqV2Share() >= 0) {
@@ -522,81 +457,45 @@ public class ConvertToJson {
         extra.dirreq_v3_share = desc.getDirreqV3Share();
       }
       if (desc.getDirreqV2Resp() != null && !desc.getDirreqV2Resp().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseV2Resp = new ArrayList<StringInt>();
-          extra.dirreq_v2_resp = new ArrayList<StringInt>();
-          SortedMap<String, Integer> v2_resps = desc.getDirreqV2Resp();
-          for (Map.Entry<String, Integer> v2_resp : v2_resps.entrySet()) {
-            verboseV2Resp.add(new StringInt(v2_resp.getKey(), v2_resp.getValue()));
-        }
-          extra.dirreq_v2_resp = verboseV2Resp;
-        } else {
-          extra.dirreq_v2_resp = desc.getDirreqV2Resp();
+        extra.dirreq_v2_resp = new ArrayList<StringInt>();
+        SortedMap<String, Integer> v2_resps = desc.getDirreqV2Resp();
+        for (Map.Entry<String, Integer> v2_resp : v2_resps.entrySet()) {
+          extra.dirreq_v2_resp.add(new StringInt(v2_resp.getKey(), v2_resp.getValue()));
         }
       }
       if (desc.getDirreqV3Resp() != null && !desc.getDirreqV3Resp().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseV3Resp = new ArrayList<StringInt>();
-          extra.dirreq_v3_resp = new ArrayList<StringInt>();
-          SortedMap<String, Integer> v3_resps = desc.getDirreqV3Resp();
-          for (Map.Entry<String, Integer> v3_resp : v3_resps.entrySet()) {
-            verboseV3Resp.add(new StringInt(v3_resp.getKey(), v3_resp.getValue()));
-        }
-          extra.dirreq_v3_resp = verboseV3Resp;
-        } else {
-          extra.dirreq_v3_resp = desc.getDirreqV3Resp();
+        extra.dirreq_v3_resp = new ArrayList<StringInt>();
+        SortedMap<String, Integer> v3_resps = desc.getDirreqV3Resp();
+        for (Map.Entry<String, Integer> v3_resp : v3_resps.entrySet()) {
+          extra.dirreq_v3_resp.add(new StringInt(v3_resp.getKey(), v3_resp.getValue()));
         }
       }
       if (desc.getDirreqV2DirectDl() != null && !desc.getDirreqV2DirectDl().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseV2DirectDl = new ArrayList<StringInt>();
-          extra.dirreq_v2_direct_dl = new ArrayList<StringInt>();
-          SortedMap<String, Integer> v2_direct = desc.getDirreqV2DirectDl();
-          for (Map.Entry<String, Integer> v2_dir : v2_direct.entrySet()) {
-            verboseV2DirectDl.add(new StringInt(v2_dir.getKey(), v2_dir.getValue()));
-        }
-          extra.dirreq_v2_direct_dl = verboseV2DirectDl;
-        } else {
-          extra.dirreq_v2_direct_dl = desc.getDirreqV2DirectDl();
+        extra.dirreq_v2_direct_dl = new ArrayList<StringInt>();
+        SortedMap<String, Integer> v2_direct = desc.getDirreqV2DirectDl();
+        for (Map.Entry<String, Integer> v2_dir : v2_direct.entrySet()) {
+          extra.dirreq_v2_direct_dl.add(new StringInt(v2_dir.getKey(), v2_dir.getValue()));
         }
       }
       if (desc.getDirreqV3DirectDl() != null && !desc.getDirreqV3DirectDl().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseV3DirectDl = new ArrayList<StringInt>();
-          extra.dirreq_v3_direct_dl = new ArrayList<StringInt>();
-          SortedMap<String, Integer> v3_direct = desc.getDirreqV3DirectDl();
-          for (Map.Entry<String, Integer> v3_dir : v3_direct.entrySet()) {
-            verboseV3DirectDl.add(new StringInt(v3_dir.getKey(), v3_dir.getValue()));
-        }
-          extra.dirreq_v3_direct_dl = verboseV3DirectDl;
-        } else {
-          extra.dirreq_v3_direct_dl = desc.getDirreqV3DirectDl();
+        extra.dirreq_v3_direct_dl = new ArrayList<StringInt>();
+        SortedMap<String, Integer> v3_direct = desc.getDirreqV3DirectDl();
+        for (Map.Entry<String, Integer> v3_dir : v3_direct.entrySet()) {
+          extra.dirreq_v3_direct_dl.add(new StringInt(v3_dir.getKey(), v3_dir.getValue()));
         }
       }
       if (desc.getDirreqV2TunneledDl() != null && !desc.getDirreqV2TunneledDl().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseV2Tun = new ArrayList<StringInt>();
-          extra.dirreq_v2_tunneled_dl = new ArrayList<StringInt>();
-          SortedMap<String, Integer> v2_tunneled = desc.getDirreqV2TunneledDl();
-          for (Map.Entry<String, Integer> v2_tun : v2_tunneled.entrySet()) {
-            verboseV2Tun.add(new StringInt(v2_tun.getKey(), v2_tun.getValue()));
-        }
-          extra.dirreq_v2_tunneled_dl = verboseV2Tun;
-        } else {
-          extra.dirreq_v2_tunneled_dl = desc.getDirreqV2TunneledDl();
+        extra.dirreq_v2_tunneled_dl = new ArrayList<StringInt>();
+        SortedMap<String, Integer> v2_tunneled = desc.getDirreqV2TunneledDl();
+        for (Map.Entry<String, Integer> v2_tun : v2_tunneled.entrySet()) {
+          extra.dirreq_v2_tunneled_dl.add(new StringInt(v2_tun.getKey(), v2_tun.getValue()));
         }
       }
       if (desc.getDirreqV3TunneledDl() != null && !desc.getDirreqV3TunneledDl().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseV3Tun = new ArrayList<StringInt>();
-          extra.dirreq_v3_tunneled_dl = new ArrayList<StringInt>();
-          SortedMap<String, Integer> v3_tunneled = desc.getDirreqV3TunneledDl();
-          for (Map.Entry<String, Integer> v3_tun : v3_tunneled.entrySet()) {
-            verboseV3Tun.add(new StringInt(v3_tun.getKey(), v3_tun.getValue()));
-        }
-          extra.dirreq_v3_tunneled_dl = verboseV3Tun;
-        } else {
-          extra.dirreq_v3_tunneled_dl = desc.getDirreqV3TunneledDl();
+        extra.dirreq_v3_tunneled_dl = new ArrayList<StringInt>();
+        SortedMap<String, Integer> v3_tunneled = desc.getDirreqV3TunneledDl();
+        for (Map.Entry<String, Integer> v3_tun : v3_tunneled.entrySet()) {
+          extra.dirreq_v3_tunneled_dl.add(new StringInt(v3_tun.getKey(), v3_tun.getValue()));
         }
       }
       if (desc.getDirreqReadHistory() != null) {
@@ -614,16 +513,10 @@ public class ConvertToJson {
         extra.entry_stats_end_interval = desc.getEntryStatsIntervalLength();
       }
       if (desc.getEntryIps() != null && !desc.getEntryIps().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseIps = new ArrayList<StringInt>();
-          extra.entry_ips = new ArrayList<StringInt>();
-          SortedMap<String, Integer> ips = desc.getEntryIps();
-          for (Map.Entry<String, Integer> ip : ips.entrySet()) {
-            verboseIps.add(new StringInt(ip.getKey(), ip.getValue()));
-        }
-          extra.entry_ips = verboseIps;
-        } else {
-          extra.entry_ips = desc.getEntryIps();
+        extra.entry_ips = new ArrayList<StringInt>();
+        SortedMap<String, Integer> ips = desc.getEntryIps();
+        for (Map.Entry<String, Integer> ip : ips.entrySet()) {
+          extra.entry_ips.add(new StringInt(ip.getKey(), ip.getValue()));
         }
       }
       if (desc.getCellStatsEndMillis() >= 0) {
@@ -664,42 +557,24 @@ public class ConvertToJson {
         extra.exit_stats_end_interval = desc.getExitStatsIntervalLength();
       }
       if (desc.getExitKibibytesWritten() != null && !desc.getExitKibibytesWritten().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringLong> verboseWritten = new ArrayList<StringLong>();
-          extra.exit_kibibytes_written = new ArrayList<StringLong>();
-          SortedMap<String, Long> written = desc.getExitKibibytesWritten();
-          for (Map.Entry<String, Long> writ : written.entrySet()) {
-            verboseWritten.add(new StringLong(writ.getKey(), writ.getValue()));
-          }
-          extra.exit_kibibytes_written = verboseWritten;
-        } else {
-          extra.exit_kibibytes_written = desc.getExitKibibytesWritten();
+        extra.exit_kibibytes_written = new ArrayList<StringLong>();
+        SortedMap<String, Long> written = desc.getExitKibibytesWritten();
+        for (Map.Entry<String, Long> writ : written.entrySet()) {
+          extra.exit_kibibytes_written.add(new StringLong(writ.getKey(), writ.getValue()));
         }
       }
       if (desc.getExitKibibytesRead() != null && !desc.getExitKibibytesRead().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringLong> verboseRead = new ArrayList<StringLong>();
-          extra.exit_kibibytes_read = new ArrayList<StringLong>();
-          SortedMap<String, Long> reads = desc.getExitKibibytesRead();
-          for (Map.Entry<String, Long> read : reads.entrySet()) {
-            verboseRead.add(new StringLong(read.getKey(), read.getValue()));
-          }
-          extra.exit_kibibytes_read = verboseRead;
-        } else {
-          extra.exit_kibibytes_read = desc.getExitKibibytesRead();
+        extra.exit_kibibytes_read = new ArrayList<StringLong>();
+        SortedMap<String, Long> reads = desc.getExitKibibytesRead();
+        for (Map.Entry<String, Long> read : reads.entrySet()) {
+          extra.exit_kibibytes_read.add(new StringLong(read.getKey(), read.getValue()));
         }
       }
       if (desc.getExitStreamsOpened() != null && !desc.getExitStreamsOpened().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringLong> verboseOpened = new ArrayList<StringLong>();
-          extra.exit_streams_opened = new ArrayList<StringLong>();
-          SortedMap<String, Long> opened = desc.getExitStreamsOpened();
-          for (Map.Entry<String, Long> open : opened.entrySet()) {
-            verboseOpened.add(new StringLong(open.getKey(), open.getValue()));
-          }
-          extra.exit_streams_opened = verboseOpened;
-        } else {
-          extra.exit_streams_opened = desc.getExitStreamsOpened();
+        extra.exit_streams_opened = new ArrayList<StringLong>();
+        SortedMap<String, Long> opened = desc.getExitStreamsOpened();
+        for (Map.Entry<String, Long> open : opened.entrySet()) {
+          extra.exit_streams_opened.add(new StringLong(open.getKey(), open.getValue()));
         }
       }
       //  extra.hidserv_stats_end = new StringInt(); // no getter in metrics-lib
@@ -708,11 +583,11 @@ public class ConvertToJson {
       extra.transport = desc.getTransports();
       //  extra.router_sig_ed25519 = false; // no getter in metrics-lib
       //  extra.router_signature = false; // no getter in metrics-lib
-      return ToJson.serialize(extra);
+      return ToAvro.serialize(extra);
     }
   }
 
-  static class JsonRelayNetworkStatusConsensus extends JsonDescriptor {
+  static class AvroRelayNetworkStatusConsensus extends AvroDescriptor {
     String descriptor_type;
     String published;
     Integer vote_status;
@@ -729,7 +604,7 @@ public class ConvertToJson {
     List<String> client_version;
     List<String> server_versions;
     SortedSet<String> known_flags;
-    Object params;
+    List<StringInt> params;
     List<Authority> dir_source;
     static class Authority {
       String nickname;
@@ -770,7 +645,7 @@ public class ConvertToJson {
     }
     DirFooter directory_footer;
     static class DirFooter {
-      Object bandwidth_weights;
+      List<StringInt> bandwidth_weights;
       String consensus_digest;
       List<DirSig> directory_signature;
     }
@@ -782,7 +657,7 @@ public class ConvertToJson {
     }
 
     static String convert(RelayNetworkStatusConsensus desc) {
-      JsonRelayNetworkStatusConsensus cons = new JsonRelayNetworkStatusConsensus();
+      AvroRelayNetworkStatusConsensus cons = new AvroRelayNetworkStatusConsensus();
       for (String annotation : desc.getAnnotations()) {
         cons.descriptor_type = annotation.substring("@type ".length());
       }
@@ -806,16 +681,10 @@ public class ConvertToJson {
         cons.known_flags = desc.getKnownFlags();
       }
       if (desc.getConsensusParams() != null && !desc.getConsensusParams().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseParams = new ArrayList<StringInt>();
-          cons.params = new ArrayList<StringInt>();
-          SortedMap<String,Integer> paramsC = desc.getConsensusParams();
-          for(Map.Entry<String,Integer> paraC : paramsC.entrySet()) {
-            verboseParams.add(new StringInt(paraC.getKey(), paraC.getValue()));
-          }
-          cons.params = verboseParams;
-        } else {
-          cons.params = desc.getConsensusParams();
+        cons.params = new ArrayList<StringInt>();
+        SortedMap<String,Integer> paramsC = desc.getConsensusParams();
+        for(Map.Entry<String,Integer> paraC : paramsC.entrySet()) {
+          cons.params.add(new StringInt(paraC.getKey(), paraC.getValue()));
         }
       }
       if (desc.getDirSourceEntries() != null && !desc.getDirSourceEntries().isEmpty()) {
@@ -872,16 +741,10 @@ public class ConvertToJson {
       if (desc.getDirectorySignatures() != null && !desc.getDirectorySignatures().isEmpty()) {
         cons.directory_footer = new DirFooter();
         if (desc.getBandwidthWeights() != null && !desc.getBandwidthWeights().isEmpty()) {
-          if (verbose) {
-              ArrayList<StringInt> verboseBwWeights = new ArrayList<StringInt>();
-            cons.directory_footer.bandwidth_weights = new ArrayList<StringInt> ();
-            SortedMap<String,Integer> bwWeights = desc.getBandwidthWeights();
-            for(Map.Entry<String,Integer> bw : bwWeights.entrySet()) {
-              verboseBwWeights.add(new StringInt(bw.getKey(), bw.getValue()));
-            }
-            cons.directory_footer.bandwidth_weights = verboseBwWeights;
-          } else {
-            cons.directory_footer.bandwidth_weights = desc.getBandwidthWeights();
+          cons.directory_footer.bandwidth_weights = new ArrayList<StringInt> ();
+          SortedMap<String,Integer> bwWeights = desc.getBandwidthWeights();
+          for(Map.Entry<String,Integer> bw : bwWeights.entrySet()) {
+            cons.directory_footer.bandwidth_weights.add(new StringInt(bw.getKey(), bw.getValue()));
           }
         }
         cons.directory_footer.consensus_digest = desc.getConsensusDigest();
@@ -898,11 +761,11 @@ public class ConvertToJson {
           }
         }
       }
-      return ToJson.serialize(cons);
+      return ToAvro.serialize(cons);
     }
   }
 
-  static class JsonRelayNetworkStatusVote extends JsonDescriptor {
+  static class AvroRelayNetworkStatusVote extends AvroDescriptor {
     String descriptor_type;
     String published;
     Integer vote_status;
@@ -930,7 +793,7 @@ public class ConvertToJson {
       Integer ignoring_advertised;
     }
     SortedSet<String> known_flags;
-    Object params;
+    List<StringInt> params;
     Authority authority;
     static class Authority {
       String nickname;
@@ -987,7 +850,7 @@ public class ConvertToJson {
     }
 
     static String convert(RelayNetworkStatusVote desc) {
-      JsonRelayNetworkStatusVote vote = new JsonRelayNetworkStatusVote();
+      AvroRelayNetworkStatusVote vote = new AvroRelayNetworkStatusVote();
       for (String annotation : desc.getAnnotations()) {
         vote.descriptor_type = annotation.substring("@type ".length());
       }
@@ -1040,16 +903,10 @@ public class ConvertToJson {
         vote.known_flags = desc.getKnownFlags();
       }
       if (desc.getConsensusParams() != null && !desc.getConsensusParams().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseConsParams = new ArrayList<StringInt>();
-          vote.params = new ArrayList<StringInt> ();
-          SortedMap<String,Integer> params = desc.getConsensusParams();
-          for(Map.Entry<String,Integer> para : params.entrySet()) {
-            verboseConsParams.add(new StringInt(para.getKey(), para.getValue()));
-          }
-          vote.params = verboseConsParams;
-        } else {
-          vote.params = desc.getConsensusParams();
+        vote.params = new ArrayList<StringInt> ();
+        SortedMap<String,Integer> params = desc.getConsensusParams();
+        for(Map.Entry<String,Integer> para : params.entrySet()) {
+          vote.params.add(new StringInt(para.getKey(), para.getValue()));
         }
       }
       vote.authority = new Authority();
@@ -1111,11 +968,11 @@ public class ConvertToJson {
           vote.directory_footer.directory_signature.signature = dirSig.getValue().getSignature() != null;
         }
       }
-      return ToJson.serialize(vote);
+      return ToAvro.serialize(vote);
     }
   }
 
-  static class JsonBridgeNetworkStatus extends JsonDescriptor {
+  static class AvroBridgeNetworkStatus extends AvroDescriptor {
     String descriptor_type;
     String published;
     FlagTreshold flagTreshold;
@@ -1155,7 +1012,7 @@ public class ConvertToJson {
     }
 
     static String convert(BridgeNetworkStatus desc) {
-      JsonBridgeNetworkStatus status = new JsonBridgeNetworkStatus();
+      AvroBridgeNetworkStatus status = new AvroBridgeNetworkStatus();
       for (String annotation : desc.getAnnotations()) {
         status.descriptor_type = annotation.substring("@type ".length());
       }
@@ -1219,11 +1076,11 @@ public class ConvertToJson {
           status.bridges.add(b);
         }
       }
-      return ToJson.serialize(status);
+      return ToAvro.serialize(status);
     }
   }
 
-  static class JsonExitList extends JsonDescriptor {
+  static class AvroExitList extends AvroDescriptor {
     String descriptor_type;
     Long downloaded;
     List<Entry> relays;
@@ -1231,7 +1088,7 @@ public class ConvertToJson {
       String fingerprint;
       String published;
       String last_status;
-      // TODO List<Exit> when metrics-lib is patched
+      // TODO List<Exit>
       Exit exit_adress;
     }
     static class Exit {
@@ -1240,7 +1097,7 @@ public class ConvertToJson {
     }
 
     static String convert(ExitList desc) {
-      JsonExitList tordnsel = new JsonExitList();
+      AvroExitList tordnsel = new AvroExitList();
       for (String annotation : desc.getAnnotations()) {
         tordnsel.descriptor_type = annotation.substring("@type ".length());
       }
@@ -1258,11 +1115,11 @@ public class ConvertToJson {
           tordnsel.relays.add(en);
         }
       }
-      return ToJson.serialize(tordnsel);
+      return ToAvro.serialize(tordnsel);
     }
   }
 
-  static class JsonTorperfResult extends JsonDescriptor {
+  static class AvroTorperfResult extends AvroDescriptor {
     String descriptor_type;
     String source;
     Integer filesize;
@@ -1297,7 +1154,7 @@ public class ConvertToJson {
     Integer used_by;
 
     static String convert(TorperfResult desc) {
-      JsonTorperfResult torperf = new JsonTorperfResult();
+      AvroTorperfResult torperf = new AvroTorperfResult();
       torperf.descriptor_type = "torperf 1.0";
       /*  TODO  hardcoding the descriptor type is a workaround to bug #17696 in
           metrics-lib (https://trac.torproject.org/projects/tor/ticket/17696)
@@ -1354,7 +1211,7 @@ public class ConvertToJson {
       if (desc.getUsedBy() >= 0) {
         torperf.used_by = desc.getUsedBy();
       }
-      return ToJson.serialize(torperf);
+      return ToAvro.serialize(torperf);
     }
   }
 
@@ -1363,23 +1220,11 @@ public class ConvertToJson {
    *  If flag 'verbose' is set also serialize attributes evaluating to null.
    *  Gson docs: https://google-gson.googlecode.com/svn/trunk/gson/docs/javadocs/com/google/gson/GsonBuilder.html
    */
-  static class ToJson {
-    static String serialize(JsonDescriptor jsonDescriptor) {
-      Gson gsonBuilder;
-      String output;
-      if (verbose) {
-        gsonBuilder = new GsonBuilder()
-                .serializeNulls()
-                .disableHtmlEscaping()
-                .create();
-      }
-      else {
-        gsonBuilder = new GsonBuilder()
-                .disableHtmlEscaping()
-                .create();
-      }
-      output = gsonBuilder.toJson(jsonDescriptor);
-      return output;
+  static class ToAvro {
+    static String serialize(AvroDescriptor avroDescriptor) {
+
+      return "TODO";
+
     }
   }
 
