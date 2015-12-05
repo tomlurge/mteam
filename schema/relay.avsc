@@ -1,7 +1,7 @@
 {
-  "namespace": "org.torproject.metrics.descriptor",
-  "type": "record",
+  "namespace": "relay",
   "name": "relay",
+  "type": "record",
   "aliases": [
     "relay_server_descriptor"
   ],
@@ -40,6 +40,7 @@
     {
       "name": "router",
       "type": {
+        "name": "router_entry",
         "type": "record",
         "fields": [
           {
@@ -88,6 +89,7 @@
     {
       "name": "bandwidth",
       "type": {
+        "name": "bandwidth_entry",
         "type": "record",
         "fields": [
           {
@@ -151,8 +153,8 @@
         {
           "type": "array",
           "items": {
-            "type": "record",
             "name": "or_addresses_entry",
+            "type": "record",
             "fields": [
               {
                 "name": "adress",
@@ -221,64 +223,70 @@
     },
     {
       "name": "read_history",
-      "type": "record",
-      "fields": [
-        {
-          "name": "date",
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        {
-          "name": "interval",
-          "type": [
-            "null",
-            "long"
-          ]
-        },
-        {
-          "name": "bytes",
-          "type": [
-            "null",
-            {
-              "type": "array",
-              "items": "long"
-            }
-          ]
-        }
-      ],
+      "type": {
+        "name": "read_history_entry",
+        "type": "record",
+        "fields": [
+          {
+            "name": "date",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          {
+            "name": "interval",
+            "type": [
+              "null",
+              "long"
+            ]
+          },
+          {
+            "name": "bytes",
+            "type": [
+              "null",
+              {
+                "type": "array",
+                "items": "long"
+              }
+            ]
+          }
+        ]
+      },
       "doc": ""
     },
     {
       "name": "write_history",
-      "type": "record",
-      "fields": [
-        {
-          "name": "date",
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        {
-          "name": "interval",
-          "type": [
-            "null",
-            "long"
-          ]
-        },
-        {
-          "name": "bytes",
-          "type": [
-            "null",
-            {/**/
-              "type": "array",
-              "items": "long"
-            }
-          ]
-        }
-      ],
+      "type": {
+        "name": "write_history_entry",
+        "type": "record",
+        "fields": [
+          {
+            "name": "date",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          {
+            "name": "interval",
+            "type": [
+              "null",
+              "long"
+            ]
+          },
+          {
+            "name": "bytes",
+            "type": [
+              "null",
+              {
+                "type": "array",
+                "items": "long"
+              }
+            ]
+          }
+        ]
+      },
       "doc": ""
     },
     {

@@ -41,7 +41,7 @@
       "null",
       {
         "type": "array", "items": "long"
-      }], "doc": ""
+      }, "doc": ""
     },
     {"name": "timeout", "type": ["null", "string"], "doc": ""},
     {"name": "quantile", "type": ["null", "double"], "doc": ""},
