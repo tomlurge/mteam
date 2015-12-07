@@ -67,7 +67,7 @@ public class ConvertToAvro {
       for (Descriptor descriptor : descriptorFile.getDescriptors()) {
 
         // TODO which type?!
-        String avroDescriptor = null;
+        Object avroDescriptor = null;
 
         //  relays & bridges descriptors
         if (descriptor instanceof ServerDescriptor) {
@@ -173,81 +173,52 @@ public class ConvertToAvro {
   }
 
   static class AvroServerDescriptor extends AvroDescriptor {
-    String descriptor_type;
-    /*  only relays  */
-    Boolean router_signature;
-    //  Boolean identity_ed25519; // not supported in metrics-lib
-    //  Boolean master_key_ed25519;  // not supported in metrics-lib
-    //  Boolean onion_key_crosscert; // not supported in metrics-lib
-    //  List<KeyAndSig> ntor_onion_key_crosscert; // not supported in metrics-lib
-    //  Boolean router_sig_ed25519; // not supported in metrics-lib
-    /*  relays + bridges  */
-    String published;   // format YYYY-MM-DD HH:MM:SS
-    String fingerprint;  // always upper-case hex
-    String nickname;  // can be mixed-case
-    String address;  // changed to lower-case
-    int or_port;
-    int socks_port;  // most likely 0 except for *very* old descriptors
-    int dir_port;
-    Integer bandwidth_avg;
-    Integer bandwidth_burst;
-    Boolean onion_key;  // usually false b/c sanitization
-    Boolean signing_key;  // usually false b/c sanitization
-    List<String> exit_policy;
-    Integer bandwidth_observed;  // missing in older descriptors!
-    List<StringInt> or_addresses;  // addresses sanitized!
-    String platform;  // though usually set
-    Boolean hibernating;
-    Long uptime;  // though usually set
-    String ipv6_policy;
-    String contact;
-    List<String> family;  // apparently not used at all
-    BandwidthHistory read_history;
-    BandwidthHistory write_history;
-    Boolean eventdns;
-    Boolean caches_extra_info;
-    String extra_info_digest;  // upper-case hex
-    List<Integer> hidden_service_dir_versions;
-    List<Integer> link_protocol_versions;
-    List<Integer> circuit_protocol_versions;
-    Boolean allow_single_hop_exits;
-    Boolean ntor_onion_key;
-    String router_digest;  // upper-case hex
 
     /*  Take a single server descriptor, test if it is a server-descriptor or a
      *  bridge-server-descriptor and return a JSON string representation. */
-    static String convert(ServerDescriptor desc) {
-      AvroServerDescriptor server = new AvroServerDescriptor();
+
+    static Server construct(ServerDescriptor desc) {
+
+      //  TODO that will probably not work out as expected
+      if (annotation.startsWith("@type server-descriptor")) {
+        Relay server = Relay.newBuilder();
+      }
+      else {
+        Bridge server = Bridge.newBuilder();
+      }
+
       for (String annotation : desc.getAnnotations()) {
-        server.descriptor_type = annotation.substring("@type ".length());
-        //  relay specific attributes
+        server.setDescriptorType(annotation.substring("@type ".length()));
+        //  relay specific attribute
         if (annotation.startsWith("@type server-descriptor")) {
-          server.router_signature = desc.getRouterSignature() != null;
+          server.setRouterSignature(desc.getRouterSignature() != null);
         }
       }
-      server.nickname = desc.getNickname();
-      server.address = desc.getAddress();
-      server.or_port = desc.getOrPort();
-      server.socks_port = desc.getSocksPort();
-      server.dir_port = desc.getDirPort();
-      server.bandwidth_avg = desc.getBandwidthRate();
-      server.bandwidth_burst = desc.getBandwidthBurst();
+      // TODO router record
+      server.setNickname(desc.getNickname());
+      server.setAddress(desc.getAddress());
+      server.setOr_port(desc.getOrPort());
+      server.setSocks_port(desc.getSocksPort());
+      server.setDir_port(desc.getDirPort());
+      // TODO bandwidth record
+      server.setBandwidth_avg(desc.getBandwidthRate());
+      server.setBandwidth_burst(desc.getBandwidthBurst());
       //  test, if there is a key: return 'true' if yes, 'false' otherwise
-      server.onion_key = desc.getOnionKey() != null;
-      server.signing_key = desc.getSigningKey() != null;
+      server.setOnion_key(desc.getOnionKey() != null);
+      server.setSigning_key(desc.getSigningKey() != null);
       //  verbose testing because of List type
       //  first check that the list is not null, then if it's empty
       //  (checking for emptiness right away could lead to null pointer exc)
       if (desc.getExitPolicyLines() != null && !desc.getExitPolicyLines().isEmpty()) {
-        server.exit_policy = desc.getExitPolicyLines();
+        server.setExit_policy(desc.getExitPolicyLines());
       }
       //  can be '-1' if null. in that case we don't touch it here, leaving the
       //  default from the class definition intact
       if (desc.getBandwidthObserved() >= 0) {
-        server.bandwidth_observed = desc.getBandwidthObserved();
+        server.setBandwidth_observed(desc.getBandwidthObserved());
       }
       if (desc.getOrAddresses() != null && !desc.getOrAddresses().isEmpty()) {
-        server.or_addresses = new ArrayList<StringInt>();
+        server.setOr_addresses(new ArrayList<StringInt>());
         for (String orAddress : desc.getOrAddresses()) {
           if (!orAddress.contains(":")) {
             continue;
@@ -255,7 +226,7 @@ public class ConvertToAvro {
           int lastColon = orAddress.lastIndexOf(":");
           try {
             int val = Integer.parseInt(orAddress.substring(lastColon + 1));
-            server.or_addresses.add(
+            server.setOr_addresses.add(
                     new StringInt(orAddress.substring(0, lastColon), val)
             );
           } catch (NumberFormatException e) {
@@ -263,40 +234,40 @@ public class ConvertToAvro {
           }
         }
       }
-      server.platform = desc.getPlatform();
-      server.published = dateTimeFormat.format(desc.getPublishedMillis());
-      server.fingerprint = desc.getFingerprint().toUpperCase();
+      server.setPlatform(desc.getPlatform());
+      server.setPublished(dateTimeFormat.format(desc.getPublishedMillis()));
+      server.setFingerprint(desc.getFingerprint().toUpperCase());
       //  isHibernating can't return 'null' because it's of type 'boolean'
       //  (with little 'b') but it's only present in the collecTor data if it's
       //  true. therefor we check for it's existence and include it if it
       //  exists. otherwise we leave it alone / to the default value from
       //  the class definition above (which is null)
       if (desc.isHibernating()) {
-        server.hibernating = desc.isHibernating();
+        server.setHibernating(desc.isHibernating());
       }
-      server.uptime = desc.getUptime();
-      server.ipv6_policy = desc.getIpv6DefaultPolicy();
-      server.contact = desc.getContact();
-      server.family = desc.getFamilyEntries();
+      server.setUptime(desc.getUptime());
+      server.setIpv6_policy(desc.getIpv6DefaultPolicy());
+      server.setContact(desc.getContact());
+      server.setFamily(desc.getFamilyEntries());
       //  check for 'null' first because we want to run a method on it
       //  and not get a null pointer exception meanwhile
       if (desc.getReadHistory() != null) {
-        server.read_history = convertBandwidthHistory(desc.getReadHistory());
+        server.setRead_history(convertBandwidthHistory(desc.getReadHistory()));
       }
       if (desc.getWriteHistory() != null) {
-        server.write_history = convertBandwidthHistory(desc.getWriteHistory());
+        server.setWrite_history(convertBandwidthHistory(desc.getWriteHistory()));
       }
-      server.eventdns = desc.getUsesEnhancedDnsLogic();
-      server.caches_extra_info = desc.getCachesExtraInfo();
+      server.setEventdns(desc.getUsesEnhancedDnsLogic());
+      server.setCaches_extra_info(desc.getCachesExtraInfo());
       if (desc.getExtraInfoDigest() != null) {
-        server.extra_info_digest = desc.getExtraInfoDigest().toUpperCase();
+        server.setExtra_info_digest(desc.getExtraInfoDigest().toUpperCase());
       }
-      server.hidden_service_dir_versions = desc.getHiddenServiceDirVersions();
-      server.link_protocol_versions = desc.getLinkProtocolVersions();
-      server.circuit_protocol_versions = desc.getCircuitProtocolVersions();
-      server.allow_single_hop_exits = desc.getAllowSingleHopExits();
-      server.ntor_onion_key = desc.getNtorOnionKey() != null;
-      server.router_digest = desc.getServerDescriptorDigest().toUpperCase();
+      server.setHidden_service_dir_versions(desc.getHiddenServiceDirVersions());
+      server.setLink_protocol_versions(desc.getLinkProtocolVersions());
+      server.setCircuit_protocol_versions(desc.getCircuitProtocolVersions());
+      server.setAllow_single_hop_exits(desc.getAllowSingleHopExits());
+      server.setNtor_onion_key(desc.getNtorOnionKey() != null);
+      server.setRouter_digest(desc.getServerDescriptorDigest().toUpperCase());
 
       return ToAvro.serialize(server);
     }
@@ -380,6 +351,7 @@ public class ConvertToAvro {
               extra.geoip_client_origins.add(new StringInt(geo.getKey(), geo.getValue()));
             }
           }
+          // TODO bidgestatsend record
           if (desc.getBridgeStatsEndMillis() >= 0) {
             extra.bridge_stats_end_date = dateTimeFormat.format(desc.getBridgeStatsEndMillis());
           }
@@ -515,6 +487,7 @@ public class ConvertToAvro {
         extra.dirreq_write_history =
                 convertBandwidthHistory(desc.getDirreqWriteHistory());
       }
+      // TODO entrystatsend record
       if (desc.getEntryStatsEndMillis() >= 0) {
         extra.entry_stats_end_date = dateTimeFormat.format(desc.getEntryStatsEndMillis());
       }
@@ -528,6 +501,7 @@ public class ConvertToAvro {
           extra.entry_ips.add(new StringInt(ip.getKey(), ip.getValue()));
         }
       }
+      // TODO cellstatsend record
       if (desc.getCellStatsEndMillis() >= 0) {
         extra.cell_stats_end_date = dateTimeFormat.format(desc.getCellStatsEndMillis());
       }
@@ -559,6 +533,7 @@ public class ConvertToAvro {
           extra.conn_bi_direct.both = desc.getConnBiDirectBoth();
         }
       }
+      // TODO exitstatsend record
       if (desc.getExitStatsEndMillis() >= 0) {
         extra.exit_stats_end_date = dateTimeFormat.format(desc.getExitStatsEndMillis());
       }

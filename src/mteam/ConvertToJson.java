@@ -16,9 +16,9 @@ import org.torproject.descriptor.*;
 public class ConvertToJson {
 
   /*  argument defaults  */
-  static boolean verbose = false; // defaults to 'false'
+  static boolean verbose = true; // defaults to 'false'
   static boolean compress = true; // defaults to 'true'
-  static String dir = "";
+  static String dir = "archives";
 
   /*  Read all descriptors in the provided directory and
    *  convert them to the appropriate JSON format.  */
@@ -48,7 +48,7 @@ public class ConvertToJson {
 
     int written = 0;
     String outputPath = "data/out/";
-    String outputName = "tordnsel.json";
+    String outputName = "result.json";
     Writer JsonWriter;
     if (compress) {
       JsonWriter = new OutputStreamWriter(new GZIPOutputStream(
@@ -59,12 +59,12 @@ public class ConvertToJson {
     }
     BufferedWriter bw = new BufferedWriter(JsonWriter);
 
-    /*  TODO remove after testing
+    /*  TODO remove after testing */
       bw.write(
         "{\"verbose\": " + verbose +
         ", \"compress\": " + compress +
         ", \"starting at directory\" : \"data/in/" + dir + "\"},\n"
-      );  */
+      );
 
     while (descriptorFiles.hasNext()) {
       DescriptorFile descriptorFile = descriptorFiles.next();
@@ -119,7 +119,7 @@ public class ConvertToJson {
         }
         if (jsonDescriptor != null) {
           // TODO remove this comma -v- after testing
-          bw.write((written++ > 0 ? "\n" : "") + jsonDescriptor);
+          bw.write((written++ > 0 ? ",\n" : "") + jsonDescriptor);
         }
       }
     }
@@ -1323,6 +1323,7 @@ public class ConvertToJson {
       torperf.descriptor_type = "torperf 1.0";
       /*  TODO  hardcoding the descriptor type is a workaround to bug #17696 in
           metrics-lib (https://trac.torproject.org/projects/tor/ticket/17696)
+          which actually is a bug in CollecTor
       for (String annotation : desc.getAnnotations()) {
         torperf.descriptor_type = annotation.substring("@type ".length());
       }
