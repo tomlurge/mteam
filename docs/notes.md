@@ -18,12 +18,6 @@ ich habe gerade mal versucht, den converter über ein paar tar.xz archive von co
 
 reicht mein heap space nicht oder ist da ein fehler im programm aufgetreten?
 
-karsten:
-[3:37PM] DescriptorReader.setMaxDescriptorFilesInQueue()
-[3:37PM] karsten: just set that to 5
-[3:38PM] karsten: it's currently at 100.
-[3:38PM] karsten: well, by default at 100.
-[3:38PM] karsten: do that before you call readDescriptors().
 
 -Xmx8g 
 

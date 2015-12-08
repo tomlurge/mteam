@@ -120,13 +120,13 @@ serialize record to output stream
 
 ## Avro TOOLS commands
 
+    compile a schema
+    % java -jar avro-tools-1.7.7.jar compile schema ~/desc.avsc /desc
+    
     convert .avro to JSON
     % java -jar $AVRO_HOME/avro-tools-*.jar tojson myFile.avro
     
-    compile a schema
-    % java -jar avro-tools-1.7.7.jar compile schema ~/desc.avsc /desc
-
-
+    
 ## java 
 
 ### import

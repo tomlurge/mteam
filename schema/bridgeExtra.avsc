@@ -47,60 +47,66 @@
     },
     {
       "name": "read_history",
-      "type": "record",
-      "fields": [
-        {
-          "name": "date",
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        {
-          "name": "interval",
-          "type": "long",
-          "default": 86400
-        },
-        {
-          "name": "bytes",
-          "type": [
-            "null",
-            {
-              "type": "array",
-              "items": "long"
-            }
-          ]
-        }
-      ],
+      "type": {
+        "name": "read_history_entry",
+        "type": "record",
+        "fields": [
+          {
+            "name": "date",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          {
+            "name": "interval",
+            "type": "long",
+            "default": 86400
+          },
+          {
+            "name": "bytes",
+            "type": [
+              "null",
+              {
+                "type": "array",
+                "items": "long"
+              }
+            ]
+          }
+        ]
+      },
       "doc": ""
     },
     {
       "name": "write_history",
-      "type": "record",
-      "fields": [
-        {
-          "name": "date",
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        {
-          "name": "interval",
-          "type": "long",
-          "default": 86400
-        },
-        {
-          "name": "bytes",
-          "type": [
-            "null",
-            {
-              "type": "array",
-              "items": "long"
-            }
-          ]
-        }
-      ],
+      "type": {
+        "name": "write_history_entry",
+        "type": "record",
+        "fields": [
+          {
+            "name": "date",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          {
+            "name": "interval",
+            "type": "long",
+            "default": 86400
+          },
+          {
+            "name": "bytes",
+            "type": [
+              "null",
+              {
+                "type": "array",
+                "items": "long"
+              }
+            ]
+          }
+        ]
+      },
       "doc": ""
     },
     {
@@ -130,6 +136,7 @@
     {
       "name": "dirreq_stats_end",
       "type": {
+        "name": "dirreq_stats_end_entry",
         "type": "record",
         "fields": [
           {
@@ -156,8 +163,8 @@
         {
           "type": "array",
           "items": {
-            "type": "record",
             "name": "dirreq_v2_ips_entry",
+            "type": "record",
             "fields": [
               {
                 "name": "countryCode",
@@ -180,8 +187,8 @@
         {
           "type": "array",
           "items": {
-            "type": "record",
             "name": "dirreq_v3_ips_entry",
+            "type": "record",
             "fields": [
               {
                 "name": "countryCode",
@@ -204,8 +211,8 @@
         {
           "type": "array",
           "items": {
-            "type": "record",
             "name": "dirreq_v2_reqs_entry",
+            "type": "record",
             "fields": [
               {
                 "name": "countryCode",
@@ -228,8 +235,8 @@
         {
           "type": "array",
           "items": {
-            "type": "record",
             "name": "dirreq_v3_reqs_entry",
+            "type": "record",
             "fields": [
               {
                 "name": "countryCode",
@@ -268,8 +275,8 @@
         {
           "type": "array",
           "items": {
-            "type": "record",
             "name": "dirreq_v2_resp_entry",
+            "type": "record",
             "fields": [
               {
                 "name": "status",
@@ -292,8 +299,8 @@
         {
           "type": "array",
           "items": {
-            "type": "record",
             "name": "dirreq_v3_resp_entry",
+            "type": "record",
             "fields": [
               {
                 "name": "status",
@@ -316,8 +323,8 @@
         {
           "type": "array",
           "items": {
-            "type": "record",
             "name": "dirreq_v2_direct_dl_entry",
+            "type": "record",
             "fields": [
               {
                 "name": "download",
@@ -340,8 +347,8 @@
         {
           "type": "array",
           "items": {
-            "type": "record",
             "name": "dirreq_v3_direct_dl_entry",
+            "type": "record",
             "fields": [
               {
                 "name": "download",
@@ -364,8 +371,8 @@
         {
           "type": "array",
           "items": {
-            "type": "record",
             "name": "dirreq_v2_tunneled_dl_entry",
+            "type": "record",
             "fields": [
               {
                 "name": "download",
@@ -388,8 +395,8 @@
         {
           "type": "array",
           "items": {
-            "type": "record",
             "name": "dirreq_v3_tunneled_dl_entry",
+            "type": "record",
             "fields": [
               {
                 "name": "download",
@@ -408,6 +415,7 @@
     {
       "name": "dirreq_read_history",
       "type": {
+        "name": "dirreq_read_history_entry",
         "type": "record",
         "fields": [
           {
@@ -441,6 +449,7 @@
     {
       "name": "dirreq_write_history",
       "type": {
+        "name": "dirreq_write_history_entry",
         "type": "record",
         "fields": [
           {
@@ -462,10 +471,8 @@
             "type": [
               "null",
               {
-                "type": {
-                  "type": "array",
-                  "items": "long"
-                }
+                "type": "array",
+                "items": "long"
               }
             ]
           }
@@ -476,6 +483,7 @@
     {
       "name": "entry_stats_end",
       "type": {
+        "name": "entry_stats_end_entry",
         "type": "record",
         "fields": [
           {
@@ -503,8 +511,8 @@
         {
           "type": "array",
           "items": {
-            "type": "record",
             "name": "entry_ips_entry",
+            "type": "record",
             "fields": [
               {
                 "name": "countryCode",
@@ -523,6 +531,7 @@
     {
       "name": "cell_stats_end",
       "type": {
+        "name": "cell_stats_end_entry",
         "type": "record",
         "fields": [
           {
@@ -587,6 +596,7 @@
     {
       "name": "conn_bi_direct",
       "type": {
+        "name": "conn_bi_direct_entry",
         "type": "record",
         "fields": [
           {
@@ -636,6 +646,7 @@
     {
       "name": "exit_stats_end",
       "type": {
+        "name": "exit_stats_end_entry",
         "type": "record",
         "fields": [
           {
@@ -662,8 +673,8 @@
         {
           "type": "array",
           "items": {
-            "type": "record",
             "name": "exit_kibibytes_written_entry",
+            "type": "record",
             "fields": [
               {
                 "name": "port",
@@ -686,8 +697,8 @@
         {
           "type": "array",
           "items": {
-            "type": "record",
             "name": "exit_kibibytes_read_entry",
+            "type": "record",
             "fields": [
               {
                 "name": "port",
@@ -710,8 +721,8 @@
         {
           "type": "array",
           "items": {
-            "type": "record",
             "name": "exit_streams_opened_entry",
+            "type": "record",
             "fields": [
               {
                 "name": "port",
@@ -745,8 +756,8 @@
         {
           "type": "array",
           "items": {
-            "type": "record",
             "name": "geoip_client_origins_entry",
+            "type": "record",
             "fields": [
               {
                 "name": "countryCode",
@@ -765,6 +776,7 @@
     {
       "name": "bridge_stats_end",
       "type": {
+        "name": "bridge_stats_end_entry",
         "type": "record",
         "fields": [
           {
@@ -791,8 +803,8 @@
         {
           "type": "array",
           "items": {
-            "type": "record",
             "name": "bridge_ips_entry",
+            "type": "record",
             "fields": [
               {
                 "name": "countryCode",
@@ -815,8 +827,8 @@
         {
           "type": "array",
           "items": {
-            "type": "record",
             "name": "bridge_ip_versions_entry",
+            "type": "record",
             "fields": [
               {
                 "name": "family",
@@ -839,8 +851,8 @@
         {
           "type": "array",
           "items": {
-            "type": "record",
             "name": "bridge_ip_transports_entry",
+            "type": "record",
             "fields": [
               {
                 "name": "transport",
