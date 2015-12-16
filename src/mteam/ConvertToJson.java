@@ -18,7 +18,7 @@ public class ConvertToJson {
   /*  argument defaults  */
   static boolean verbose = true; // defaults to 'false'
   static boolean compress = true; // defaults to 'true'
-  static String dir = "archives";
+  static String dir = "";
 
   /*  Read all descriptors in the provided directory and
    *  convert them to the appropriate JSON format.  */
@@ -101,9 +101,6 @@ public class ConvertToJson {
         if (descriptor instanceof ExitList) {
           jsonDescriptor = JsonExitList
                   .convert((ExitList) descriptor);
-          if(null != descriptorFile.getException()){
-            System.err.print(descriptorFile.getException());
-          }
         }
         //  torperf
         if (descriptor instanceof TorperfResult) {
@@ -111,6 +108,9 @@ public class ConvertToJson {
                   .convert((TorperfResult) descriptor);
         }
 
+        if(null != descriptorFile.getException()){
+          System.err.print(descriptorFile.getException());
+        }
         if (!descriptor.getUnrecognizedLines().isEmpty()) {
           System.err.println("Unrecognized lines in "
                   + descriptorFile.getFileName() + ":");
@@ -1320,14 +1320,9 @@ public class ConvertToJson {
 
     static String convert(TorperfResult desc) {
       JsonTorperfResult torperf = new JsonTorperfResult();
-      torperf.descriptor_type = "torperf 1.0";
-      /*  TODO  hardcoding the descriptor type is a workaround to bug #17696 in
-          metrics-lib (https://trac.torproject.org/projects/tor/ticket/17696)
-          which actually is a bug in CollecTor
       for (String annotation : desc.getAnnotations()) {
         torperf.descriptor_type = annotation.substring("@type ".length());
       }
-      */
       torperf.source = desc.getSource();
       torperf.filesize = desc.getFileSize();
       torperf.start = dateTimeFormat.format(desc.getStartMillis());
