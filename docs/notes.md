@@ -1,27 +1,10 @@
 # TODO
 
-* a real problem: 
-
-ich habe gerade mal versucht, den converter über ein paar tar.xz archive von consensus und server daten laufen zu lassen. ich bekomme aber folgenden fehler:
-
-    /System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/bin/java -Didea.launcher.port=7540 "-Didea.launcher.bin.path=/Applications/IntelliJ IDEA 15.app/Contents/bin" -Dfile.encoding=UTF-8 -classpath "/Users/tl/tor/analyticsServer/mteam/bin:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/lib/deploy.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/lib/dt.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/lib/javaws.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/lib/jce.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/lib/jconsole.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/lib/management-agent.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/lib/plugin.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/lib/sa-jdi.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/charsets.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/jsse.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/ui.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/lib/ext/apple_provider.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/lib/ext/dnsns.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/lib/ext/localedata.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/lib/ext/sunjce_provider.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/lib/ext/sunpkcs11.jar:/Users/tl/tor/analyticsServer/junit-4.12.jar:/Users/tl/tor/analyticsServer/mteam/lib/gson-2.3.1.jar:/Users/tl/tor/analyticsServer/commons-compress-1.10/commons-compress-1.10.jar:/Users/tl/tor/analyticsServer/commons-compress-1.10/commons-compress-1.10-tests.jar:/Users/tl/tor/analyticsServer/commons-compress-1.10/commons-compress-1.10-javadoc.jar:/Users/tl/tor/analyticsServer/commons-compress-1.10/commons-compress-1.10-sources.jar:/Users/tl/tor/analyticsServer/commons-compress-1.10/commons-compress-1.10-test-sources.jar:/Applications/IntelliJ IDEA 15.app/Contents/lib/idea_rt.jar" com.intellij.rt.execution.application.AppMain mteam.ConvertToJson
-    Bug: uncaught exception or error while reading descriptors:
-    java.lang.OutOfMemoryError: Java heap space
-      at java.util.Arrays.copyOf(Arrays.java:2786)
-      at java.io.ByteArrayOutputStream.write(ByteArrayOutputStream.java:94)
-      at org.torproject.descriptor.impl.DescriptorReaderImpl$DescriptorReaderRunnable.readFile(DescriptorReaderImpl.java:341)
-      at org.torproject.descriptor.impl.DescriptorReaderImpl$DescriptorReaderRunnable.readDescriptors(DescriptorReaderImpl.java:253)
-      at org.torproject.descriptor.impl.DescriptorReaderImpl$DescriptorReaderRunnable.run(DescriptorReaderImpl.java:155)
-      at java.lang.Thread.run(Thread.java:695)
+* test
+  - review verbose branch line 275 & 416
     
-    Process finished with exit code 0
-
-reicht mein heap space nicht oder ist da ein fehler im programm aufgetreten?
-
-
--Xmx8g 
-
-
+* gegen speicherprobleme der javaVM
+    -Xmx8g 
 * compression as GZ !!! (not XZ, as was previously asked)
 * output wird komplett in eine datei geschrieben
   + verzeichnisstruktur wird igoriert und geht verloren
