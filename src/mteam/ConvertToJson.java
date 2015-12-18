@@ -16,7 +16,7 @@ import org.torproject.descriptor.*;
 public class ConvertToJson {
 
   /*  argument defaults  */
-  static boolean verbose = true; // defaults to 'false'
+  static boolean verbose = false; // defaults to 'false'
   static boolean compress = true; // defaults to 'true'
   static String dir = "";
 
@@ -68,6 +68,10 @@ public class ConvertToJson {
 
     while (descriptorFiles.hasNext()) {
       DescriptorFile descriptorFile = descriptorFiles.next();
+      if(null != descriptorFile.getException()){
+        System.err.print(descriptorFile.getException()
+                + "\n    in " + descriptorFile.getFileName() + "\n");
+      }
 
       for (Descriptor descriptor : descriptorFile.getDescriptors()) {
         String jsonDescriptor = null;
@@ -118,9 +122,6 @@ public class ConvertToJson {
                   .convert((TorperfResult) descriptor);
         }
 
-        if(null != descriptorFile.getException()){
-          System.err.print(descriptorFile.getException());
-        }
         if (!descriptor.getUnrecognizedLines().isEmpty()) {
           System.err.println("Unrecognized lines in "
                   + descriptorFile.getFileName() + ":");
@@ -152,6 +153,14 @@ public class ConvertToJson {
       String key;
       Long val;
       StringLong(String key, Long val) {
+        this.key = key;
+        this.val = val;
+      }
+    }
+    static class StringDouble {
+      String key;
+      Double val;
+      StringDouble(String key, Double val) {
         this.key = key;
         this.val = val;
       }
@@ -188,12 +197,16 @@ public class ConvertToJson {
   static class JsonRelayServerDescriptor extends JsonDescriptor {
     String descriptor_type;
     Boolean router_signature;
-    //  Boolean identity_ed25519; // not supported in metrics-lib
-    //  Boolean master_key_ed25519;  // not supported in metrics-lib
-    //  Boolean onion_key_crosscert; // not supported in metrics-lib
-    //  List<KeyAndSig> ntor_onion_key_crosscert; // not supported in metrics-lib
-    //  Boolean router_sig_ed25519; // not supported in metrics-lib
+    Boolean identity_ed25519;                       // getIdentityEd25519
+    Boolean master_key_ed25519;                     // getMasterKeyEd25519
+    Boolean onion_key_crosscert;                    // getOnionKeyCrosscert
+    CrossCert ntor_onion_key_crosscert;
+    static class CrossCert {
+      Boolean cert;                                 // getNtorOnionKeyCrosscert
+      Integer bit;                                  // getNtorOnionKeyCrosscertSign
+    }
     String published;   // format YYYY-MM-DD HH:MM:SS
+    Boolean router_sig_ed25519;                     // getRouterSignatureEd25519
     String fingerprint;  // always upper-case hex
     String nickname;  // can be mixed-case
     String address;  // changed to lower-case
@@ -218,12 +231,14 @@ public class ConvertToJson {
     Boolean eventdns;
     Boolean caches_extra_info;
     String extra_info_digest;  // upper-case hex
+    Boolean extra_info_digest_sha256;               // getExtraInfoDigestSha256
     List<Integer> hidden_service_dir_versions;
     List<Integer> link_protocol_versions;
     List<Integer> circuit_protocol_versions;
     Boolean allow_single_hop_exits;
     Boolean ntor_onion_key;
     String router_digest;  // upper-case hex
+    Boolean router_digest_sha256;                    // getServerDescriptorDigestSha256
 
     static String convert(ServerDescriptor desc) {
       JsonRelayServerDescriptor relay = new JsonRelayServerDescriptor();
@@ -231,6 +246,13 @@ public class ConvertToJson {
         relay.descriptor_type = annotation.substring("@type ".length());
       }
       relay.router_signature = desc.getRouterSignature() != null;
+      relay.identity_ed25519 = desc.getIdentityEd25519() != null;
+      relay.master_key_ed25519 = desc.getMasterKeyEd25519() != null;
+      relay.onion_key_crosscert = desc.getOnionKeyCrosscert() != null;
+      relay.ntor_onion_key_crosscert = new CrossCert();
+      relay.ntor_onion_key_crosscert.cert = desc.getNtorOnionKeyCrosscert() != null;
+      relay.ntor_onion_key_crosscert.bit = desc.getNtorOnionKeyCrosscertSign();
+      relay.router_sig_ed25519 = desc.getRouterSignatureEd25519() != null;
       relay.nickname = desc.getNickname();
       relay.address = desc.getAddress();
       relay.or_port = desc.getOrPort();
@@ -325,12 +347,14 @@ public class ConvertToJson {
       if (desc.getExtraInfoDigest() != null) {
         relay.extra_info_digest = desc.getExtraInfoDigest().toUpperCase();
       }
+      relay.extra_info_digest_sha256 = desc.getExtraInfoDigestSha256() != null;
       relay.hidden_service_dir_versions = desc.getHiddenServiceDirVersions();
       relay.link_protocol_versions = desc.getLinkProtocolVersions();
       relay.circuit_protocol_versions = desc.getCircuitProtocolVersions();
       relay.allow_single_hop_exits = desc.getAllowSingleHopExits();
       relay.ntor_onion_key = desc.getNtorOnionKey() != null;
       relay.router_digest = desc.getServerDescriptorDigest().toUpperCase();
+      relay.router_digest_sha256 = desc.getServerDescriptorDigest() != null;
 
       return ToJson.serialize(relay);
     }
@@ -487,7 +511,10 @@ public class ConvertToJson {
     String nickname;
     String fingerprint;
     String published;
+    Boolean identity_ed25519;                         // getIdentityEd25519
+    Boolean master_key_ed25519;                       // getMasterKeyEd25519
     String extra_info_digest;
+    Boolean extra_info_digest_sha256;                 // getExtraInfoDigestSha256
     BandwidthHistory read_history;
     BandwidthHistory write_history;
     String geoip_db_digest;
@@ -532,12 +559,25 @@ public class ConvertToJson {
     Object exit_kibibytes_written;
     Object exit_kibibytes_read;
     Object exit_streams_opened;
-    //  StringInt hidserv_stats_end;
-    //  Object hidserv_rend_relayed_cells;
-    //  Object hidserv_dir_onions_seen;
+
+    HidStats hidserv_stats_end;
+    static class HidStats {
+      String date;                                  // long getHidservStatsEndMillis
+      Long interval;                                // long getHidservStatsIntervalLength();
+    }
+    HidRend hidserv_rend_relayed_cells;
+    static class HidRend {
+      Double cells;                                 // Double getHidservRendRelayedCells();
+      List<StringDouble> obfuscation;               // Map<String, Double> getHidservRendRelayedCellsParameters()
+    }
+    HidDir hidserv_dir_onions_seen;
+    static class HidDir {
+      Double onions;                                // Double getHidservDirOnionsSeen();
+      List<StringDouble> obfuscation;               // Map<String, Double> getHidservDirOnionsSeenParameters();
+    }
     List<String> transport;
-    //  Boolean router_sig_ed25519;
-    //  Boolean router_signature;
+    Boolean router_sig_ed25519;                     // getRouterSignatureEd25519
+    Boolean router_signature;                       // getRouterSignature
 
     static String convert(RelayExtraInfoDescriptor desc) {
       JsonRelayExtraInfoDescriptor relayExtra = new JsonRelayExtraInfoDescriptor();
@@ -547,7 +587,10 @@ public class ConvertToJson {
       relayExtra.nickname = desc.getNickname();
       relayExtra.fingerprint = desc.getFingerprint().toUpperCase();
       relayExtra.published = dateTimeFormat.format(desc.getPublishedMillis());
+      relayExtra.identity_ed25519 = desc.getIdentityEd25519() != null;
+      relayExtra.master_key_ed25519 = desc.getMasterKeyEd25519() != null;
       relayExtra.extra_info_digest = desc.getExtraInfoDigest();
+      relayExtra.extra_info_digest_sha256 = desc.getExtraInfoDigestSha256() != null;
       if (desc.getReadHistory() != null) {
         relayExtra.read_history = convertBandwidthHistory(desc.getReadHistory());
       }
@@ -804,12 +847,36 @@ public class ConvertToJson {
           relayExtra.exit_streams_opened = desc.getExitStreamsOpened();
         }
       }
-      //  extra.hidserv_stats_end = new StringInt(); // no getter in metrics-lib
-      //  extra.hidserv_rend_relayed_cells = new Object(); // no getter in metrics-lib
-      //  extra.hidserv_dir_onions_seen = new Object(); // no getter in metrics-lib
+      relayExtra.hidserv_stats_end = new HidStats();
+      relayExtra.hidserv_stats_end.date = dateTimeFormat.format(desc.getHidservStatsEndMillis());
+      relayExtra.hidserv_stats_end.interval = desc.getHidservStatsIntervalLength();
+      relayExtra.hidserv_rend_relayed_cells = new HidRend();
+      relayExtra.hidserv_rend_relayed_cells.cells = desc.getHidservRendRelayedCells();
+      relayExtra.hidserv_rend_relayed_cells.obfuscation = new ArrayList<>();
+      if (desc.getHidservRendRelayedCellsParameters() != null &&
+              !desc.getHidservRendRelayedCellsParameters().isEmpty()) {
+        //  TODO non-verbose version + switch
+        for (Map.Entry<String,Double> mapEntry : desc.getHidservRendRelayedCellsParameters().entrySet()) {
+          relayExtra.hidserv_rend_relayed_cells.obfuscation.add(
+                  new StringDouble(mapEntry.getKey(), mapEntry.getValue())
+          );
+        }
+      }
+      relayExtra.hidserv_dir_onions_seen = new HidDir();
+      relayExtra.hidserv_dir_onions_seen.onions = desc.getHidservDirOnionsSeen();
+      relayExtra.hidserv_dir_onions_seen.obfuscation = new ArrayList<>();
+      if (desc.getHidservDirOnionsSeenParameters() != null &&
+              !desc.getHidservDirOnionsSeenParameters().isEmpty()) {
+        //  TODO non-verbose version + switch
+        for (Map.Entry<String,Double> mapEntry : desc.getHidservDirOnionsSeenParameters().entrySet()) {
+          relayExtra.hidserv_dir_onions_seen.obfuscation.add(
+                  new StringDouble(mapEntry.getKey(), mapEntry.getValue())
+          );
+        }
+      }
       relayExtra.transport = desc.getTransports();
-      //  extra.router_sig_ed25519 = false; // no getter in metrics-lib
-      //  extra.router_signature = false; // no getter in metrics-lib
+      relayExtra.router_sig_ed25519 = desc.getRouterSignatureEd25519() != null;
+      relayExtra.router_signature = desc.getRouterSignature() != null;
       return ToJson.serialize(relayExtra);
     }
   }
@@ -827,6 +894,7 @@ public class ConvertToJson {
     String fingerprint;
     String published;
     String extra_info_digest;
+    Boolean extra_info_digest_sha256; // getExtraInfoDigestSha256
     BandwidthHistory read_history;
     BandwidthHistory write_history;
     String geoip_db_digest;
@@ -871,12 +939,24 @@ public class ConvertToJson {
     Object exit_kibibytes_written;
     Object exit_kibibytes_read;
     Object exit_streams_opened;
-    //  StringInt hidserv_stats_end;
-    //  Object hidserv_rend_relayed_cells;
-    //  Object hidserv_dir_onions_seen;
+
+/*
+    Object hidserv_stats_end;
+    String date; // long getHidservStatsEndMillis
+    Integer interval; // long getHidservStatsIntervalLength();
+
+    Object hidserv_rend_relayed_cells;
+    Double cells; // Double getHidservRendRelayedCells();
+    List<StringInt> obfuscation; // Map<String, Double> getHidservRendRelayedCellsParameters()
+
+    Object hidserv_dir_onions_seen;
+    Double onions; // Double getHidservDirOnionsSeen();
+    List<StringInt> obfuscation; // Map<String, Double> getHidservDirOnionsSeenParameters();
+*/
+
     List<String> transport;
-    //  Boolean router_sig_ed25519;
-    //  Boolean router_signature;
+    Boolean router_sig_ed25519; // getRouterSignatureEd25519
+    Boolean router_signature; // getRouterSignature
 
     static String convert(BridgeExtraInfoDescriptor desc) {
       JsonBridgeExtraInfoDescriptor bridgeExtra = new JsonBridgeExtraInfoDescriptor();
@@ -1298,10 +1378,12 @@ public class ConvertToJson {
       cons.voting_delay = new Vote();
       cons.voting_delay.vote_seconds = desc.getVoteSeconds();
       cons.voting_delay.dist_seconds = desc.getDistSeconds();
-      if (desc.getRecommendedClientVersions() != null && !desc.getRecommendedClientVersions().isEmpty()) {
+      if (desc.getRecommendedClientVersions() != null &&
+              !desc.getRecommendedClientVersions().isEmpty()) {
         cons.client_version = desc.getRecommendedClientVersions();
       }
-      if (desc.getRecommendedServerVersions() != null && !desc.getRecommendedServerVersions().isEmpty()) {
+      if (desc.getRecommendedServerVersions() != null &&
+              !desc.getRecommendedServerVersions().isEmpty()) {
         cons.server_versions = desc.getRecommendedServerVersions();
       }
       if (desc.getKnownFlags() != null && !desc.getKnownFlags().isEmpty()) {
@@ -1349,7 +1431,8 @@ public class ConvertToJson {
           router.r.ip = status.getValue().getAddress();
           router.r.or_port = status.getValue().getOrPort();
           router.r.dir_port = status.getValue().getDirPort();
-          if (status.getValue().getOrAddresses() != null && !status.getValue().getOrAddresses().isEmpty()) {
+          if (status.getValue().getOrAddresses() != null &&
+                  !status.getValue().getOrAddresses().isEmpty()) {
             router.a = status.getValue().getOrAddresses();
           }
           if (status.getValue().getFlags() != null && !status.getValue().getFlags().isEmpty()) {
@@ -1459,6 +1542,7 @@ public class ConvertToJson {
       String v;  // version
       W w;  // bandwidths
       Policy p;  // policies
+      Boolean id;                                     // getMasterKeyEd25519
     }
     static class R {
       String nickname;
@@ -1505,10 +1589,12 @@ public class ConvertToJson {
       vote.voting_delay = new Vote();
       vote.voting_delay.vote_seconds = desc.getVoteSeconds();
       vote.voting_delay.dist_seconds = desc.getDistSeconds();
-      if (desc.getRecommendedClientVersions() != null && !desc.getRecommendedClientVersions().isEmpty()) {
+      if (desc.getRecommendedClientVersions() != null &&
+              !desc.getRecommendedClientVersions().isEmpty()) {
         vote.client_version = desc.getRecommendedClientVersions();
       }
-      if (desc.getRecommendedServerVersions() != null && !desc.getRecommendedServerVersions().isEmpty()) {
+      if (desc.getRecommendedServerVersions() != null &&
+              !desc.getRecommendedServerVersions().isEmpty()) {
         vote.server_versions = desc.getRecommendedServerVersions();
       }
       vote.flagTreshold = new FlagTreshold();
@@ -1565,8 +1651,10 @@ public class ConvertToJson {
       vote.authority.legacy_dir_key = desc.getLegacyDirKey();
       vote.authority.key_certificate = new Cert();
       vote.authority.key_certificate.version = desc.getDirKeyCertificateVersion();
-      vote.authority.key_certificate.dir_key_published = dateTimeFormat.format(desc.getDirKeyPublishedMillis());
-      vote.authority.key_certificate.dir_key_expires = dateTimeFormat.format(desc.getDirKeyExpiresMillis());
+      vote.authority.key_certificate.dir_key_published =
+              dateTimeFormat.format(desc.getDirKeyPublishedMillis());
+      vote.authority.key_certificate.dir_key_expires =
+              dateTimeFormat.format(desc.getDirKeyExpiresMillis());
       vote.authority.key_certificate.dir_signing_key = desc.getSigningKeyDigest() != null;
       if (desc.getStatusEntries() != null && !desc.getStatusEntries().isEmpty()) {
         vote.router_status = new ArrayList();
@@ -1581,7 +1669,8 @@ public class ConvertToJson {
           router.r.ip = status.getValue().getAddress();
           router.r.or_port = status.getValue().getOrPort();
           router.r.dir_port = status.getValue().getDirPort();
-          if (status.getValue().getOrAddresses() != null && !status.getValue().getOrAddresses().isEmpty()) {
+          if (status.getValue().getOrAddresses() != null &&
+                  !status.getValue().getOrAddresses().isEmpty()) {
             router.a = status.getValue().getOrAddresses();
           }
           if (status.getValue().getFlags() != null && !status.getValue().getFlags().isEmpty()) {
@@ -1600,6 +1689,7 @@ public class ConvertToJson {
           router.p = new Policy();
           router.p.default_policy = status.getValue().getDefaultPolicy();
           router.p.port_summary = status.getValue().getPortList();
+          router.id = status.getValue().getMasterKeyEd25519() != null;
           vote.router_status.add(router);
         }
       }
@@ -1608,10 +1698,14 @@ public class ConvertToJson {
         vote.directory_footer.directory_signature = new DirSig();
         SortedMap<String,DirectorySignature> dirSigs = desc.getDirectorySignatures();
         for(Map.Entry<String,DirectorySignature> dirSig : dirSigs.entrySet()) {
-          vote.directory_footer.directory_signature.algorithm = dirSig.getValue().getAlgorithm();
-          vote.directory_footer.directory_signature.identity = dirSig.getValue().getIdentity();
-          vote.directory_footer.directory_signature.signing_key_digest = dirSig.getValue().getSigningKeyDigest();
-          vote.directory_footer.directory_signature.signature = dirSig.getValue().getSignature() != null;
+          vote.directory_footer.directory_signature.algorithm =
+                  dirSig.getValue().getAlgorithm();
+          vote.directory_footer.directory_signature.identity =
+                  dirSig.getValue().getIdentity();
+          vote.directory_footer.directory_signature.signing_key_digest =
+                  dirSig.getValue().getSigningKeyDigest();
+          vote.directory_footer.directory_signature.signature =
+                  dirSig.getValue().getSignature() != null;
         }
       }
       return ToJson.serialize(vote);
@@ -1749,7 +1843,6 @@ public class ConvertToJson {
         tordnsel.descriptor_type = annotation.substring("@type ".length());
       }
       tordnsel.downloaded = desc.getDownloadedMillis();
-
       if (desc.getEntries() != null && !desc.getEntries().isEmpty()) {
         tordnsel.relays = new ArrayList<>();
         for(ExitList.Entry exitEntry : desc.getEntries()) {
@@ -1766,34 +1859,9 @@ public class ConvertToJson {
             entry.exit_list.add(exit);
 
           }
-
-//          en.exit_adress = new Exit();
-//          en.exit_adress.ip = exitEntry.getExitAddress();
-//          en.exit_adress.date = dateTimeFormat.format(exitEntry.getScanMillis());
-
-
           tordnsel.relays.add(entry);
         }
       }
-
-
-/*
-      if (desc.getExitListEntries() != null && !desc.getExitListEntries().isEmpty()) {
-        tordnsel.relays = new ArrayList<Entry>();
-        for(ExitListEntry entry : desc.getExitListEntries() ) {
-          Entry en = new Entry();
-          en.fingerprint = entry.getFingerprint();
-          en.published = dateTimeFormat.format(entry.getPublishedMillis());
-          en.last_status = dateTimeFormat.format(entry.getLastStatusMillis());
-          en.exit_adress = new Exit();
-          en.exit_adress.ip = entry.getExitAddress();
-          en.exit_adress.date = dateTimeFormat.format(entry.getScanMillis());
-          tordnsel.relays.add(en);
-        }
-      }
-*/
-
-
       return ToJson.serialize(tordnsel);
     }
   }
@@ -1894,7 +1962,8 @@ public class ConvertToJson {
 
   /*  Convert everything to a JSON string and return that.
    *  If flag 'verbose' is set also serialize attributes evaluating to null.
-   *  Gson docs: https://google-gson.googlecode.com/svn/trunk/gson/docs/javadocs/com/google/gson/GsonBuilder.html
+   *  Gson docs: https://google-gson.googlecode.com/svn/trunk/gson/docs/
+   *  javadocs/com/google/gson/GsonBuilder.html
    */
   static class ToJson {
     static String serialize(JsonDescriptor jsonDescriptor) {

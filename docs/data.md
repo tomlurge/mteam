@@ -158,8 +158,8 @@ JSON SERIALIZATION
 		"or_port": #,
 		"socks_port": #,
 		"dir_port": #,
-		"identity_ed25519": boolean,
-		"master_key_ed25519": boolean,
+		"identity_ed25519": boolean           getIdentityEd25519
+		"master_key_ed25519": boolean         getMasterKeyEd25519
 		"bandwidth_avg": #,
 		"bandwidth_burst": #,
 		"bandwidth_observed": #,
@@ -169,16 +169,16 @@ JSON SERIALIZATION
 		"hibernating": boolean,
 		"uptime": #,
 		"onion_key": boolean,
-		"onion_key_crosscert": boolean,
+		"onion_key_crosscert":                boolean getOnionKeyCrosscert
 		"ntor_onion_key": "",
 		"ntor_onion_key_crosscert": {
-			"bit": boolean,
-			"sig": boolean
+			"cert": boolean                     getNtorOnionKeyCrosscert
+			"bit": int                          getNtorOnionKeyCrosscertSign
 		},
 		"signing_key": boolean,
 		"exit-policy": ["","",""...],
 		"ipv6_policy": "",
-		"router_sig_ed25519": boolean,
+		"router_sig_ed25519": boolean         getRouterSignatureEd25519
 		"router_signature": boolean,
 		"contact": "",
 		"family": ["","",""...],
@@ -195,6 +195,7 @@ JSON SERIALIZATION
 		"eventdns": boolean,
 		"caches_extra_info": boolean,
 		"extra_info_digest": "",
+		"extra_info_digest_sha256": boolean   getExtraInfoDigestSha256
 		"hidden_service_dir": [#,#,#...],
 		"link_protocol_versions": [#,#,#...],
 		"circuit_protocol_versions": [#,#,#...],
@@ -310,7 +311,8 @@ JSON SERIALIZATION
 		"descriptor_type": "extra-info 1.0",
 		"nickname": "",
 		"fingerprint": "",
-		// "identity_ed25519": boolean,
+		"identity_ed25519": boolean           getIdentityEd25519
+		"master_key_ed25519": boolean         getMasterKeyEd25519
 		"published": "",
 		"extra_info_digest": "",
 		"read_history": {
@@ -497,8 +499,8 @@ JSON SERIALIZATION
 			}
 			...
 		],
-		"router_sig_ed25519": boolean
-		"router_signature": boolean
+		"router_sig_ed25519": boolean   getRouterSignatureEd25519
+		"router_signature": boolean     getRouterSignature
 	}
 		
 
@@ -957,7 +959,7 @@ JSON SERIALIZATION
 					...                           
 				],
 				"id": {
-				  "ed25519": ""                 // so far not implemented in collecTor
+				  "ed25519": boolean            getMasterKeyEd25519
 				},                            
 			}                                 
 			...                               
@@ -972,7 +974,6 @@ JSON SERIALIZATION
 		}                                   
 	}
 	
-	POSTPONED
 	
 	
 	
@@ -1727,14 +1728,14 @@ JSON SERIALIZATION
 	{                            ExitList
 		"descriptor_type": "tordnsel 1.0",
 		"downloaded": "",          getDownloadedMillis
-		"relays": [                Set<ExitListEntry> getExitListEntries()
+		"relays": [                Set<ExitList.Entry> getEntries
 			{                        
 				"fingerprint": "",     getFingerprint
 				"published": "",       long getPublishedMillis
 				"last_status": "",     long getLastStatusMillis
-				"exits": [             // TODO bug in metrics-lib
-          exit_address": {                    
-            "adress": "",      getExitAddress
+				"exit_list": [         Map<String,Long> getExitAddresses
+          {                    
+            "ip": "",          getExitAddress
             "date": ""         long getScanMillis
           }                 
           ...

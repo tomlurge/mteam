@@ -1,7 +1,29 @@
 # TODO
 
 * test
+  - convert one tarball per type 
+      to see if there is one suspiciously big JSON result
+  - error handling
+  - task-17872
+    - server descriptors 
+        x Ed25519 certificates 
+        x Ed25519 master keys
+        x Ed25519 signatures
+        x SHA-256 digests
+        x onion-key cross certificates
+        x ntor-onion-key cross certificates
+      extra-info descriptors
+        x Ed25519 certificates 
+        x Ed25519 master keys 
+        x Ed25519 signatures
+        x SHA-256 digests
+        x hidden-service statistics
+      micro
+        RSA-1024 signatures of SHA-1 digests
+      votes
+        x Ed25519 master keys
   - review verbose branch line 275 & 416
+  - add verbosity on new attributes
     
 * gegen speicherprobleme der javaVM
     -Xmx8g 
@@ -29,7 +51,11 @@
                                                  compressed 15 MB
     - the same as JSON, but verbose, uncompressed        -> 72 MB
                                                  compressed 15,1 MB
-   
+* check sizes again
+  + a bunch of archives, XZ, one of each type            ->  1 GB
+  + the same as JSON, GZ, with nulls and chatty arrays   ->  5.7 GB
+  + the same as JSON, GZ, with chatty arrays             ->  5.63 GB
+  
 * modularize
 * write tests
   + that would involve writing test descriptors too i guess
