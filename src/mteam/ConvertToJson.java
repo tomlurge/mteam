@@ -213,8 +213,8 @@ public class ConvertToJson {
     int or_port;
     int socks_port;  // most likely 0 except for *very* old descriptors
     int dir_port;
-    Boolean identity_ed25519;                       // getIdentityEd25519
-    String master_key_ed25519;                     // getMasterKeyEd25519
+    Boolean identity_ed25519;                                                   // getIdentityEd25519
+    String master_key_ed25519;                                                  // getMasterKeyEd25519
     Integer bandwidth_avg;
     Integer bandwidth_burst;
     Integer bandwidth_observed;  // missing in older descriptors!
@@ -224,17 +224,18 @@ public class ConvertToJson {
     Boolean hibernating;
     Long uptime;  // though usually set
     Boolean onion_key;  // usually false b/c sanitization
-    Boolean onion_key_crosscert;                    // getOnionKeyCrosscert
+    Boolean onion_key_crosscert;                                                // getOnionKeyCrosscert
     Boolean ntor_onion_key;
     CrossCert ntor_onion_key_crosscert;
     static class CrossCert {
-      String cert;                                 // getNtorOnionKeyCrosscert
-      Integer bit;                                  // getNtorOnionKeyCrosscertSign
+      String cert;                                                              // getNtorOnionKeyCrosscert
+      Integer bit;                                                              // getNtorOnionKeyCrosscertSign
     }
     Boolean signing_key;  // usually false b/c sanitization
     List<String> exit_policy;
     String ipv6_policy;
-    Boolean router_sig_ed25519;                     // getRouterSignatureEd25519
+    String ipv6_portlist;  // getIpv6PortList
+    Boolean router_sig_ed25519;                                                 // getRouterSignatureEd25519
     Boolean router_signature;
     String contact;
     List<String> family;  // apparently not used at all
@@ -243,14 +244,14 @@ public class ConvertToJson {
     Boolean eventdns;
     Boolean caches_extra_info;
     String extra_info_digest;  // upper-case hex
-    String extra_info_digest_sha256;               // getExtraInfoDigestSha256
+    String extra_info_digest_sha256;                                            // getExtraInfoDigestSha256
     List<Integer> hidden_service_dir_versions;
     List<Integer> link_protocol_versions;
     List<Integer> circuit_protocol_versions;
     Boolean allow_single_hop_exits;
-    List<?> or_addresses;  // addresses sanitized!
+    Object or_addresses;  // addresses sanitized!
     String router_digest;  // upper-case hex
-    String router_digest_sha256;                    // getServerDescriptorDigestSha256
+    String router_digest_sha256;                                                // getServerDescriptorDigestSha256
 
     static String convert(ServerDescriptor desc) {
       JsonRelayServerDescriptor relay = new JsonRelayServerDescriptor();
@@ -299,6 +300,7 @@ public class ConvertToJson {
         relay.exit_policy = desc.getExitPolicyLines();
       }
       relay.ipv6_policy = desc.getIpv6DefaultPolicy();
+      relay.ipv6_portlist = desc.getIpv6PortList();
       relay.router_sig_ed25519 = desc.getRouterSignatureEd25519() != null;
       relay.router_signature = desc.getRouterSignature() != null;
       relay.contact = desc.getContact();
@@ -334,15 +336,12 @@ public class ConvertToJson {
       }
       relay.allow_single_hop_exits = desc.getAllowSingleHopExits();
       if(jagged) {
-        //  TODO  this really needs a test
-        relay.or_addresses  = new ArrayList<String>();
+        //  TODO test
+        //  List<String> getOrAddresses();
+        relay.or_addresses  = new HashMap<String,Integer>();
         if (desc.getOrAddresses() != null && !desc.getOrAddresses().isEmpty()) {
-          relay.or_addresses = desc.getOrAddresses();
-        }
-      } else {
-        relay.or_addresses = new ArrayList<StringInt>();
-        if (desc.getOrAddresses() != null && !desc.getOrAddresses().isEmpty()) {
-          ArrayList<StringInt> verboseOR = new ArrayList<>();
+
+          HashMap<String,Integer> jaggedOR = new HashMap<>();
           for (String orAddress : desc.getOrAddresses()) {
             if (!orAddress.contains(":")) {
               continue;
@@ -350,14 +349,33 @@ public class ConvertToJson {
             int lastColon = orAddress.lastIndexOf(":");
             try {
               int val = Integer.parseInt(orAddress.substring(lastColon + 1));
-              verboseOR.add(
+              jaggedOR.put( orAddress.substring(0, lastColon), val );
+            } catch (NumberFormatException e) {
+              continue;
+            }
+          }
+          relay.or_addresses = jaggedOR;
+
+        }
+      } else {
+        relay.or_addresses = new ArrayList<StringInt>();
+        if (desc.getOrAddresses() != null && !desc.getOrAddresses().isEmpty()) {
+          ArrayList<StringInt> flatOR = new ArrayList<>();
+          for (String orAddress : desc.getOrAddresses()) {
+            if (!orAddress.contains(":")) {
+              continue;
+            }
+            int lastColon = orAddress.lastIndexOf(":");
+            try {
+              int val = Integer.parseInt(orAddress.substring(lastColon + 1));
+              flatOR.add(
                       new StringInt(orAddress.substring(0, lastColon), val)
               );
             } catch (NumberFormatException e) {
               continue;
             }
           }
-          relay.or_addresses = verboseOR;
+          relay.or_addresses = flatOR;
         }
       }
       relay.router_digest = desc.getServerDescriptorDigest().toUpperCase();
@@ -376,8 +394,8 @@ public class ConvertToJson {
     int or_port;
     int socks_port;  // most likely 0 except for *very* old descriptors
     int dir_port;
-    Boolean identity_ed25519;                       // getIdentityEd25519
-    String master_key_ed25519;                     // getMasterKeyEd25519
+    Boolean identity_ed25519;                                                   // getIdentityEd25519
+    String master_key_ed25519;                                                  // getMasterKeyEd25519
     Integer bandwidth_avg;
     Integer bandwidth_burst;
     Integer bandwidth_observed;  // missing in older descriptors!
@@ -387,17 +405,18 @@ public class ConvertToJson {
     Boolean hibernating;
     Long uptime;  // though usually set
     Boolean onion_key;  // usually false b/c sanitization
-    Boolean onion_key_crosscert;                    // getOnionKeyCrosscert
+    Boolean onion_key_crosscert;                                                // getOnionKeyCrosscert
     Boolean ntor_onion_key;
     CrossCert ntor_onion_key_crosscert;
     static class CrossCert {
-      String cert;                                 // getNtorOnionKeyCrosscert
-      Integer bit;                                  // getNtorOnionKeyCrosscertSign
+      String cert;                                                              // getNtorOnionKeyCrosscert
+      Integer bit;                                                              // getNtorOnionKeyCrosscertSign
     }
     Boolean signing_key;  // usually false b/c sanitization
     List<String> exit_policy;
     String ipv6_policy;
-    Boolean router_sig_ed25519;                     // getRouterSignatureEd25519
+    String ipv6_portlist;  // getIpv6PortList
+    Boolean router_sig_ed25519;                                                 // getRouterSignatureEd25519
     String contact;
     List<String> family;  // apparently not used at all
     BandwidthHistory read_history;
@@ -405,14 +424,14 @@ public class ConvertToJson {
     Boolean eventdns;
     Boolean caches_extra_info;
     String extra_info_digest;  // upper-case hex
-    String extra_info_digest_sha256;               // getExtraInfoDigestSha256
+    String extra_info_digest_sha256;                                            // getExtraInfoDigestSha256
     List<Integer> hidden_service_dir_versions;
     List<Integer> link_protocol_versions;
     List<Integer> circuit_protocol_versions;
     Boolean allow_single_hop_exits;
-    List<StringInt> or_addresses;  // addresses sanitized!
+    Object or_addresses;  // addresses sanitized!
     String router_digest;  // upper-case hex
-    String router_digest_sha256;                    // getServerDescriptorDigestSha256
+    String router_digest_sha256;                                                // getServerDescriptorDigestSha256
 
     static String convert(ServerDescriptor desc) {
       JsonBridgeServerDescriptor bridge = new JsonBridgeServerDescriptor();
@@ -456,13 +475,18 @@ public class ConvertToJson {
       //  verbose testing because of List type
       //  first check that the list is not null, then if it's empty
       //  (checking for emptiness right away could lead to null pointer exc)
+      bridge.exit_policy  = new ArrayList<>();
       if (desc.getExitPolicyLines() != null && !desc.getExitPolicyLines().isEmpty()) {
         bridge.exit_policy = desc.getExitPolicyLines();
       }
       bridge.ipv6_policy = desc.getIpv6DefaultPolicy();
+      bridge.ipv6_portlist = desc.getIpv6PortList();
       bridge.router_sig_ed25519 = desc.getRouterSignatureEd25519() != null;
       bridge.contact = desc.getContact();
-      bridge.family = desc.getFamilyEntries();
+      bridge.family = new ArrayList<>();
+      if (desc.getFamilyEntries() != null && !desc.getFamilyEntries().isEmpty()) {
+        bridge.family = desc.getFamilyEntries();
+      }
       //  check for 'null' first because we want to run a method on it
       //  and not get a null pointer exception meanwhile
       if (desc.getReadHistory() != null) {
@@ -477,32 +501,27 @@ public class ConvertToJson {
         bridge.extra_info_digest = desc.getExtraInfoDigest().toUpperCase();
       }
       bridge.extra_info_digest_sha256 = desc.getExtraInfoDigestSha256();
-      bridge.hidden_service_dir_versions = desc.getHiddenServiceDirVersions();
-      bridge.link_protocol_versions = desc.getLinkProtocolVersions();
-      bridge.circuit_protocol_versions = desc.getCircuitProtocolVersions();
+      bridge.hidden_service_dir_versions = new ArrayList<>();
+      if (desc.getFamilyEntries() != null && !desc.getFamilyEntries().isEmpty()) {
+        bridge.hidden_service_dir_versions = desc.getHiddenServiceDirVersions();
+      }
+      bridge.link_protocol_versions = new ArrayList<>();
+      if (desc.getLinkProtocolVersions() != null && !desc.getLinkProtocolVersions().isEmpty()) {
+        bridge.link_protocol_versions = desc.getLinkProtocolVersions();
+      }
+      bridge.circuit_protocol_versions = new ArrayList<>();
+      if (desc.getCircuitProtocolVersions() != null && !desc.getCircuitProtocolVersions().isEmpty()) {
+        bridge.circuit_protocol_versions = desc.getCircuitProtocolVersions();
+      }
       bridge.allow_single_hop_exits = desc.getAllowSingleHopExits();
-      if (desc.getOrAddresses() != null && !desc.getOrAddresses().isEmpty()) {
-        bridge.or_addresses = new ArrayList<>();
-        for (String orAddress : desc.getOrAddresses()) {
-          if (!orAddress.contains(":")) {
-            continue;
-          }
-          int lastColon = orAddress.lastIndexOf(":");
-          try {
-            int val = Integer.parseInt(orAddress.substring(lastColon + 1));
-            bridge.or_addresses.add(
-                    new StringInt(orAddress.substring(0, lastColon), val)
-            );
-          } catch (NumberFormatException e) {
-            continue;
-          }
-        }
-        /*  TODO the above solution always returns verbose results
-                 but the non-verbose 'else' clause below needs review & testing
 
-        if(verbose) {
-          ArrayList<StringInt> verboseOR = new ArrayList<StringInt>();
-          server.or_addresses = new ArrayList<StringInt>();
+      if(jagged) {
+        //  TODO test
+        //  List<String> getOrAddresses();
+        bridge.or_addresses  = new HashMap<String,Integer>();
+        if (desc.getOrAddresses() != null && !desc.getOrAddresses().isEmpty()) {
+
+          HashMap<String,Integer> jaggedOR = new HashMap<>();
           for (String orAddress : desc.getOrAddresses()) {
             if (!orAddress.contains(":")) {
               continue;
@@ -510,22 +529,36 @@ public class ConvertToJson {
             int lastColon = orAddress.lastIndexOf(":");
             try {
               int val = Integer.parseInt(orAddress.substring(lastColon + 1));
-              verboseOR.add(
+              jaggedOR.put( orAddress.substring(0, lastColon), val );
+            } catch (NumberFormatException e) {
+              continue;
+            }
+          }
+          bridge.or_addresses = jaggedOR;
+
+        }
+      } else {
+        bridge.or_addresses = new ArrayList<StringInt>();
+        if (desc.getOrAddresses() != null && !desc.getOrAddresses().isEmpty()) {
+          ArrayList<StringInt> flatOR = new ArrayList<>();
+          for (String orAddress : desc.getOrAddresses()) {
+            if (!orAddress.contains(":")) {
+              continue;
+            }
+            int lastColon = orAddress.lastIndexOf(":");
+            try {
+              int val = Integer.parseInt(orAddress.substring(lastColon + 1));
+              flatOR.add(
                       new StringInt(orAddress.substring(0, lastColon), val)
               );
             } catch (NumberFormatException e) {
               continue;
             }
           }
-          server.or_addresses = verboseOR;
-        } else {
-          server.or_addresses = desc.getOrAddresses();
+          bridge.or_addresses = flatOR;
         }
-
-        // don't forget to define 'or_addresses' as type 'Object' above
-
-        */
       }
+
       bridge.router_digest = desc.getServerDescriptorDigest().toUpperCase();
       bridge.router_digest_sha256 = desc.getServerDescriptorDigest();
 
@@ -552,8 +585,9 @@ public class ConvertToJson {
     Object dirreq_v3_ips;
     Object dirreq_v2_reqs;
     // TODO test in progress
-    //  Object dirreq_v3_reqs;
-    List<?> dirreq_v3_reqs; // TODO test in progress
+       Object dirreq_v3_reqs;
+    // List<?> dirreq_v3_reqs;
+    // TODO test in progress
     Double dirreq_v2_share;
     Double dirreq_v3_share;
     Object dirreq_v2_resp;
@@ -676,36 +710,20 @@ public class ConvertToJson {
         }
       }
 
-      // TODO test in progress
-      /* backup
-      if (desc.getDirreqV3Reqs() != null && !desc.getDirreqV3Reqs().isEmpty()) {
-        if (jagged) {
-          relayExtra.dirreq_v3_reqs = desc.getDirreqV3Reqs();
-        } else {
-          ArrayList<StringInt> verboseV3Reqs = new ArrayList<>();
-          relayExtra.dirreq_v3_reqs = new ArrayList<>();
-          SortedMap<String, Integer> v3_reqs = desc.getDirreqV3Reqs();
-          for (Map.Entry<String, Integer> v3_req : v3_reqs.entrySet()) {
-            verboseV3Reqs.add(new StringInt(v3_req.getKey(), v3_req.getValue()));
-          }
-          relayExtra.dirreq_v3_reqs = verboseV3Reqs;
-        }
-      }*/
-
+      // SortedMap<String, Integer> getDirreqV3Reqs();
       if (jagged) {
-        relayExtra.dirreq_v3_reqs = new ArrayList<Object>();
+        relayExtra.dirreq_v3_reqs = new HashMap<>();
         if (desc.getDirreqV3Reqs() != null && !desc.getDirreqV3Reqs().isEmpty()) {
 
+          relayExtra.dirreq_v3_reqs = desc.getDirreqV3Reqs();
 
+          /*  this didn't work
           ArrayList<Object> verboseV3Reqs = new ArrayList<>();
-
           for (Map.Entry<String, Integer> v3_req : desc.getDirreqV3Reqs().entrySet()) {
-            verboseV3Reqs.add(new Object(v3_req.getKey(), v3_req.getValue()));
+            verboseV3Reqs.add(v3_req.getKey(), v3_req.getValue());
           }
-
           relayExtra.dirreq_v3_reqs = verboseV3Reqs;
-
-
+          */
         }
       } else {
         relayExtra.dirreq_v3_reqs = new ArrayList<StringInt>();
@@ -717,10 +735,6 @@ public class ConvertToJson {
           relayExtra.dirreq_v3_reqs = verboseV3Reqs;
         }
       }
-
-      // TODO test in progress
-
-
 
       if (desc.getDirreqV2Share() >= 0) {
         relayExtra.dirreq_v2_share = desc.getDirreqV2Share();
@@ -974,7 +988,7 @@ public class ConvertToJson {
     String descriptor_type;
     String nickname;
     String fingerprint;
-    Boolean identity_ed25519;                       // getIdentityEd25519
+    Boolean identity_ed25519;                                                   // getIdentityEd25519
     String published;
     BandwidthHistory read_history;
     BandwidthHistory write_history;
@@ -1031,26 +1045,26 @@ public class ConvertToJson {
 
     HidStats hidserv_stats_end;
     static class HidStats {
-      String date;                                  // long getHidservStatsEndMillis
-      Long interval;                                // long getHidservStatsIntervalLength();
+      String date;                                                              // long getHidservStatsEndMillis
+      Long interval;                                                            // long getHidservStatsIntervalLength();
     }
     HidRend hidserv_rend_relayed_cells;
     static class HidRend {
-      Double cells;                                 // Double getHidservRendRelayedCells();
-      Object obfuscation;                           // Map<String, Double> getHidservRendRelayedCellsParameters()
+      Double cells;                                                             // Double getHidservRendRelayedCells();
+      Object obfuscation;                                                       // Map<String, Double> getHidservRendRelayedCellsParameters()
     }
     HidDir hidserv_dir_onions_seen;
     static class HidDir {
-      Double onions;                                // Double getHidservDirOnionsSeen();
-      Object obfuscation;                           // Map<String, Double> getHidservDirOnionsSeenParameters();
+      Double onions;                                                            // Double getHidservDirOnionsSeen();
+      Object obfuscation;                                                       // Map<String, Double> getHidservDirOnionsSeenParameters();
     }
 
     List<String> transport;
-    Boolean router_sig_ed25519; // getRouterSignatureEd25519
-    Boolean router_signature; // getRouterSignature
+    Boolean router_sig_ed25519;                                                 // getRouterSignatureEd25519
+    Boolean router_signature;                                                   // getRouterSignature
     String extra_info_digest;
-    String extra_info_digest_sha256; // getExtraInfoDigestSha256
-    String master_key_ed25519;                     // getMasterKeyEd25519
+    String extra_info_digest_sha256;                                            // getExtraInfoDigestSha256
+    String master_key_ed25519;                                                  // getMasterKeyEd25519
 
     static String convert(BridgeExtraInfoDescriptor desc) {
       JsonBridgeExtraInfoDescriptor bridgeExtra = new JsonBridgeExtraInfoDescriptor();
@@ -1687,7 +1701,7 @@ public class ConvertToJson {
       String v;  // version
       W w;  // bandwidths
       Policy p;  // policies
-      String id;                                     // getMasterKeyEd25519
+      String id;                                                                // getMasterKeyEd25519
     }
     static class R {
       String nickname;
@@ -1857,6 +1871,7 @@ public class ConvertToJson {
     }
   }
 
+
   //  bridge network status
   static class JsonBridgeNetworkStatus extends JsonDescriptor {
     String descriptor_type;
@@ -1966,6 +1981,7 @@ public class ConvertToJson {
     }
   }
 
+
   //  tordnsel
   static class JsonExitList extends JsonDescriptor {
     String descriptor_type;
@@ -1975,7 +1991,8 @@ public class ConvertToJson {
       String fingerprint;
       String published;
       String last_status;
-      List<Exit> exit_list;
+      // List<Exit> exit_list;
+      Object exit_list;
     }
     static class Exit {
       String ip;
@@ -1988,28 +2005,42 @@ public class ConvertToJson {
         tordnsel.descriptor_type = annotation.substring("@type ".length());
       }
       tordnsel.downloaded = desc.getDownloadedMillis();
+      tordnsel.relays = new ArrayList<>();
       if (desc.getEntries() != null && !desc.getEntries().isEmpty()) {
-        tordnsel.relays = new ArrayList<>();
         for(ExitList.Entry exitEntry : desc.getEntries()) {
           Entry entry = new Entry();
           entry.fingerprint = exitEntry.getFingerprint();
           entry.published = dateTimeFormat.format(exitEntry.getPublishedMillis());
           entry.last_status = dateTimeFormat.format(exitEntry.getLastStatusMillis());
-          entry.exit_list = new ArrayList<>();
-          for ( Map.Entry<String,Long> exitAdress : exitEntry.getExitAddresses().entrySet() ) {
+          if (jagged) {
+            entry.exit_list = new HashMap<String,String>();
+            if (exitEntry.getExitAddresses() != null && !exitEntry.getExitAddresses().isEmpty()) {
+              HashMap<String,String> jaggedList = new HashMap<>();
+              for (Map.Entry<String, Long> exitAdress : exitEntry.getExitAddresses().entrySet()) {
+                jaggedList.put(exitAdress.getKey(), dateTimeFormat.format(exitAdress.getValue()));
+              }
+              entry.exit_list = jaggedList;
 
-            Exit exit = new Exit();
-            exit.ip = exitAdress.getKey();
-            exit.date = dateTimeFormat.format(exitAdress.getValue());
-            entry.exit_list.add(exit);
-
+            }
+          } else {
+            entry.exit_list = new ArrayList<Exit>();
+            if (exitEntry.getExitAddresses() != null && !exitEntry.getExitAddresses().isEmpty()) {
+              ArrayList<Exit> flatExit = new ArrayList<>();
+              for (Map.Entry<String, Long> exitAdress : exitEntry.getExitAddresses().entrySet()) {
+                Exit exit = new Exit();
+                exit.ip = exitAdress.getKey();
+                exit.date = dateTimeFormat.format(exitAdress.getValue());
+                flatExit.add(exit);
+              }
+              entry.exit_list = flatExit;
+            }
           }
-          tordnsel.relays.add(entry);
         }
       }
       return ToJson.serialize(tordnsel);
     }
   }
+
 
   //  torperf
   static class JsonTorperfResult extends JsonDescriptor {
@@ -2082,9 +2113,11 @@ public class ConvertToJson {
       if (desc.getUsedAtMillis() >= 0) {
         torperf.used_at = dateTimeFormat.format(desc.getUsedAtMillis());
       }
+      torperf.path = new ArrayList<>();
       if (desc.getPath() != null && !desc.getPath().isEmpty()) {
         torperf.path = desc.getPath();
       }
+      torperf.buildtimes = new ArrayList<>();
       if (desc.getBuildTimes() != null && !desc.getBuildTimes().isEmpty()) {
         torperf.buildtimes = desc.getBuildTimes();
       }

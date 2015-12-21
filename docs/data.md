@@ -188,6 +188,7 @@ JSON SERIALIZATION
 		"signing_key": boolean,
 		"exit-policy": ["","",""...],
 		"ipv6_policy": "",
+		"ipv6_portlist": "",
 		"router_sig_ed25519": boolean         getRouterSignatureEd25519
 		"router_signature": boolean,
 		"contact": "",
@@ -210,19 +211,21 @@ JSON SERIALIZATION
 		"link_protocol_versions": [#,#,#...],
 		"circuit_protocol_versions": [#,#,#...],
 		"allow_single_hop_exits": boolean,
-		"or_address": [
+		"or_address": 
 		  // jagged
 		  { 
 		    "adress": #port 
+		     ...
 		  },
-		  ...
 		  // flattened
-			{
-				"adress": "",
-				"port": #
-			},
-			...
-		],
+		  [
+        {
+          "adress": "",
+          "port": #
+        },
+        ...
+      ]
+		,
 		"router_digest": "",
 		"router_digest_sha256": ""
 	}
@@ -285,13 +288,21 @@ JSON SERIALIZATION
 		"bandwidth_avg": #,                 req
 		"bandwidth_burst": #,               req
 		"bandwidth_observed": #,            opt
-		"or_addresses": [
-			{
-				"adress": "",
-				"port": #
-			}
-			...
-		],                                  
+		"or_addresses":
+		  // jagged
+		  { 
+		    "adress": #port 
+		     ...
+		  },
+		  // flattened
+		  [
+        {
+          "adress": "",
+          "port": #
+        },
+        ...
+      ]
+		,                              
 		"platform": "",                     opt
 		"published": "",                    
 		"fingerprint": "",                  
@@ -304,6 +315,7 @@ JSON SERIALIZATION
 		"signing_key": boolean,             req
 		"exit_policy": ["","",""...],       req 
 		"ipv6_policy": "",                  opt
+		"ipv6_portlist": "",
 		"router_sig_ed25519": boolean,
 		"contact": "",                      opt
 		"family": ["","",""...],            opt

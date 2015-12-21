@@ -6,6 +6,27 @@
 * jagginess
   - make sure that all arrays of key/value pairs have a jagged version (default)
     and a flattened version (for Drill)
+    
+    
+    relay     or_adresses       address:port      any number 
+    bridge    dito
+              
+              -> unklar ... wie eine Map erzeugen?
+                 aber ich hab das doch schon zb für die country liste
+                 extraInfo dirreq_v3_reqs   
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
 * null's etc
   * check for correct interpretation of return values
@@ -112,6 +133,7 @@
   [c] angenommen f. hätte so eine datenbank gehabt,
   [c] was hätte er machen können?
   
+  
 # BUGS
 
 ## NetworkStatusEntry
@@ -125,7 +147,7 @@ mapping is unclear:
 ## METRICS-LIB COVERAGE
   
   ServerDescriptor
-    never called: String getIpv6PortList()
+    okay
     
   ExtraInfiDescriptor
     okay
