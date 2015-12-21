@@ -16,8 +16,9 @@ import org.torproject.descriptor.*;
 public class ConvertToJson {
 
   /*  argument defaults  */
-  static boolean verbose = false; // defaults to 'false'
-  static boolean compress = true; // defaults to 'true'
+  static boolean jagged = true;
+  static boolean nulled = true;
+  static boolean compressed = true;
   static String dir = "";
 
   /*  Read all descriptors in the provided directory and
@@ -25,19 +26,29 @@ public class ConvertToJson {
   public static void main(String[] args) throws IOException {
 
     /*  optional command line arguments
-     *    -v                verbose: emit attributes with null values
+     *    -j                jagged arrays
+     *                        some objects have more attributes than others
+     *    -f                flattened arrays
+     *                        all objects have the same attributes
+     *                        all other objects are converted to arrays
+     *                        Apache Drill needs this
+     *    -n                null - also emit attributes with value null
+     *                        mainly Drill needs this
+     *    -w                without null - do not emit attributes of value null
+     *                        gains a little advantage in storage space
+     *    -c                compressed: do generate .gz archive
      *    -u                uncompressed: do not generate .gz archive
-     *    -t                testing: verbose and uncompressed
+     *                        mainly for testing
      *    <directory name>  scan only a given subdirectory of data/in
      *
      */
     for (String arg : args) {
-      if (arg.equals("-v")) verbose = true;
-      else if (arg.equals("-u")) compress = false;
-      else if (arg.equals("-t")) {
-        verbose = true;
-        compress = false;
-      }
+      if (arg.equals("-f")) jagged = false;
+      else if (arg.equals("-j")) jagged = true;
+      else if (arg.equals("-n")) nulled = true;
+      else if (arg.equals("-w")) nulled = false;
+      else if (arg.equals("-c")) compressed = true;
+      else if (arg.equals("-u")) compressed = false;
       else dir = arg;
     }
 
@@ -50,7 +61,7 @@ public class ConvertToJson {
     String outputPath = "data/out/";
     String outputName = "result.json";
     Writer JsonWriter;
-    if (compress) {
+    if (compressed) {
       JsonWriter = new OutputStreamWriter(new GZIPOutputStream(
               new FileOutputStream(outputPath + outputName + ".gz")));
     }
@@ -59,12 +70,13 @@ public class ConvertToJson {
     }
     BufferedWriter bw = new BufferedWriter(JsonWriter);
 
-    /*  TODO remove after testing */
+    /*  TODO remove after testing
       bw.write(
         "{\"verbose\": " + verbose +
         ", \"compress\": " + compress +
         ", \"starting at directory\" : \"data/in/" + dir + "\"},\n"
       );
+    */
 
     while (descriptorFiles.hasNext()) {
       DescriptorFile descriptorFile = descriptorFiles.next();
@@ -190,40 +202,40 @@ public class ConvertToJson {
       dateTimeFormat.setLenient(false);
       dateTimeFormat.setTimeZone(dateTimezone);
     }
-
   }
+
 
   //  relay descriptors
   static class JsonRelayServerDescriptor extends JsonDescriptor {
     String descriptor_type;
-    Boolean router_signature;
-    Boolean identity_ed25519;                       // getIdentityEd25519
-    Boolean master_key_ed25519;                     // getMasterKeyEd25519
-    Boolean onion_key_crosscert;                    // getOnionKeyCrosscert
-    CrossCert ntor_onion_key_crosscert;
-    static class CrossCert {
-      Boolean cert;                                 // getNtorOnionKeyCrosscert
-      Integer bit;                                  // getNtorOnionKeyCrosscertSign
-    }
-    String published;   // format YYYY-MM-DD HH:MM:SS
-    Boolean router_sig_ed25519;                     // getRouterSignatureEd25519
-    String fingerprint;  // always upper-case hex
     String nickname;  // can be mixed-case
     String address;  // changed to lower-case
     int or_port;
     int socks_port;  // most likely 0 except for *very* old descriptors
     int dir_port;
+    Boolean identity_ed25519;                       // getIdentityEd25519
+    String master_key_ed25519;                     // getMasterKeyEd25519
     Integer bandwidth_avg;
     Integer bandwidth_burst;
-    Boolean onion_key;  // usually false b/c sanitization
-    Boolean signing_key;  // usually false b/c sanitization
-    List<String> exit_policy;
     Integer bandwidth_observed;  // missing in older descriptors!
-    List<StringInt> or_addresses;  // addresses sanitized!
     String platform;  // though usually set
+    String published;   // format YYYY-MM-DD HH:MM:SS
+    String fingerprint;  // always upper-case hex
     Boolean hibernating;
     Long uptime;  // though usually set
+    Boolean onion_key;  // usually false b/c sanitization
+    Boolean onion_key_crosscert;                    // getOnionKeyCrosscert
+    Boolean ntor_onion_key;
+    CrossCert ntor_onion_key_crosscert;
+    static class CrossCert {
+      String cert;                                 // getNtorOnionKeyCrosscert
+      Integer bit;                                  // getNtorOnionKeyCrosscertSign
+    }
+    Boolean signing_key;  // usually false b/c sanitization
+    List<String> exit_policy;
     String ipv6_policy;
+    Boolean router_sig_ed25519;                     // getRouterSignatureEd25519
+    Boolean router_signature;
     String contact;
     List<String> family;  // apparently not used at all
     BandwidthHistory read_history;
@@ -231,71 +243,106 @@ public class ConvertToJson {
     Boolean eventdns;
     Boolean caches_extra_info;
     String extra_info_digest;  // upper-case hex
-    Boolean extra_info_digest_sha256;               // getExtraInfoDigestSha256
+    String extra_info_digest_sha256;               // getExtraInfoDigestSha256
     List<Integer> hidden_service_dir_versions;
     List<Integer> link_protocol_versions;
     List<Integer> circuit_protocol_versions;
     Boolean allow_single_hop_exits;
-    Boolean ntor_onion_key;
+    List<?> or_addresses;  // addresses sanitized!
     String router_digest;  // upper-case hex
-    Boolean router_digest_sha256;                    // getServerDescriptorDigestSha256
+    String router_digest_sha256;                    // getServerDescriptorDigestSha256
 
     static String convert(ServerDescriptor desc) {
       JsonRelayServerDescriptor relay = new JsonRelayServerDescriptor();
       for (String annotation : desc.getAnnotations()) {
         relay.descriptor_type = annotation.substring("@type ".length());
       }
-      relay.router_signature = desc.getRouterSignature() != null;
-      relay.identity_ed25519 = desc.getIdentityEd25519() != null;
-      relay.master_key_ed25519 = desc.getMasterKeyEd25519() != null;
-      relay.onion_key_crosscert = desc.getOnionKeyCrosscert() != null;
-      relay.ntor_onion_key_crosscert = new CrossCert();
-      relay.ntor_onion_key_crosscert.cert = desc.getNtorOnionKeyCrosscert() != null;
-      relay.ntor_onion_key_crosscert.bit = desc.getNtorOnionKeyCrosscertSign();
-      relay.router_sig_ed25519 = desc.getRouterSignatureEd25519() != null;
       relay.nickname = desc.getNickname();
       relay.address = desc.getAddress();
       relay.or_port = desc.getOrPort();
       relay.socks_port = desc.getSocksPort();
       relay.dir_port = desc.getDirPort();
+      relay.identity_ed25519 = desc.getIdentityEd25519() != null;
+      relay.master_key_ed25519 = desc.getMasterKeyEd25519();
       relay.bandwidth_avg = desc.getBandwidthRate();
       relay.bandwidth_burst = desc.getBandwidthBurst();
-      //  test, if there is a key: return 'true' if yes, 'false' otherwise
-      relay.onion_key = desc.getOnionKey() != null;
-      relay.signing_key = desc.getSigningKey() != null;
-      //  verbose testing because of List type
-      //  first check that the list is not null, then if it's empty
-      //  (checking for emptiness right away could lead to null pointer exc)
-      if (desc.getExitPolicyLines() != null && !desc.getExitPolicyLines().isEmpty()) {
-        relay.exit_policy = desc.getExitPolicyLines();
-      }
       //  can be '-1' if null. in that case we don't touch it here, leaving the
       //  default from the class definition intact
       if (desc.getBandwidthObserved() >= 0) {
         relay.bandwidth_observed = desc.getBandwidthObserved();
       }
-      if (desc.getOrAddresses() != null && !desc.getOrAddresses().isEmpty()) {
-        relay.or_addresses = new ArrayList<>();
-        for (String orAddress : desc.getOrAddresses()) {
-          if (!orAddress.contains(":")) {
-            continue;
-          }
-          int lastColon = orAddress.lastIndexOf(":");
-          try {
-            int val = Integer.parseInt(orAddress.substring(lastColon + 1));
-            relay.or_addresses.add(
-                    new StringInt(orAddress.substring(0, lastColon), val)
-            );
-          } catch (NumberFormatException e) {
-            continue;
-          }
+      relay.platform = desc.getPlatform();
+      relay.published = dateTimeFormat.format(desc.getPublishedMillis());
+      relay.fingerprint = desc.getFingerprint().toUpperCase();
+      //  isHibernating can't return 'null' because it's of type 'boolean'
+      //  (with little 'b') but it's only present in the collecTor data if it's
+      //  true. therefor we check for it's existence and include it if it
+      //  exists. otherwise we leave it alone / to the default value from
+      //  the class definition above (which is null)
+      if (desc.isHibernating()) {
+        relay.hibernating = desc.isHibernating();
+      }
+      relay.uptime = desc.getUptime();
+      //  test, if there is a key: return 'true' if yes, 'false' otherwise
+      relay.onion_key = desc.getOnionKey() != null;
+      relay.onion_key_crosscert = desc.getOnionKeyCrosscert() != null;
+      relay.ntor_onion_key = desc.getNtorOnionKey() != null;
+      relay.ntor_onion_key_crosscert = new CrossCert();
+      relay.ntor_onion_key_crosscert.cert = desc.getNtorOnionKeyCrosscert();
+      relay.ntor_onion_key_crosscert.bit = desc.getNtorOnionKeyCrosscertSign();
+      relay.signing_key = desc.getSigningKey() != null;
+      //  verbose testing because of List type
+      //  first check that the list is not null, then if it's empty
+      //  (checking for emptiness right away could lead to null pointer exc)
+      relay.exit_policy  = new ArrayList<>();
+      if (desc.getExitPolicyLines() != null && !desc.getExitPolicyLines().isEmpty()) {
+        relay.exit_policy = desc.getExitPolicyLines();
+      }
+      relay.ipv6_policy = desc.getIpv6DefaultPolicy();
+      relay.router_sig_ed25519 = desc.getRouterSignatureEd25519() != null;
+      relay.router_signature = desc.getRouterSignature() != null;
+      relay.contact = desc.getContact();
+      relay.family = new ArrayList<>();
+      if (desc.getFamilyEntries() != null && !desc.getFamilyEntries().isEmpty()) {
+        relay.family = desc.getFamilyEntries();
+      }
+      //  check for 'null' first because we want to run a method on it
+      //  and not get a null pointer exception meanwhile
+      if (desc.getReadHistory() != null) {
+        relay.read_history = convertBandwidthHistory(desc.getReadHistory());
+      }
+      if (desc.getWriteHistory() != null) {
+        relay.write_history = convertBandwidthHistory(desc.getWriteHistory());
+      }
+      relay.eventdns = desc.getUsesEnhancedDnsLogic();
+      relay.caches_extra_info = desc.getCachesExtraInfo();
+      if (desc.getExtraInfoDigest() != null) {
+        relay.extra_info_digest = desc.getExtraInfoDigest().toUpperCase();
+      }
+      relay.extra_info_digest_sha256 = desc.getExtraInfoDigestSha256();
+      relay.hidden_service_dir_versions = new ArrayList<>();
+      if (desc.getFamilyEntries() != null && !desc.getFamilyEntries().isEmpty()) {
+        relay.hidden_service_dir_versions = desc.getHiddenServiceDirVersions();
+      }
+      relay.link_protocol_versions = new ArrayList<>();
+      if (desc.getLinkProtocolVersions() != null && !desc.getLinkProtocolVersions().isEmpty()) {
+        relay.link_protocol_versions = desc.getLinkProtocolVersions();
+      }
+      relay.circuit_protocol_versions = new ArrayList<>();
+      if (desc.getCircuitProtocolVersions() != null && !desc.getCircuitProtocolVersions().isEmpty()) {
+        relay.circuit_protocol_versions = desc.getCircuitProtocolVersions();
+      }
+      relay.allow_single_hop_exits = desc.getAllowSingleHopExits();
+      if(jagged) {
+        //  TODO  this really needs a test
+        relay.or_addresses  = new ArrayList<String>();
+        if (desc.getOrAddresses() != null && !desc.getOrAddresses().isEmpty()) {
+          relay.or_addresses = desc.getOrAddresses();
         }
-        /*  TODO the above solution always returns verbose results
-                 but the non-verbose 'else' clause below needs review & testing
-
-        if(verbose) {
-          ArrayList<StringInt> verboseOR = new ArrayList<StringInt>();
-          server.or_addresses = new ArrayList<StringInt>();
+      } else {
+        relay.or_addresses = new ArrayList<StringInt>();
+        if (desc.getOrAddresses() != null && !desc.getOrAddresses().isEmpty()) {
+          ArrayList<StringInt> verboseOR = new ArrayList<>();
           for (String orAddress : desc.getOrAddresses()) {
             if (!orAddress.contains(":")) {
               continue;
@@ -310,77 +357,47 @@ public class ConvertToJson {
               continue;
             }
           }
-          server.or_addresses = verboseOR;
-        } else {
-          server.or_addresses = desc.getOrAddresses();
+          relay.or_addresses = verboseOR;
         }
-
-        // don't forget to define 'or_addresses' as type 'Object' above
-
-        */
       }
-      relay.platform = desc.getPlatform();
-      relay.published = dateTimeFormat.format(desc.getPublishedMillis());
-      relay.fingerprint = desc.getFingerprint().toUpperCase();
-      //  isHibernating can't return 'null' because it's of type 'boolean'
-      //  (with little 'b') but it's only present in the collecTor data if it's
-      //  true. therefor we check for it's existence and include it if it
-      //  exists. otherwise we leave it alone / to the default value from
-      //  the class definition above (which is null)
-      if (desc.isHibernating()) {
-        relay.hibernating = desc.isHibernating();
-      }
-      relay.uptime = desc.getUptime();
-      relay.ipv6_policy = desc.getIpv6DefaultPolicy();
-      relay.contact = desc.getContact();
-      relay.family = desc.getFamilyEntries();
-      //  check for 'null' first because we want to run a method on it
-      //  and not get a null pointer exception meanwhile
-      if (desc.getReadHistory() != null) {
-        relay.read_history = convertBandwidthHistory(desc.getReadHistory());
-      }
-      if (desc.getWriteHistory() != null) {
-        relay.write_history = convertBandwidthHistory(desc.getWriteHistory());
-      }
-      relay.eventdns = desc.getUsesEnhancedDnsLogic();
-      relay.caches_extra_info = desc.getCachesExtraInfo();
-      if (desc.getExtraInfoDigest() != null) {
-        relay.extra_info_digest = desc.getExtraInfoDigest().toUpperCase();
-      }
-      relay.extra_info_digest_sha256 = desc.getExtraInfoDigestSha256() != null;
-      relay.hidden_service_dir_versions = desc.getHiddenServiceDirVersions();
-      relay.link_protocol_versions = desc.getLinkProtocolVersions();
-      relay.circuit_protocol_versions = desc.getCircuitProtocolVersions();
-      relay.allow_single_hop_exits = desc.getAllowSingleHopExits();
-      relay.ntor_onion_key = desc.getNtorOnionKey() != null;
       relay.router_digest = desc.getServerDescriptorDigest().toUpperCase();
-      relay.router_digest_sha256 = desc.getServerDescriptorDigest() != null;
+      relay.router_digest_sha256 = desc.getServerDescriptorDigest();
 
       return ToJson.serialize(relay);
     }
   }
 
+
   //  bridge descriptors
   static class JsonBridgeServerDescriptor extends JsonDescriptor {
     String descriptor_type;
-    String published;   // format YYYY-MM-DD HH:MM:SS
-    String fingerprint;  // always upper-case hex
     String nickname;  // can be mixed-case
     String address;  // changed to lower-case
     int or_port;
     int socks_port;  // most likely 0 except for *very* old descriptors
     int dir_port;
+    Boolean identity_ed25519;                       // getIdentityEd25519
+    String master_key_ed25519;                     // getMasterKeyEd25519
     Integer bandwidth_avg;
     Integer bandwidth_burst;
-    Boolean onion_key;  // usually false b/c sanitization
-    Boolean signing_key;  // usually false b/c sanitization
-    List<String> exit_policy;
     Integer bandwidth_observed;  // missing in older descriptors!
-    List<StringInt> or_addresses;  // addresses sanitized!
     String platform;  // though usually set
+    String published;   // format YYYY-MM-DD HH:MM:SS
+    String fingerprint;  // always upper-case hex
     Boolean hibernating;
     Long uptime;  // though usually set
+    Boolean onion_key;  // usually false b/c sanitization
+    Boolean onion_key_crosscert;                    // getOnionKeyCrosscert
+    Boolean ntor_onion_key;
+    CrossCert ntor_onion_key_crosscert;
+    static class CrossCert {
+      String cert;                                 // getNtorOnionKeyCrosscert
+      Integer bit;                                  // getNtorOnionKeyCrosscertSign
+    }
+    Boolean signing_key;  // usually false b/c sanitization
+    List<String> exit_policy;
     String ipv6_policy;
+    Boolean router_sig_ed25519;                     // getRouterSignatureEd25519
     String contact;
     List<String> family;  // apparently not used at all
     BandwidthHistory read_history;
@@ -388,12 +405,14 @@ public class ConvertToJson {
     Boolean eventdns;
     Boolean caches_extra_info;
     String extra_info_digest;  // upper-case hex
+    String extra_info_digest_sha256;               // getExtraInfoDigestSha256
     List<Integer> hidden_service_dir_versions;
     List<Integer> link_protocol_versions;
     List<Integer> circuit_protocol_versions;
     Boolean allow_single_hop_exits;
-    Boolean ntor_onion_key;
+    List<StringInt> or_addresses;  // addresses sanitized!
     String router_digest;  // upper-case hex
+    String router_digest_sha256;                    // getServerDescriptorDigestSha256
 
     static String convert(ServerDescriptor desc) {
       JsonBridgeServerDescriptor bridge = new JsonBridgeServerDescriptor();
@@ -405,10 +424,34 @@ public class ConvertToJson {
       bridge.or_port = desc.getOrPort();
       bridge.socks_port = desc.getSocksPort();
       bridge.dir_port = desc.getDirPort();
+      bridge.identity_ed25519 = desc.getIdentityEd25519() != null;
+      bridge.master_key_ed25519 = desc.getMasterKeyEd25519();
       bridge.bandwidth_avg = desc.getBandwidthRate();
       bridge.bandwidth_burst = desc.getBandwidthBurst();
+      //  can be '-1' if null. in that case we don't touch it here, leaving the
+      //  default from the class definition intact
+      if (desc.getBandwidthObserved() >= 0) {
+        bridge.bandwidth_observed = desc.getBandwidthObserved();
+      }
+      bridge.platform = desc.getPlatform();
+      bridge.published = dateTimeFormat.format(desc.getPublishedMillis());
+      bridge.fingerprint = desc.getFingerprint().toUpperCase();
+      //  isHibernating can't return 'null' because it's of type 'boolean'
+      //  (with little 'b') but it's only present in the collecTor data if it's
+      //  true. therefor we check for it's existence and include it if it
+      //  exists. otherwise we leave it alone / to the default value from
+      //  the class definition above (which is null)
+      if (desc.isHibernating()) {
+        bridge.hibernating = desc.isHibernating();
+      }
+      bridge.uptime = desc.getUptime();
       //  test, if there is a key: return 'true' if yes, 'false' otherwise
       bridge.onion_key = desc.getOnionKey() != null;
+      bridge.onion_key_crosscert = desc.getOnionKeyCrosscert() != null;
+      bridge.ntor_onion_key = desc.getNtorOnionKey() != null;
+      bridge.ntor_onion_key_crosscert = new CrossCert();
+      bridge.ntor_onion_key_crosscert.cert = desc.getNtorOnionKeyCrosscert();
+      bridge.ntor_onion_key_crosscert.bit = desc.getNtorOnionKeyCrosscertSign();
       bridge.signing_key = desc.getSigningKey() != null;
       //  verbose testing because of List type
       //  first check that the list is not null, then if it's empty
@@ -416,11 +459,28 @@ public class ConvertToJson {
       if (desc.getExitPolicyLines() != null && !desc.getExitPolicyLines().isEmpty()) {
         bridge.exit_policy = desc.getExitPolicyLines();
       }
-      //  can be '-1' if null. in that case we don't touch it here, leaving the
-      //  default from the class definition intact
-      if (desc.getBandwidthObserved() >= 0) {
-        bridge.bandwidth_observed = desc.getBandwidthObserved();
+      bridge.ipv6_policy = desc.getIpv6DefaultPolicy();
+      bridge.router_sig_ed25519 = desc.getRouterSignatureEd25519() != null;
+      bridge.contact = desc.getContact();
+      bridge.family = desc.getFamilyEntries();
+      //  check for 'null' first because we want to run a method on it
+      //  and not get a null pointer exception meanwhile
+      if (desc.getReadHistory() != null) {
+        bridge.read_history = convertBandwidthHistory(desc.getReadHistory());
       }
+      if (desc.getWriteHistory() != null) {
+        bridge.write_history = convertBandwidthHistory(desc.getWriteHistory());
+      }
+      bridge.eventdns = desc.getUsesEnhancedDnsLogic();
+      bridge.caches_extra_info = desc.getCachesExtraInfo();
+      if (desc.getExtraInfoDigest() != null) {
+        bridge.extra_info_digest = desc.getExtraInfoDigest().toUpperCase();
+      }
+      bridge.extra_info_digest_sha256 = desc.getExtraInfoDigestSha256();
+      bridge.hidden_service_dir_versions = desc.getHiddenServiceDirVersions();
+      bridge.link_protocol_versions = desc.getLinkProtocolVersions();
+      bridge.circuit_protocol_versions = desc.getCircuitProtocolVersions();
+      bridge.allow_single_hop_exits = desc.getAllowSingleHopExits();
       if (desc.getOrAddresses() != null && !desc.getOrAddresses().isEmpty()) {
         bridge.or_addresses = new ArrayList<>();
         for (String orAddress : desc.getOrAddresses()) {
@@ -466,60 +526,469 @@ public class ConvertToJson {
 
         */
       }
-      bridge.platform = desc.getPlatform();
-      bridge.published = dateTimeFormat.format(desc.getPublishedMillis());
-      bridge.fingerprint = desc.getFingerprint().toUpperCase();
-      //  isHibernating can't return 'null' because it's of type 'boolean'
-      //  (with little 'b') but it's only present in the collecTor data if it's
-      //  true. therefor we check for it's existence and include it if it
-      //  exists. otherwise we leave it alone / to the default value from
-      //  the class definition above (which is null)
-      if (desc.isHibernating()) {
-        bridge.hibernating = desc.isHibernating();
-      }
-      bridge.uptime = desc.getUptime();
-      bridge.ipv6_policy = desc.getIpv6DefaultPolicy();
-      bridge.contact = desc.getContact();
-      bridge.family = desc.getFamilyEntries();
-      //  check for 'null' first because we want to run a method on it
-      //  and not get a null pointer exception meanwhile
-      if (desc.getReadHistory() != null) {
-        bridge.read_history = convertBandwidthHistory(desc.getReadHistory());
-      }
-      if (desc.getWriteHistory() != null) {
-        bridge.write_history = convertBandwidthHistory(desc.getWriteHistory());
-      }
-      bridge.eventdns = desc.getUsesEnhancedDnsLogic();
-      bridge.caches_extra_info = desc.getCachesExtraInfo();
-      if (desc.getExtraInfoDigest() != null) {
-        bridge.extra_info_digest = desc.getExtraInfoDigest().toUpperCase();
-      }
-      bridge.hidden_service_dir_versions = desc.getHiddenServiceDirVersions();
-      bridge.link_protocol_versions = desc.getLinkProtocolVersions();
-      bridge.circuit_protocol_versions = desc.getCircuitProtocolVersions();
-      bridge.allow_single_hop_exits = desc.getAllowSingleHopExits();
-      bridge.ntor_onion_key = desc.getNtorOnionKey() != null;
       bridge.router_digest = desc.getServerDescriptorDigest().toUpperCase();
+      bridge.router_digest_sha256 = desc.getServerDescriptorDigest();
 
       return ToJson.serialize(bridge);
     }
   }
+
 
   //  relay extra info descriptors
   static class JsonRelayExtraInfoDescriptor extends JsonDescriptor {
     String descriptor_type;
     String nickname;
     String fingerprint;
+    Boolean identity_ed25519;                       // getIdentityEd25519
     String published;
-    Boolean identity_ed25519;                         // getIdentityEd25519
-    Boolean master_key_ed25519;                       // getMasterKeyEd25519
-    String extra_info_digest;
-    Boolean extra_info_digest_sha256;                 // getExtraInfoDigestSha256
     BandwidthHistory read_history;
     BandwidthHistory write_history;
     String geoip_db_digest;
     String geoip6_db_digest;
     String geoip_start_time;
+    String dirreq_stats_end_date;
+    Long dirreq_stats_end_interval;
+    Object dirreq_v2_ips;
+    Object dirreq_v3_ips;
+    Object dirreq_v2_reqs;
+    // TODO test in progress
+    //  Object dirreq_v3_reqs;
+    List<?> dirreq_v3_reqs; // TODO test in progress
+    Double dirreq_v2_share;
+    Double dirreq_v3_share;
+    Object dirreq_v2_resp;
+    Object dirreq_v3_resp;
+    Object dirreq_v2_direct_dl;
+    Object dirreq_v3_direct_dl;
+    Object dirreq_v2_tunneled_dl;
+    Object dirreq_v3_tunneled_dl;
+    BandwidthHistory dirreq_read_history;
+    BandwidthHistory dirreq_write_history;
+    String entry_stats_end_date;
+    Long entry_stats_end_interval;
+    Object entry_ips;
+    String cell_stats_end_date;
+    Long cell_stats_end_interval;
+    List<Integer> cell_processed_cells;
+    List<Double> cell_queued_cells;
+    List<Integer> cell_time_in_queue;
+    Integer cell_circuits_per_decile;
+    ConnBiDirect conn_bi_direct;
+    static class ConnBiDirect {
+      String date;
+      Long interval;
+      Integer below;
+      Integer read;
+      Integer write;
+      Integer both;
+    }
+    String exit_stats_end_date;
+    Long exit_stats_end_interval;
+    Object exit_kibibytes_written;
+    Object exit_kibibytes_read;
+    Object exit_streams_opened;
+
+    HidStats hidserv_stats_end;
+    static class HidStats {
+      String date;                                  // long getHidservStatsEndMillis
+      Long interval;                                // long getHidservStatsIntervalLength();
+    }
+    HidRend hidserv_rend_relayed_cells;
+    static class HidRend {
+      Double cells;                                 // Double getHidservRendRelayedCells();
+      Object obfuscation;                           // Map<String, Double> getHidservRendRelayedCellsParameters()
+    }
+    HidDir hidserv_dir_onions_seen;
+    static class HidDir {
+      Double onions;                                // Double getHidservDirOnionsSeen();
+      Object obfuscation;                           // Map<String, Double> getHidservDirOnionsSeenParameters();
+    }
+    List<String> transport;
+    Boolean router_sig_ed25519;                     // getRouterSignatureEd25519
+    Boolean router_signature;                       // getRouterSignature
+    String extra_info_digest;
+    String extra_info_digest_sha256;               // getExtraInfoDigestSha256
+    String master_key_ed25519;                     // getMasterKeyEd25519
+
+    static String convert(RelayExtraInfoDescriptor desc) {
+      JsonRelayExtraInfoDescriptor relayExtra = new JsonRelayExtraInfoDescriptor();
+      for (String annotation : desc.getAnnotations()) {
+        relayExtra.descriptor_type = annotation.substring("@type ".length());
+      }
+      relayExtra.nickname = desc.getNickname();
+      relayExtra.fingerprint = desc.getFingerprint().toUpperCase();
+      relayExtra.identity_ed25519 = desc.getIdentityEd25519() != null;
+      relayExtra.published = dateTimeFormat.format(desc.getPublishedMillis());
+      if (desc.getReadHistory() != null) {
+        relayExtra.read_history = convertBandwidthHistory(desc.getReadHistory());
+      }
+      if (desc.getWriteHistory() != null) {
+        relayExtra.write_history = convertBandwidthHistory(desc.getWriteHistory());
+      }
+      relayExtra.geoip_db_digest = desc.getGeoipDbDigest();
+      relayExtra.geoip6_db_digest = desc.getGeoip6DbDigest();
+      if (desc.getGeoipStartTimeMillis() >= 0) {
+        relayExtra.geoip_start_time = dateTimeFormat.format(desc.getGeoipStartTimeMillis());
+      }
+      if (desc.getDirreqStatsEndMillis() >= 0) {
+        relayExtra.dirreq_stats_end_date = dateTimeFormat.format(desc.getDirreqStatsEndMillis());
+      }
+      if (desc.getDirreqStatsIntervalLength() >= 0) {
+        relayExtra.dirreq_stats_end_interval = desc.getDirreqStatsIntervalLength();
+      }
+      if (desc.getDirreqV2Ips() != null && !desc.getDirreqV2Ips().isEmpty()) {
+        if (jagged) {
+          relayExtra.dirreq_v2_ips = desc.getDirreqV2Ips();
+        } else {
+          ArrayList<StringInt> verboseV2Ips = new ArrayList<>();
+          relayExtra.dirreq_v2_ips = new ArrayList<>();
+          SortedMap<String, Integer> v2_ips = desc.getDirreqV2Ips();
+          for (Map.Entry<String, Integer> v2_ip : v2_ips.entrySet()) {
+            verboseV2Ips.add(new StringInt(v2_ip.getKey(), v2_ip.getValue()));
+          }
+          relayExtra.dirreq_v2_ips = verboseV2Ips;
+        }
+      }
+      if (desc.getDirreqV3Ips() != null && !desc.getDirreqV3Ips().isEmpty()) {
+        if (jagged) {
+          relayExtra.dirreq_v3_ips = desc.getDirreqV3Ips();
+        } else {
+          ArrayList<StringInt> verboseV3Ips = new ArrayList<>();
+          relayExtra.dirreq_v3_ips = new ArrayList<>();
+          SortedMap<String, Integer> v3_ips = desc.getDirreqV3Ips();
+          for (Map.Entry<String, Integer> v3_ip : v3_ips.entrySet()) {
+            verboseV3Ips.add(new StringInt(v3_ip.getKey(), v3_ip.getValue()));
+          }
+          relayExtra.dirreq_v3_ips = verboseV3Ips;
+        }
+      }
+      if (desc.getDirreqV2Reqs() != null && !desc.getDirreqV2Reqs().isEmpty()) {
+        if (jagged) {
+          relayExtra.dirreq_v2_reqs = desc.getDirreqV2Reqs();
+        } else {
+          ArrayList<StringInt> verboseV2Reqs = new ArrayList<>();
+          relayExtra.dirreq_v2_reqs = new ArrayList<>();
+          SortedMap<String, Integer> v2_reqs = desc.getDirreqV2Reqs();
+          for (Map.Entry<String, Integer> v2_req : v2_reqs.entrySet()) {
+            verboseV2Reqs.add(new StringInt(v2_req.getKey(), v2_req.getValue()));
+          }
+          relayExtra.dirreq_v2_reqs = verboseV2Reqs;
+        }
+      }
+
+      // TODO test in progress
+      /* backup
+      if (desc.getDirreqV3Reqs() != null && !desc.getDirreqV3Reqs().isEmpty()) {
+        if (jagged) {
+          relayExtra.dirreq_v3_reqs = desc.getDirreqV3Reqs();
+        } else {
+          ArrayList<StringInt> verboseV3Reqs = new ArrayList<>();
+          relayExtra.dirreq_v3_reqs = new ArrayList<>();
+          SortedMap<String, Integer> v3_reqs = desc.getDirreqV3Reqs();
+          for (Map.Entry<String, Integer> v3_req : v3_reqs.entrySet()) {
+            verboseV3Reqs.add(new StringInt(v3_req.getKey(), v3_req.getValue()));
+          }
+          relayExtra.dirreq_v3_reqs = verboseV3Reqs;
+        }
+      }*/
+
+      if (jagged) {
+        relayExtra.dirreq_v3_reqs = new ArrayList<Object>();
+        if (desc.getDirreqV3Reqs() != null && !desc.getDirreqV3Reqs().isEmpty()) {
+
+
+          ArrayList<Object> verboseV3Reqs = new ArrayList<>();
+
+          for (Map.Entry<String, Integer> v3_req : desc.getDirreqV3Reqs().entrySet()) {
+            verboseV3Reqs.add(new Object(v3_req.getKey(), v3_req.getValue()));
+          }
+
+          relayExtra.dirreq_v3_reqs = verboseV3Reqs;
+
+
+        }
+      } else {
+        relayExtra.dirreq_v3_reqs = new ArrayList<StringInt>();
+        if (desc.getDirreqV3Reqs() != null && !desc.getDirreqV3Reqs().isEmpty()) {
+          ArrayList<StringInt> verboseV3Reqs = new ArrayList<>();
+          for (Map.Entry<String, Integer> v3_req : desc.getDirreqV3Reqs().entrySet()) {
+            verboseV3Reqs.add(new StringInt(v3_req.getKey(), v3_req.getValue()));
+          }
+          relayExtra.dirreq_v3_reqs = verboseV3Reqs;
+        }
+      }
+
+      // TODO test in progress
+
+
+
+      if (desc.getDirreqV2Share() >= 0) {
+        relayExtra.dirreq_v2_share = desc.getDirreqV2Share();
+      }
+      if (desc.getDirreqV3Share() >= 0) {
+        relayExtra.dirreq_v3_share = desc.getDirreqV3Share();
+      }
+      if (desc.getDirreqV2Resp() != null && !desc.getDirreqV2Resp().isEmpty()) {
+        if (jagged) {
+          relayExtra.dirreq_v2_resp = desc.getDirreqV2Resp();
+        } else {
+          ArrayList<StringInt> verboseV2Resp = new ArrayList<>();
+          relayExtra.dirreq_v2_resp = new ArrayList<>();
+          SortedMap<String, Integer> v2_resps = desc.getDirreqV2Resp();
+          for (Map.Entry<String, Integer> v2_resp : v2_resps.entrySet()) {
+            verboseV2Resp.add(new StringInt(v2_resp.getKey(), v2_resp.getValue()));
+          }
+          relayExtra.dirreq_v2_resp = verboseV2Resp;
+        }
+      }
+      if (desc.getDirreqV3Resp() != null && !desc.getDirreqV3Resp().isEmpty()) {
+        if (jagged) {
+          relayExtra.dirreq_v3_resp = desc.getDirreqV3Resp();
+        } else {
+          ArrayList<StringInt> verboseV3Resp = new ArrayList<>();
+          relayExtra.dirreq_v3_resp = new ArrayList<>();
+          SortedMap<String, Integer> v3_resps = desc.getDirreqV3Resp();
+          for (Map.Entry<String, Integer> v3_resp : v3_resps.entrySet()) {
+            verboseV3Resp.add(new StringInt(v3_resp.getKey(), v3_resp.getValue()));
+          }
+          relayExtra.dirreq_v3_resp = verboseV3Resp;
+        }
+      }
+      if (desc.getDirreqV2DirectDl() != null && !desc.getDirreqV2DirectDl().isEmpty()) {
+        if (jagged) {
+          relayExtra.dirreq_v2_direct_dl = desc.getDirreqV2DirectDl();
+        } else {
+          ArrayList<StringInt> verboseV2DirectDl = new ArrayList<>();
+          relayExtra.dirreq_v2_direct_dl = new ArrayList<>();
+          SortedMap<String, Integer> v2_direct = desc.getDirreqV2DirectDl();
+          for (Map.Entry<String, Integer> v2_dir : v2_direct.entrySet()) {
+            verboseV2DirectDl.add(new StringInt(v2_dir.getKey(), v2_dir.getValue()));
+          }
+          relayExtra.dirreq_v2_direct_dl = verboseV2DirectDl;
+        }
+      }
+      if (desc.getDirreqV3DirectDl() != null && !desc.getDirreqV3DirectDl().isEmpty()) {
+        if (jagged) {
+          relayExtra.dirreq_v3_direct_dl = desc.getDirreqV3DirectDl();
+        } else {
+          ArrayList<StringInt> verboseV3DirectDl = new ArrayList<>();
+          relayExtra.dirreq_v3_direct_dl = new ArrayList<>();
+          SortedMap<String, Integer> v3_direct = desc.getDirreqV3DirectDl();
+          for (Map.Entry<String, Integer> v3_dir : v3_direct.entrySet()) {
+            verboseV3DirectDl.add(new StringInt(v3_dir.getKey(), v3_dir.getValue()));
+          }
+          relayExtra.dirreq_v3_direct_dl = verboseV3DirectDl;
+        }
+      }
+      if (desc.getDirreqV2TunneledDl() != null && !desc.getDirreqV2TunneledDl().isEmpty()) {
+        if (jagged) {
+          relayExtra.dirreq_v2_tunneled_dl = desc.getDirreqV2TunneledDl();
+        } else {
+          ArrayList<StringInt> verboseV2Tun = new ArrayList<>();
+          relayExtra.dirreq_v2_tunneled_dl = new ArrayList<>();
+          SortedMap<String, Integer> v2_tunneled = desc.getDirreqV2TunneledDl();
+          for (Map.Entry<String, Integer> v2_tun : v2_tunneled.entrySet()) {
+            verboseV2Tun.add(new StringInt(v2_tun.getKey(), v2_tun.getValue()));
+          }
+          relayExtra.dirreq_v2_tunneled_dl = verboseV2Tun;
+        }
+      }
+      if (desc.getDirreqV3TunneledDl() != null && !desc.getDirreqV3TunneledDl().isEmpty()) {
+        if (jagged) {
+          relayExtra.dirreq_v3_tunneled_dl = desc.getDirreqV3TunneledDl();
+        } else {
+          ArrayList<StringInt> verboseV3Tun = new ArrayList<>();
+          relayExtra.dirreq_v3_tunneled_dl = new ArrayList<>();
+          SortedMap<String, Integer> v3_tunneled = desc.getDirreqV3TunneledDl();
+          for (Map.Entry<String, Integer> v3_tun : v3_tunneled.entrySet()) {
+            verboseV3Tun.add(new StringInt(v3_tun.getKey(), v3_tun.getValue()));
+          }
+          relayExtra.dirreq_v3_tunneled_dl = verboseV3Tun;
+        }
+      }
+      if (desc.getDirreqReadHistory() != null) {
+        relayExtra.dirreq_read_history =
+                convertBandwidthHistory(desc.getDirreqReadHistory());
+      }
+      if (desc.getDirreqWriteHistory() != null) {
+        relayExtra.dirreq_write_history =
+                convertBandwidthHistory(desc.getDirreqWriteHistory());
+      }
+      if (desc.getEntryStatsEndMillis() >= 0) {
+        relayExtra.entry_stats_end_date = dateTimeFormat.format(desc.getEntryStatsEndMillis());
+      }
+      if (desc.getEntryStatsIntervalLength() >= 0) {
+        relayExtra.entry_stats_end_interval = desc.getEntryStatsIntervalLength();
+      }
+      if (desc.getEntryIps() != null && !desc.getEntryIps().isEmpty()) {
+        if (jagged) {
+          relayExtra.entry_ips = desc.getEntryIps();
+        } else {
+          ArrayList<StringInt> verboseIps = new ArrayList<>();
+          relayExtra.entry_ips = new ArrayList<>();
+          SortedMap<String, Integer> ips = desc.getEntryIps();
+          for (Map.Entry<String, Integer> ip : ips.entrySet()) {
+            verboseIps.add(new StringInt(ip.getKey(), ip.getValue()));
+          }
+          relayExtra.entry_ips = verboseIps;
+        }
+      }
+      if (desc.getCellStatsEndMillis() >= 0) {
+        relayExtra.cell_stats_end_date = dateTimeFormat.format(desc.getCellStatsEndMillis());
+      }
+      if (desc.getCellStatsIntervalLength() >= 0) {
+        relayExtra.cell_stats_end_interval = desc.getCellStatsIntervalLength();
+      }
+      relayExtra.cell_processed_cells = desc.getCellProcessedCells();
+      relayExtra.cell_queued_cells = desc.getCellQueuedCells();
+      relayExtra.cell_time_in_queue = desc.getCellTimeInQueue();
+      if (desc.getCellCircuitsPerDecile() >= 0) {
+        relayExtra.cell_circuits_per_decile = desc.getCellCircuitsPerDecile();
+      }
+      relayExtra.conn_bi_direct = new ConnBiDirect();
+      if (desc.getConnBiDirectStatsEndMillis() >= 0) {
+        relayExtra.conn_bi_direct.date = dateTimeFormat.format(desc.getConnBiDirectStatsEndMillis());
+        if (desc.getConnBiDirectStatsIntervalLength() >= 0) {
+          relayExtra.conn_bi_direct.interval = desc.getConnBiDirectStatsIntervalLength();
+        }
+        if (desc.getConnBiDirectBelow() >= 0) {
+          relayExtra.conn_bi_direct.below = desc.getConnBiDirectBelow();
+        }
+        if (desc.getConnBiDirectRead() >= 0) {
+          relayExtra.conn_bi_direct.read = desc.getConnBiDirectRead();
+        }
+        if (desc.getConnBiDirectWrite() >= 0) {
+          relayExtra.conn_bi_direct.write = desc.getConnBiDirectWrite();
+        }
+        if (desc.getConnBiDirectBoth() >= 0) {
+          relayExtra.conn_bi_direct.both = desc.getConnBiDirectBoth();
+        }
+      }
+      if (desc.getExitStatsEndMillis() >= 0) {
+        relayExtra.exit_stats_end_date = dateTimeFormat.format(desc.getExitStatsEndMillis());
+      }
+      if (desc.getExitStatsIntervalLength() >= 0) {
+        relayExtra.exit_stats_end_interval = desc.getExitStatsIntervalLength();
+      }
+      if (desc.getExitKibibytesWritten() != null && !desc.getExitKibibytesWritten().isEmpty()) {
+        if (jagged) {
+          relayExtra.exit_kibibytes_written = desc.getExitKibibytesWritten();
+        } else {
+          ArrayList<StringLong> verboseWritten = new ArrayList<>();
+          relayExtra.exit_kibibytes_written = new ArrayList<>();
+          SortedMap<String, Long> written = desc.getExitKibibytesWritten();
+          for (Map.Entry<String, Long> writ : written.entrySet()) {
+            verboseWritten.add(new StringLong(writ.getKey(), writ.getValue()));
+          }
+          relayExtra.exit_kibibytes_written = verboseWritten;
+        }
+      }
+      if (desc.getExitKibibytesRead() != null && !desc.getExitKibibytesRead().isEmpty()) {
+        if (jagged) {
+          relayExtra.exit_kibibytes_read = desc.getExitKibibytesRead();
+        } else {
+          ArrayList<StringLong> verboseRead = new ArrayList<>();
+          relayExtra.exit_kibibytes_read = new ArrayList<>();
+          SortedMap<String, Long> reads = desc.getExitKibibytesRead();
+          for (Map.Entry<String, Long> read : reads.entrySet()) {
+            verboseRead.add(new StringLong(read.getKey(), read.getValue()));
+          }
+          relayExtra.exit_kibibytes_read = verboseRead;
+        }
+      }
+      if (desc.getExitStreamsOpened() != null && !desc.getExitStreamsOpened().isEmpty()) {
+        if (jagged) {
+          relayExtra.exit_streams_opened = desc.getExitStreamsOpened();
+        } else {
+          ArrayList<StringLong> verboseOpened = new ArrayList<>();
+          relayExtra.exit_streams_opened = new ArrayList<>();
+          SortedMap<String, Long> opened = desc.getExitStreamsOpened();
+          for (Map.Entry<String, Long> open : opened.entrySet()) {
+            verboseOpened.add(new StringLong(open.getKey(), open.getValue()));
+          }
+          relayExtra.exit_streams_opened = verboseOpened;
+        }
+      }
+
+
+
+      relayExtra.hidserv_stats_end = new HidStats();
+      relayExtra.hidserv_stats_end.date = dateTimeFormat.format(desc.getHidservStatsEndMillis());
+
+      if (desc.getHidservStatsIntervalLength() >= 0) {
+        relayExtra.hidserv_stats_end.interval = desc.getHidservStatsIntervalLength();
+      } else {
+        // TODO is this the proper way to encode defaults?
+        relayExtra.hidserv_stats_end.interval = Long.valueOf(86400);
+      }
+
+
+      relayExtra.hidserv_rend_relayed_cells = new HidRend();
+      relayExtra.hidserv_rend_relayed_cells.cells = desc.getHidservRendRelayedCells();
+
+      //  TODO everything else LIKE THIS non-verbose version + switch
+      if (jagged) {
+        relayExtra.hidserv_rend_relayed_cells.obfuscation = desc.getHidservRendRelayedCellsParameters();
+      } else {
+        ArrayList<StringDouble> obfusc = new ArrayList<>();
+        if (desc.getHidservRendRelayedCellsParameters() != null &&
+                !desc.getHidservRendRelayedCellsParameters().isEmpty()) {
+          for (Map.Entry<String, Double> mapEntry : desc.getHidservRendRelayedCellsParameters().entrySet()) {
+            obfusc.add(new StringDouble(mapEntry.getKey(), mapEntry.getValue()));
+          }
+        }
+        relayExtra.hidserv_rend_relayed_cells.obfuscation = obfusc;
+      }
+
+
+      relayExtra.hidserv_dir_onions_seen = new HidDir();
+      relayExtra.hidserv_dir_onions_seen.onions = desc.getHidservDirOnionsSeen();
+
+      if (jagged) {
+        relayExtra.hidserv_dir_onions_seen.obfuscation = desc.getHidservDirOnionsSeenParameters();
+      } else {
+        ArrayList<StringDouble> obfusc = new ArrayList<>();
+        if (desc.getHidservDirOnionsSeenParameters() != null &&
+                !desc.getHidservDirOnionsSeenParameters().isEmpty()) {
+          for (Map.Entry<String, Double> mapEntry : desc.getHidservDirOnionsSeenParameters().entrySet()) {
+            obfusc.add(new StringDouble(mapEntry.getKey(), mapEntry.getValue()));
+          }
+        }
+        relayExtra.hidserv_dir_onions_seen.obfuscation = obfusc;
+      }
+
+
+      relayExtra.transport = desc.getTransports();
+      relayExtra.router_sig_ed25519 = desc.getRouterSignatureEd25519() != null;
+      relayExtra.router_signature = desc.getRouterSignature() != null;
+      relayExtra.extra_info_digest = desc.getExtraInfoDigest();
+      relayExtra.extra_info_digest_sha256 = desc.getExtraInfoDigestSha256();
+      relayExtra.master_key_ed25519 = desc.getMasterKeyEd25519();
+      return ToJson.serialize(relayExtra);
+    }
+  }
+
+
+  //  bridge extra info descriptors
+  static class JsonBridgeExtraInfoDescriptor extends JsonDescriptor {
+    String descriptor_type;
+    String nickname;
+    String fingerprint;
+    Boolean identity_ed25519;                       // getIdentityEd25519
+    String published;
+    BandwidthHistory read_history;
+    BandwidthHistory write_history;
+    String geoip_db_digest;
+    String geoip6_db_digest;
+    String geoip_start_time;
+    // start bridge only
+    Object geoip_client_origins;
+    String bridge_stats_end_date;
+    Long bridge_stats_end_interval;
+    Object bridge_ips;
+    Object bridge_ip_versions;
+    Object bridge_ip_transports;
+    // end bridge only
     String dirreq_stats_end_date;
     Long dirreq_stats_end_interval;
     Object dirreq_v2_ips;
@@ -568,465 +1037,30 @@ public class ConvertToJson {
     HidRend hidserv_rend_relayed_cells;
     static class HidRend {
       Double cells;                                 // Double getHidservRendRelayedCells();
-      List<StringDouble> obfuscation;               // Map<String, Double> getHidservRendRelayedCellsParameters()
+      Object obfuscation;                           // Map<String, Double> getHidservRendRelayedCellsParameters()
     }
     HidDir hidserv_dir_onions_seen;
     static class HidDir {
       Double onions;                                // Double getHidservDirOnionsSeen();
-      List<StringDouble> obfuscation;               // Map<String, Double> getHidservDirOnionsSeenParameters();
+      Object obfuscation;                           // Map<String, Double> getHidservDirOnionsSeenParameters();
     }
-    List<String> transport;
-    Boolean router_sig_ed25519;                     // getRouterSignatureEd25519
-    Boolean router_signature;                       // getRouterSignature
-
-    static String convert(RelayExtraInfoDescriptor desc) {
-      JsonRelayExtraInfoDescriptor relayExtra = new JsonRelayExtraInfoDescriptor();
-      for (String annotation : desc.getAnnotations()) {
-        relayExtra.descriptor_type = annotation.substring("@type ".length());
-      }
-      relayExtra.nickname = desc.getNickname();
-      relayExtra.fingerprint = desc.getFingerprint().toUpperCase();
-      relayExtra.published = dateTimeFormat.format(desc.getPublishedMillis());
-      relayExtra.identity_ed25519 = desc.getIdentityEd25519() != null;
-      relayExtra.master_key_ed25519 = desc.getMasterKeyEd25519() != null;
-      relayExtra.extra_info_digest = desc.getExtraInfoDigest();
-      relayExtra.extra_info_digest_sha256 = desc.getExtraInfoDigestSha256() != null;
-      if (desc.getReadHistory() != null) {
-        relayExtra.read_history = convertBandwidthHistory(desc.getReadHistory());
-      }
-      if (desc.getWriteHistory() != null) {
-        relayExtra.write_history = convertBandwidthHistory(desc.getWriteHistory());
-      }
-      relayExtra.geoip_db_digest = desc.getGeoipDbDigest();
-      relayExtra.geoip6_db_digest = desc.getGeoip6DbDigest();
-      if (desc.getGeoipStartTimeMillis() >= 0) {
-        relayExtra.geoip_start_time = dateTimeFormat.format(desc.getGeoipStartTimeMillis());
-      }
-      if (desc.getDirreqStatsEndMillis() >= 0) {
-        relayExtra.dirreq_stats_end_date = dateTimeFormat.format(desc.getDirreqStatsEndMillis());
-      }
-      if (desc.getDirreqStatsIntervalLength() >= 0) {
-        relayExtra.dirreq_stats_end_interval = desc.getDirreqStatsIntervalLength();
-      }
-      if (desc.getDirreqV2Ips() != null && !desc.getDirreqV2Ips().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseV2Ips = new ArrayList<>();
-          relayExtra.dirreq_v2_ips = new ArrayList<>();
-          SortedMap<String, Integer> v2_ips = desc.getDirreqV2Ips();
-          for (Map.Entry<String, Integer> v2_ip : v2_ips.entrySet()) {
-            verboseV2Ips.add(new StringInt(v2_ip.getKey(), v2_ip.getValue()));
-          }
-          relayExtra.dirreq_v2_ips = verboseV2Ips;
-        } else {
-          relayExtra.dirreq_v2_ips = desc.getDirreqV2Ips();
-        }
-      }
-      if (desc.getDirreqV3Ips() != null && !desc.getDirreqV3Ips().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseV3Ips = new ArrayList<>();
-          relayExtra.dirreq_v3_ips = new ArrayList<>();
-          SortedMap<String, Integer> v3_ips = desc.getDirreqV3Ips();
-          for (Map.Entry<String, Integer> v3_ip : v3_ips.entrySet()) {
-            verboseV3Ips.add(new StringInt(v3_ip.getKey(), v3_ip.getValue()));
-          }
-          relayExtra.dirreq_v3_ips = verboseV3Ips;
-        } else {
-          relayExtra.dirreq_v3_ips = desc.getDirreqV3Ips();
-        }
-      }
-      if (desc.getDirreqV2Reqs() != null && !desc.getDirreqV2Reqs().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseV2Reqs = new ArrayList<>();
-          relayExtra.dirreq_v2_reqs = new ArrayList<>();
-          SortedMap<String, Integer> v2_reqs = desc.getDirreqV2Reqs();
-          for (Map.Entry<String, Integer> v2_req : v2_reqs.entrySet()) {
-            verboseV2Reqs.add(new StringInt(v2_req.getKey(), v2_req.getValue()));
-          }
-          relayExtra.dirreq_v2_reqs = verboseV2Reqs;
-        } else {
-          relayExtra.dirreq_v2_reqs = desc.getDirreqV2Reqs();
-        }
-      }
-      if (desc.getDirreqV3Reqs() != null && !desc.getDirreqV3Reqs().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseV3Reqs = new ArrayList<>();
-          relayExtra.dirreq_v3_reqs = new ArrayList<>();
-          SortedMap<String, Integer> v3_reqs = desc.getDirreqV3Reqs();
-          for (Map.Entry<String, Integer> v3_req : v3_reqs.entrySet()) {
-            verboseV3Reqs.add(new StringInt(v3_req.getKey(), v3_req.getValue()));
-          }
-          relayExtra.dirreq_v3_reqs = verboseV3Reqs;
-        } else {
-          relayExtra.dirreq_v3_reqs = desc.getDirreqV3Reqs();
-        }
-      }
-      if (desc.getDirreqV2Share() >= 0) {
-        relayExtra.dirreq_v2_share = desc.getDirreqV2Share();
-      }
-      if (desc.getDirreqV3Share() >= 0) {
-        relayExtra.dirreq_v3_share = desc.getDirreqV3Share();
-      }
-      if (desc.getDirreqV2Resp() != null && !desc.getDirreqV2Resp().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseV2Resp = new ArrayList<>();
-          relayExtra.dirreq_v2_resp = new ArrayList<>();
-          SortedMap<String, Integer> v2_resps = desc.getDirreqV2Resp();
-          for (Map.Entry<String, Integer> v2_resp : v2_resps.entrySet()) {
-            verboseV2Resp.add(new StringInt(v2_resp.getKey(), v2_resp.getValue()));
-          }
-          relayExtra.dirreq_v2_resp = verboseV2Resp;
-        } else {
-          relayExtra.dirreq_v2_resp = desc.getDirreqV2Resp();
-        }
-      }
-      if (desc.getDirreqV3Resp() != null && !desc.getDirreqV3Resp().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseV3Resp = new ArrayList<>();
-          relayExtra.dirreq_v3_resp = new ArrayList<>();
-          SortedMap<String, Integer> v3_resps = desc.getDirreqV3Resp();
-          for (Map.Entry<String, Integer> v3_resp : v3_resps.entrySet()) {
-            verboseV3Resp.add(new StringInt(v3_resp.getKey(), v3_resp.getValue()));
-          }
-          relayExtra.dirreq_v3_resp = verboseV3Resp;
-        } else {
-          relayExtra.dirreq_v3_resp = desc.getDirreqV3Resp();
-        }
-      }
-      if (desc.getDirreqV2DirectDl() != null && !desc.getDirreqV2DirectDl().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseV2DirectDl = new ArrayList<>();
-          relayExtra.dirreq_v2_direct_dl = new ArrayList<>();
-          SortedMap<String, Integer> v2_direct = desc.getDirreqV2DirectDl();
-          for (Map.Entry<String, Integer> v2_dir : v2_direct.entrySet()) {
-            verboseV2DirectDl.add(new StringInt(v2_dir.getKey(), v2_dir.getValue()));
-          }
-          relayExtra.dirreq_v2_direct_dl = verboseV2DirectDl;
-        } else {
-          relayExtra.dirreq_v2_direct_dl = desc.getDirreqV2DirectDl();
-        }
-      }
-      if (desc.getDirreqV3DirectDl() != null && !desc.getDirreqV3DirectDl().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseV3DirectDl = new ArrayList<>();
-          relayExtra.dirreq_v3_direct_dl = new ArrayList<>();
-          SortedMap<String, Integer> v3_direct = desc.getDirreqV3DirectDl();
-          for (Map.Entry<String, Integer> v3_dir : v3_direct.entrySet()) {
-            verboseV3DirectDl.add(new StringInt(v3_dir.getKey(), v3_dir.getValue()));
-          }
-          relayExtra.dirreq_v3_direct_dl = verboseV3DirectDl;
-        } else {
-          relayExtra.dirreq_v3_direct_dl = desc.getDirreqV3DirectDl();
-        }
-      }
-      if (desc.getDirreqV2TunneledDl() != null && !desc.getDirreqV2TunneledDl().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseV2Tun = new ArrayList<>();
-          relayExtra.dirreq_v2_tunneled_dl = new ArrayList<>();
-          SortedMap<String, Integer> v2_tunneled = desc.getDirreqV2TunneledDl();
-          for (Map.Entry<String, Integer> v2_tun : v2_tunneled.entrySet()) {
-            verboseV2Tun.add(new StringInt(v2_tun.getKey(), v2_tun.getValue()));
-          }
-          relayExtra.dirreq_v2_tunneled_dl = verboseV2Tun;
-        } else {
-          relayExtra.dirreq_v2_tunneled_dl = desc.getDirreqV2TunneledDl();
-        }
-      }
-      if (desc.getDirreqV3TunneledDl() != null && !desc.getDirreqV3TunneledDl().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseV3Tun = new ArrayList<>();
-          relayExtra.dirreq_v3_tunneled_dl = new ArrayList<>();
-          SortedMap<String, Integer> v3_tunneled = desc.getDirreqV3TunneledDl();
-          for (Map.Entry<String, Integer> v3_tun : v3_tunneled.entrySet()) {
-            verboseV3Tun.add(new StringInt(v3_tun.getKey(), v3_tun.getValue()));
-          }
-          relayExtra.dirreq_v3_tunneled_dl = verboseV3Tun;
-        } else {
-          relayExtra.dirreq_v3_tunneled_dl = desc.getDirreqV3TunneledDl();
-        }
-      }
-      if (desc.getDirreqReadHistory() != null) {
-        relayExtra.dirreq_read_history =
-                convertBandwidthHistory(desc.getDirreqReadHistory());
-      }
-      if (desc.getDirreqWriteHistory() != null) {
-        relayExtra.dirreq_write_history =
-                convertBandwidthHistory(desc.getDirreqWriteHistory());
-      }
-      if (desc.getEntryStatsEndMillis() >= 0) {
-        relayExtra.entry_stats_end_date = dateTimeFormat.format(desc.getEntryStatsEndMillis());
-      }
-      if (desc.getEntryStatsIntervalLength() >= 0) {
-        relayExtra.entry_stats_end_interval = desc.getEntryStatsIntervalLength();
-      }
-      if (desc.getEntryIps() != null && !desc.getEntryIps().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringInt> verboseIps = new ArrayList<>();
-          relayExtra.entry_ips = new ArrayList<>();
-          SortedMap<String, Integer> ips = desc.getEntryIps();
-          for (Map.Entry<String, Integer> ip : ips.entrySet()) {
-            verboseIps.add(new StringInt(ip.getKey(), ip.getValue()));
-          }
-          relayExtra.entry_ips = verboseIps;
-        } else {
-          relayExtra.entry_ips = desc.getEntryIps();
-        }
-      }
-      if (desc.getCellStatsEndMillis() >= 0) {
-        relayExtra.cell_stats_end_date = dateTimeFormat.format(desc.getCellStatsEndMillis());
-      }
-      if (desc.getCellStatsIntervalLength() >= 0) {
-        relayExtra.cell_stats_end_interval = desc.getCellStatsIntervalLength();
-      }
-      relayExtra.cell_processed_cells = desc.getCellProcessedCells();
-      relayExtra.cell_queued_cells = desc.getCellQueuedCells();
-      relayExtra.cell_time_in_queue = desc.getCellTimeInQueue();
-      if (desc.getCellCircuitsPerDecile() >= 0) {
-        relayExtra.cell_circuits_per_decile = desc.getCellCircuitsPerDecile();
-      }
-      if (desc.getConnBiDirectStatsEndMillis() >= 0) {
-        relayExtra.conn_bi_direct = new ConnBiDirect();
-        relayExtra.conn_bi_direct.date = dateTimeFormat.format(desc.getConnBiDirectStatsEndMillis());
-        if (desc.getConnBiDirectStatsIntervalLength() >= 0) {
-          relayExtra.conn_bi_direct.interval = desc.getConnBiDirectStatsIntervalLength();
-        }
-        if (desc.getConnBiDirectBelow() >= 0) {
-          relayExtra.conn_bi_direct.below = desc.getConnBiDirectBelow();
-        }
-        if (desc.getConnBiDirectRead() >= 0) {
-          relayExtra.conn_bi_direct.read = desc.getConnBiDirectRead();
-        }
-        if (desc.getConnBiDirectWrite() >= 0) {
-          relayExtra.conn_bi_direct.write = desc.getConnBiDirectWrite();
-        }
-        if (desc.getConnBiDirectBoth() >= 0) {
-          relayExtra.conn_bi_direct.both = desc.getConnBiDirectBoth();
-        }
-      }
-      if (desc.getExitStatsEndMillis() >= 0) {
-        relayExtra.exit_stats_end_date = dateTimeFormat.format(desc.getExitStatsEndMillis());
-      }
-      if (desc.getExitStatsIntervalLength() >= 0) {
-        relayExtra.exit_stats_end_interval = desc.getExitStatsIntervalLength();
-      }
-      if (desc.getExitKibibytesWritten() != null && !desc.getExitKibibytesWritten().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringLong> verboseWritten = new ArrayList<>();
-          relayExtra.exit_kibibytes_written = new ArrayList<>();
-          SortedMap<String, Long> written = desc.getExitKibibytesWritten();
-          for (Map.Entry<String, Long> writ : written.entrySet()) {
-            verboseWritten.add(new StringLong(writ.getKey(), writ.getValue()));
-          }
-          relayExtra.exit_kibibytes_written = verboseWritten;
-        } else {
-          relayExtra.exit_kibibytes_written = desc.getExitKibibytesWritten();
-        }
-      }
-      if (desc.getExitKibibytesRead() != null && !desc.getExitKibibytesRead().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringLong> verboseRead = new ArrayList<>();
-          relayExtra.exit_kibibytes_read = new ArrayList<>();
-          SortedMap<String, Long> reads = desc.getExitKibibytesRead();
-          for (Map.Entry<String, Long> read : reads.entrySet()) {
-            verboseRead.add(new StringLong(read.getKey(), read.getValue()));
-          }
-          relayExtra.exit_kibibytes_read = verboseRead;
-        } else {
-          relayExtra.exit_kibibytes_read = desc.getExitKibibytesRead();
-        }
-      }
-      if (desc.getExitStreamsOpened() != null && !desc.getExitStreamsOpened().isEmpty()) {
-        if (verbose) {
-          ArrayList<StringLong> verboseOpened = new ArrayList<>();
-          relayExtra.exit_streams_opened = new ArrayList<>();
-          SortedMap<String, Long> opened = desc.getExitStreamsOpened();
-          for (Map.Entry<String, Long> open : opened.entrySet()) {
-            verboseOpened.add(new StringLong(open.getKey(), open.getValue()));
-          }
-          relayExtra.exit_streams_opened = verboseOpened;
-        } else {
-          relayExtra.exit_streams_opened = desc.getExitStreamsOpened();
-        }
-      }
-      relayExtra.hidserv_stats_end = new HidStats();
-      relayExtra.hidserv_stats_end.date = dateTimeFormat.format(desc.getHidservStatsEndMillis());
-      relayExtra.hidserv_stats_end.interval = desc.getHidservStatsIntervalLength();
-      relayExtra.hidserv_rend_relayed_cells = new HidRend();
-      relayExtra.hidserv_rend_relayed_cells.cells = desc.getHidservRendRelayedCells();
-      relayExtra.hidserv_rend_relayed_cells.obfuscation = new ArrayList<>();
-      if (desc.getHidservRendRelayedCellsParameters() != null &&
-              !desc.getHidservRendRelayedCellsParameters().isEmpty()) {
-        //  TODO non-verbose version + switch
-        for (Map.Entry<String,Double> mapEntry : desc.getHidservRendRelayedCellsParameters().entrySet()) {
-          relayExtra.hidserv_rend_relayed_cells.obfuscation.add(
-                  new StringDouble(mapEntry.getKey(), mapEntry.getValue())
-          );
-        }
-      }
-      relayExtra.hidserv_dir_onions_seen = new HidDir();
-      relayExtra.hidserv_dir_onions_seen.onions = desc.getHidservDirOnionsSeen();
-      relayExtra.hidserv_dir_onions_seen.obfuscation = new ArrayList<>();
-      if (desc.getHidservDirOnionsSeenParameters() != null &&
-              !desc.getHidservDirOnionsSeenParameters().isEmpty()) {
-        //  TODO non-verbose version + switch
-        for (Map.Entry<String,Double> mapEntry : desc.getHidservDirOnionsSeenParameters().entrySet()) {
-          relayExtra.hidserv_dir_onions_seen.obfuscation.add(
-                  new StringDouble(mapEntry.getKey(), mapEntry.getValue())
-          );
-        }
-      }
-      relayExtra.transport = desc.getTransports();
-      relayExtra.router_sig_ed25519 = desc.getRouterSignatureEd25519() != null;
-      relayExtra.router_signature = desc.getRouterSignature() != null;
-      return ToJson.serialize(relayExtra);
-    }
-  }
-
-  //  bridge extra info descriptors
-  static class JsonBridgeExtraInfoDescriptor extends JsonDescriptor {
-    String descriptor_type;
-    Object geoip_client_origins;
-    String bridge_stats_end_date;
-    Long bridge_stats_end_interval;
-    Object bridge_ips;
-    Object bridge_ip_versions;
-    Object bridge_ip_transports;
-    String nickname;
-    String fingerprint;
-    String published;
-    String extra_info_digest;
-    Boolean extra_info_digest_sha256; // getExtraInfoDigestSha256
-    BandwidthHistory read_history;
-    BandwidthHistory write_history;
-    String geoip_db_digest;
-    String geoip6_db_digest;
-    String geoip_start_time;
-    String dirreq_stats_end_date;
-    Long dirreq_stats_end_interval;
-    Object dirreq_v2_ips;
-    Object dirreq_v3_ips;
-    Object dirreq_v2_reqs;
-    Object dirreq_v3_reqs;
-    Double dirreq_v2_share;
-    Double dirreq_v3_share;
-    Object dirreq_v2_resp;
-    Object dirreq_v3_resp;
-    Object dirreq_v2_direct_dl;
-    Object dirreq_v3_direct_dl;
-    Object dirreq_v2_tunneled_dl;
-    Object dirreq_v3_tunneled_dl;
-    BandwidthHistory dirreq_read_history;
-    BandwidthHistory dirreq_write_history;
-    String entry_stats_end_date;
-    Long entry_stats_end_interval;
-    Object entry_ips;
-    String cell_stats_end_date;
-    Long cell_stats_end_interval;
-    List<Integer> cell_processed_cells;
-    List<Double> cell_queued_cells;
-    List<Integer> cell_time_in_queue;
-    Integer cell_circuits_per_decile;
-    ConnBiDirect conn_bi_direct;
-    static class ConnBiDirect {
-      String date;
-      Long interval;
-      Integer below;
-      Integer read;
-      Integer write;
-      Integer both;
-    }
-    String exit_stats_end_date;
-    Long exit_stats_end_interval;
-    Object exit_kibibytes_written;
-    Object exit_kibibytes_read;
-    Object exit_streams_opened;
-
-/*
-    Object hidserv_stats_end;
-    String date; // long getHidservStatsEndMillis
-    Integer interval; // long getHidservStatsIntervalLength();
-
-    Object hidserv_rend_relayed_cells;
-    Double cells; // Double getHidservRendRelayedCells();
-    List<StringInt> obfuscation; // Map<String, Double> getHidservRendRelayedCellsParameters()
-
-    Object hidserv_dir_onions_seen;
-    Double onions; // Double getHidservDirOnionsSeen();
-    List<StringInt> obfuscation; // Map<String, Double> getHidservDirOnionsSeenParameters();
-*/
 
     List<String> transport;
     Boolean router_sig_ed25519; // getRouterSignatureEd25519
     Boolean router_signature; // getRouterSignature
+    String extra_info_digest;
+    String extra_info_digest_sha256; // getExtraInfoDigestSha256
+    String master_key_ed25519;                     // getMasterKeyEd25519
 
     static String convert(BridgeExtraInfoDescriptor desc) {
       JsonBridgeExtraInfoDescriptor bridgeExtra = new JsonBridgeExtraInfoDescriptor();
       for (String annotation : desc.getAnnotations()) {
         bridgeExtra.descriptor_type = annotation.substring("@type ".length());
-        if (annotation.startsWith("@type bridge-extra-info")) {
-          if (desc.getGeoipClientOrigins() != null && !desc.getGeoipClientOrigins().isEmpty()) {
-            if(verbose) {
-              ArrayList<StringInt> verboseGeo = new ArrayList<>();
-              bridgeExtra.geoip_client_origins = new ArrayList<>();
-              SortedMap<String, Integer> origins = desc.getGeoipClientOrigins();
-              for (Map.Entry<String, Integer> geo : origins.entrySet()) {
-                verboseGeo.add(new StringInt(geo.getKey(), geo.getValue()));
-              }
-              bridgeExtra.geoip_client_origins = verboseGeo;
-            } else {
-              bridgeExtra.geoip_client_origins = desc.getGeoipClientOrigins();
-            }
-          }
-          if (desc.getBridgeStatsEndMillis() >= 0) {
-            bridgeExtra.bridge_stats_end_date = dateTimeFormat.format(desc.getBridgeStatsEndMillis());
-          }
-          if (desc.getBridgeStatsIntervalLength() >= 0) {
-            bridgeExtra.bridge_stats_end_interval = desc.getBridgeStatsIntervalLength();
-          }
-          if (desc.getBridgeIps() != null && !desc.getBridgeIps().isEmpty()) {
-            if (verbose) {
-              ArrayList<StringInt> verboseIP = new ArrayList<>();
-              bridgeExtra.bridge_ips = new ArrayList<>();
-              SortedMap<String, Integer> b_ips = desc.getBridgeIps();
-              for (Map.Entry<String, Integer> b_ip : b_ips.entrySet()) {
-                verboseIP.add(new StringInt(b_ip.getKey(), b_ip.getValue()));
-              }
-              bridgeExtra.bridge_ips = verboseIP;
-            } else {
-              bridgeExtra.bridge_ips = desc.getBridgeIps();
-            }
-          }
-          if (desc.getBridgeIpVersions() != null && !desc.getBridgeIpVersions().isEmpty()) {
-            if (verbose) {
-              ArrayList<StringInt> verboseIPversions = new ArrayList<>();
-              bridgeExtra.bridge_ip_versions = new ArrayList<>();
-              SortedMap<String, Integer> b_ips_v = desc.getBridgeIpVersions();
-              for (Map.Entry<String, Integer> b_ip_v : b_ips_v.entrySet()) {
-                verboseIPversions.add(new StringInt(b_ip_v.getKey(), b_ip_v.getValue()));
-              }
-              bridgeExtra.bridge_ip_versions = verboseIPversions;
-            } else {
-              bridgeExtra.bridge_ip_versions = desc.getBridgeIpVersions();
-            }
-          }
-          if (desc.getBridgeIpTransports() != null && !desc.getBridgeIpTransports().isEmpty()) {
-            if (verbose) {
-              ArrayList<StringInt> verboseIPtrans = new ArrayList<>();
-              bridgeExtra.bridge_ip_transports = new ArrayList<>();
-              SortedMap<String, Integer> b_ips_t = desc.getBridgeIpTransports();
-              for (Map.Entry<String, Integer> b_ip_t : b_ips_t.entrySet()) {
-                verboseIPtrans.add(new StringInt(b_ip_t.getKey(), b_ip_t.getValue()));
-              }
-              bridgeExtra.bridge_ip_transports = verboseIPtrans;
-            } else {
-              bridgeExtra.bridge_ip_transports = desc.getBridgeIps();
-            }
-          }
-        }
       }
       bridgeExtra.nickname = desc.getNickname();
       bridgeExtra.fingerprint = desc.getFingerprint().toUpperCase();
+      bridgeExtra.identity_ed25519 = desc.getIdentityEd25519() != null;
       bridgeExtra.published = dateTimeFormat.format(desc.getPublishedMillis());
-      bridgeExtra.extra_info_digest = desc.getExtraInfoDigest();
       if (desc.getReadHistory() != null) {
         bridgeExtra.read_history = convertBandwidthHistory(desc.getReadHistory());
       }
@@ -1038,6 +1072,66 @@ public class ConvertToJson {
       if (desc.getGeoipStartTimeMillis() >= 0) {
         bridgeExtra.geoip_start_time = dateTimeFormat.format(desc.getGeoipStartTimeMillis());
       }
+      // start bridge only
+      if (desc.getGeoipClientOrigins() != null && !desc.getGeoipClientOrigins().isEmpty()) {
+        if(jagged) {
+          bridgeExtra.geoip_client_origins = desc.getGeoipClientOrigins();
+        } else {
+          ArrayList<StringInt> verboseGeo = new ArrayList<>();
+          bridgeExtra.geoip_client_origins = new ArrayList<>();
+          SortedMap<String, Integer> origins = desc.getGeoipClientOrigins();
+          for (Map.Entry<String, Integer> geo : origins.entrySet()) {
+            verboseGeo.add(new StringInt(geo.getKey(), geo.getValue()));
+          }
+          bridgeExtra.geoip_client_origins = verboseGeo;
+        }
+      }
+      if (desc.getBridgeStatsEndMillis() >= 0) {
+        bridgeExtra.bridge_stats_end_date = dateTimeFormat.format(desc.getBridgeStatsEndMillis());
+      }
+      if (desc.getBridgeStatsIntervalLength() >= 0) {
+        bridgeExtra.bridge_stats_end_interval = desc.getBridgeStatsIntervalLength();
+      }
+      if (desc.getBridgeIps() != null && !desc.getBridgeIps().isEmpty()) {
+        if (jagged) {
+          bridgeExtra.bridge_ips = desc.getBridgeIps();
+        } else {
+          ArrayList<StringInt> verboseIP = new ArrayList<>();
+          bridgeExtra.bridge_ips = new ArrayList<>();
+          SortedMap<String, Integer> b_ips = desc.getBridgeIps();
+          for (Map.Entry<String, Integer> b_ip : b_ips.entrySet()) {
+            verboseIP.add(new StringInt(b_ip.getKey(), b_ip.getValue()));
+          }
+          bridgeExtra.bridge_ips = verboseIP;
+        }
+      }
+      if (desc.getBridgeIpVersions() != null && !desc.getBridgeIpVersions().isEmpty()) {
+        if (jagged) {
+          bridgeExtra.bridge_ip_versions = desc.getBridgeIpVersions();
+        } else {
+          ArrayList<StringInt> verboseIPversions = new ArrayList<>();
+          bridgeExtra.bridge_ip_versions = new ArrayList<>();
+          SortedMap<String, Integer> b_ips_v = desc.getBridgeIpVersions();
+          for (Map.Entry<String, Integer> b_ip_v : b_ips_v.entrySet()) {
+            verboseIPversions.add(new StringInt(b_ip_v.getKey(), b_ip_v.getValue()));
+          }
+          bridgeExtra.bridge_ip_versions = verboseIPversions;
+        }
+      }
+      if (desc.getBridgeIpTransports() != null && !desc.getBridgeIpTransports().isEmpty()) {
+        if (jagged) {
+          bridgeExtra.bridge_ip_transports = desc.getBridgeIps();
+        } else {
+          ArrayList<StringInt> verboseIPtrans = new ArrayList<>();
+          bridgeExtra.bridge_ip_transports = new ArrayList<>();
+          SortedMap<String, Integer> b_ips_t = desc.getBridgeIpTransports();
+          for (Map.Entry<String, Integer> b_ip_t : b_ips_t.entrySet()) {
+            verboseIPtrans.add(new StringInt(b_ip_t.getKey(), b_ip_t.getValue()));
+          }
+          bridgeExtra.bridge_ip_transports = verboseIPtrans;
+        }
+      }
+      // end bridge only
       if (desc.getDirreqStatsEndMillis() >= 0) {
         bridgeExtra.dirreq_stats_end_date = dateTimeFormat.format(desc.getDirreqStatsEndMillis());
       }
@@ -1045,7 +1139,9 @@ public class ConvertToJson {
         bridgeExtra.dirreq_stats_end_interval = desc.getDirreqStatsIntervalLength();
       }
       if (desc.getDirreqV2Ips() != null && !desc.getDirreqV2Ips().isEmpty()) {
-        if (verbose) {
+        if (jagged) {
+          bridgeExtra.dirreq_v2_ips = desc.getDirreqV2Ips();
+        } else {
           ArrayList<StringInt> verboseV2Ips = new ArrayList<>();
           bridgeExtra.dirreq_v2_ips = new ArrayList<>();
           SortedMap<String, Integer> v2_ips = desc.getDirreqV2Ips();
@@ -1053,12 +1149,12 @@ public class ConvertToJson {
             verboseV2Ips.add(new StringInt(v2_ip.getKey(), v2_ip.getValue()));
           }
           bridgeExtra.dirreq_v2_ips = verboseV2Ips;
-        } else {
-          bridgeExtra.dirreq_v2_ips = desc.getDirreqV2Ips();
         }
       }
       if (desc.getDirreqV3Ips() != null && !desc.getDirreqV3Ips().isEmpty()) {
-        if (verbose) {
+        if (jagged) {
+          bridgeExtra.dirreq_v3_ips = desc.getDirreqV3Ips();
+        } else {
           ArrayList<StringInt> verboseV3Ips = new ArrayList<>();
           bridgeExtra.dirreq_v3_ips = new ArrayList<>();
           SortedMap<String, Integer> v3_ips = desc.getDirreqV3Ips();
@@ -1066,12 +1162,12 @@ public class ConvertToJson {
             verboseV3Ips.add(new StringInt(v3_ip.getKey(), v3_ip.getValue()));
           }
           bridgeExtra.dirreq_v3_ips = verboseV3Ips;
-        } else {
-          bridgeExtra.dirreq_v3_ips = desc.getDirreqV3Ips();
         }
       }
       if (desc.getDirreqV2Reqs() != null && !desc.getDirreqV2Reqs().isEmpty()) {
-        if (verbose) {
+        if (jagged) {
+          bridgeExtra.dirreq_v2_reqs = desc.getDirreqV2Reqs();
+        } else {
           ArrayList<StringInt> verboseV2Reqs = new ArrayList<>();
           bridgeExtra.dirreq_v2_reqs = new ArrayList<>();
           SortedMap<String, Integer> v2_reqs = desc.getDirreqV2Reqs();
@@ -1079,12 +1175,12 @@ public class ConvertToJson {
             verboseV2Reqs.add(new StringInt(v2_req.getKey(), v2_req.getValue()));
           }
           bridgeExtra.dirreq_v2_reqs = verboseV2Reqs;
-        } else {
-          bridgeExtra.dirreq_v2_reqs = desc.getDirreqV2Reqs();
         }
       }
       if (desc.getDirreqV3Reqs() != null && !desc.getDirreqV3Reqs().isEmpty()) {
-        if (verbose) {
+        if (jagged) {
+          bridgeExtra.dirreq_v3_reqs = desc.getDirreqV3Reqs();
+        } else {
           ArrayList<StringInt> verboseV3Reqs = new ArrayList<>();
           bridgeExtra.dirreq_v3_reqs = new ArrayList<>();
           SortedMap<String, Integer> v3_reqs = desc.getDirreqV3Reqs();
@@ -1092,8 +1188,6 @@ public class ConvertToJson {
             verboseV3Reqs.add(new StringInt(v3_req.getKey(), v3_req.getValue()));
           }
           bridgeExtra.dirreq_v3_reqs = verboseV3Reqs;
-        } else {
-          bridgeExtra.dirreq_v3_reqs = desc.getDirreqV3Reqs();
         }
       }
       if (desc.getDirreqV2Share() >= 0) {
@@ -1103,7 +1197,9 @@ public class ConvertToJson {
         bridgeExtra.dirreq_v3_share = desc.getDirreqV3Share();
       }
       if (desc.getDirreqV2Resp() != null && !desc.getDirreqV2Resp().isEmpty()) {
-        if (verbose) {
+        if (jagged) {
+          bridgeExtra.dirreq_v2_resp = desc.getDirreqV2Resp();
+        } else {
           ArrayList<StringInt> verboseV2Resp = new ArrayList<>();
           bridgeExtra.dirreq_v2_resp = new ArrayList<>();
           SortedMap<String, Integer> v2_resps = desc.getDirreqV2Resp();
@@ -1111,12 +1207,12 @@ public class ConvertToJson {
             verboseV2Resp.add(new StringInt(v2_resp.getKey(), v2_resp.getValue()));
           }
           bridgeExtra.dirreq_v2_resp = verboseV2Resp;
-        } else {
-          bridgeExtra.dirreq_v2_resp = desc.getDirreqV2Resp();
         }
       }
       if (desc.getDirreqV3Resp() != null && !desc.getDirreqV3Resp().isEmpty()) {
-        if (verbose) {
+        if (jagged) {
+          bridgeExtra.dirreq_v3_resp = desc.getDirreqV3Resp();
+        } else {
           ArrayList<StringInt> verboseV3Resp = new ArrayList<>();
           bridgeExtra.dirreq_v3_resp = new ArrayList<>();
           SortedMap<String, Integer> v3_resps = desc.getDirreqV3Resp();
@@ -1124,12 +1220,12 @@ public class ConvertToJson {
             verboseV3Resp.add(new StringInt(v3_resp.getKey(), v3_resp.getValue()));
           }
           bridgeExtra.dirreq_v3_resp = verboseV3Resp;
-        } else {
-          bridgeExtra.dirreq_v3_resp = desc.getDirreqV3Resp();
         }
       }
       if (desc.getDirreqV2DirectDl() != null && !desc.getDirreqV2DirectDl().isEmpty()) {
-        if (verbose) {
+        if (jagged) {
+          bridgeExtra.dirreq_v2_direct_dl = desc.getDirreqV2DirectDl();
+        } else {
           ArrayList<StringInt> verboseV2DirectDl = new ArrayList<>();
           bridgeExtra.dirreq_v2_direct_dl = new ArrayList<>();
           SortedMap<String, Integer> v2_direct = desc.getDirreqV2DirectDl();
@@ -1137,12 +1233,12 @@ public class ConvertToJson {
             verboseV2DirectDl.add(new StringInt(v2_dir.getKey(), v2_dir.getValue()));
           }
           bridgeExtra.dirreq_v2_direct_dl = verboseV2DirectDl;
-        } else {
-          bridgeExtra.dirreq_v2_direct_dl = desc.getDirreqV2DirectDl();
         }
       }
       if (desc.getDirreqV3DirectDl() != null && !desc.getDirreqV3DirectDl().isEmpty()) {
-        if (verbose) {
+        if (jagged) {
+          bridgeExtra.dirreq_v3_direct_dl = desc.getDirreqV3DirectDl();
+        } else {
           ArrayList<StringInt> verboseV3DirectDl = new ArrayList<>();
           bridgeExtra.dirreq_v3_direct_dl = new ArrayList<>();
           SortedMap<String, Integer> v3_direct = desc.getDirreqV3DirectDl();
@@ -1150,12 +1246,12 @@ public class ConvertToJson {
             verboseV3DirectDl.add(new StringInt(v3_dir.getKey(), v3_dir.getValue()));
           }
           bridgeExtra.dirreq_v3_direct_dl = verboseV3DirectDl;
-        } else {
-          bridgeExtra.dirreq_v3_direct_dl = desc.getDirreqV3DirectDl();
         }
       }
       if (desc.getDirreqV2TunneledDl() != null && !desc.getDirreqV2TunneledDl().isEmpty()) {
-        if (verbose) {
+        if (jagged) {
+          bridgeExtra.dirreq_v2_tunneled_dl = desc.getDirreqV2TunneledDl();
+        } else {
           ArrayList<StringInt> verboseV2Tun = new ArrayList<>();
           bridgeExtra.dirreq_v2_tunneled_dl = new ArrayList<>();
           SortedMap<String, Integer> v2_tunneled = desc.getDirreqV2TunneledDl();
@@ -1163,12 +1259,12 @@ public class ConvertToJson {
             verboseV2Tun.add(new StringInt(v2_tun.getKey(), v2_tun.getValue()));
           }
           bridgeExtra.dirreq_v2_tunneled_dl = verboseV2Tun;
-        } else {
-          bridgeExtra.dirreq_v2_tunneled_dl = desc.getDirreqV2TunneledDl();
         }
       }
       if (desc.getDirreqV3TunneledDl() != null && !desc.getDirreqV3TunneledDl().isEmpty()) {
-        if (verbose) {
+        if (jagged) {
+          bridgeExtra.dirreq_v3_tunneled_dl = desc.getDirreqV3TunneledDl();
+        } else {
           ArrayList<StringInt> verboseV3Tun = new ArrayList<>();
           bridgeExtra.dirreq_v3_tunneled_dl = new ArrayList<>();
           SortedMap<String, Integer> v3_tunneled = desc.getDirreqV3TunneledDl();
@@ -1176,8 +1272,6 @@ public class ConvertToJson {
             verboseV3Tun.add(new StringInt(v3_tun.getKey(), v3_tun.getValue()));
           }
           bridgeExtra.dirreq_v3_tunneled_dl = verboseV3Tun;
-        } else {
-          bridgeExtra.dirreq_v3_tunneled_dl = desc.getDirreqV3TunneledDl();
         }
       }
       if (desc.getDirreqReadHistory() != null) {
@@ -1195,7 +1289,9 @@ public class ConvertToJson {
         bridgeExtra.entry_stats_end_interval = desc.getEntryStatsIntervalLength();
       }
       if (desc.getEntryIps() != null && !desc.getEntryIps().isEmpty()) {
-        if (verbose) {
+        if (jagged) {
+          bridgeExtra.entry_ips = desc.getEntryIps();
+        } else {
           ArrayList<StringInt> verboseIps = new ArrayList<>();
           bridgeExtra.entry_ips = new ArrayList<>();
           SortedMap<String, Integer> ips = desc.getEntryIps();
@@ -1203,8 +1299,6 @@ public class ConvertToJson {
             verboseIps.add(new StringInt(ip.getKey(), ip.getValue()));
           }
           bridgeExtra.entry_ips = verboseIps;
-        } else {
-          bridgeExtra.entry_ips = desc.getEntryIps();
         }
       }
       if (desc.getCellStatsEndMillis() >= 0) {
@@ -1245,7 +1339,9 @@ public class ConvertToJson {
         bridgeExtra.exit_stats_end_interval = desc.getExitStatsIntervalLength();
       }
       if (desc.getExitKibibytesWritten() != null && !desc.getExitKibibytesWritten().isEmpty()) {
-        if (verbose) {
+        if (jagged) {
+          bridgeExtra.exit_kibibytes_written = desc.getExitKibibytesWritten();
+        } else {
           ArrayList<StringLong> verboseWritten = new ArrayList<>();
           bridgeExtra.exit_kibibytes_written = new ArrayList<>();
           SortedMap<String, Long> written = desc.getExitKibibytesWritten();
@@ -1253,12 +1349,12 @@ public class ConvertToJson {
             verboseWritten.add(new StringLong(writ.getKey(), writ.getValue()));
           }
           bridgeExtra.exit_kibibytes_written = verboseWritten;
-        } else {
-          bridgeExtra.exit_kibibytes_written = desc.getExitKibibytesWritten();
         }
       }
       if (desc.getExitKibibytesRead() != null && !desc.getExitKibibytesRead().isEmpty()) {
-        if (verbose) {
+        if (jagged) {
+          bridgeExtra.exit_kibibytes_read = desc.getExitKibibytesRead();
+        } else {
           ArrayList<StringLong> verboseRead = new ArrayList<>();
           bridgeExtra.exit_kibibytes_read = new ArrayList<>();
           SortedMap<String, Long> reads = desc.getExitKibibytesRead();
@@ -1266,12 +1362,12 @@ public class ConvertToJson {
             verboseRead.add(new StringLong(read.getKey(), read.getValue()));
           }
           bridgeExtra.exit_kibibytes_read = verboseRead;
-        } else {
-          bridgeExtra.exit_kibibytes_read = desc.getExitKibibytesRead();
         }
       }
       if (desc.getExitStreamsOpened() != null && !desc.getExitStreamsOpened().isEmpty()) {
-        if (verbose) {
+        if (jagged) {
+          bridgeExtra.exit_streams_opened = desc.getExitStreamsOpened();
+        } else {
           ArrayList<StringLong> verboseOpened = new ArrayList<>();
           bridgeExtra.exit_streams_opened = new ArrayList<>();
           SortedMap<String, Long> opened = desc.getExitStreamsOpened();
@@ -1279,16 +1375,65 @@ public class ConvertToJson {
             verboseOpened.add(new StringLong(open.getKey(), open.getValue()));
           }
           bridgeExtra.exit_streams_opened = verboseOpened;
-        } else {
-          bridgeExtra.exit_streams_opened = desc.getExitStreamsOpened();
         }
       }
-      //  extra.hidserv_stats_end = new StringInt(); // no getter in metrics-lib
-      //  extra.hidserv_rend_relayed_cells = new Object(); // no getter in metrics-lib
-      //  extra.hidserv_dir_onions_seen = new Object(); // no getter in metrics-lib
+
+
+
+      bridgeExtra.hidserv_stats_end = new HidStats();
+      bridgeExtra.hidserv_stats_end.date = dateTimeFormat.format(desc.getHidservStatsEndMillis());
+
+      if (desc.getHidservStatsIntervalLength() >= 0) {
+        bridgeExtra.hidserv_stats_end.interval = desc.getHidservStatsIntervalLength();
+      } else {
+        // TODO is this the proper way to encode defaults?
+        bridgeExtra.hidserv_stats_end.interval = Long.valueOf(86400);
+      }
+
+
+      bridgeExtra.hidserv_rend_relayed_cells = new HidRend();
+      bridgeExtra.hidserv_rend_relayed_cells.cells = desc.getHidservRendRelayedCells();
+
+      //  TODO everything else LIKE THIS non-verbose version + switch
+      if (jagged) {
+        bridgeExtra.hidserv_rend_relayed_cells.obfuscation = desc.getHidservRendRelayedCellsParameters();
+      } else {
+        ArrayList<StringDouble> obfusc = new ArrayList<>();
+        if (desc.getHidservRendRelayedCellsParameters() != null &&
+                !desc.getHidservRendRelayedCellsParameters().isEmpty()) {
+          for (Map.Entry<String, Double> mapEntry : desc.getHidservRendRelayedCellsParameters().entrySet()) {
+            obfusc.add(new StringDouble(mapEntry.getKey(), mapEntry.getValue()));
+          }
+        }
+        bridgeExtra.hidserv_rend_relayed_cells.obfuscation = obfusc;
+      }
+
+
+      bridgeExtra.hidserv_dir_onions_seen = new HidDir();
+      bridgeExtra.hidserv_dir_onions_seen.onions = desc.getHidservDirOnionsSeen();
+
+      if (jagged) {
+        bridgeExtra.hidserv_dir_onions_seen.obfuscation = desc.getHidservDirOnionsSeenParameters();
+      } else {
+        ArrayList<StringDouble> obfusc = new ArrayList<>();
+        if (desc.getHidservDirOnionsSeenParameters() != null &&
+                !desc.getHidservDirOnionsSeenParameters().isEmpty()) {
+          for (Map.Entry<String, Double> mapEntry : desc.getHidservDirOnionsSeenParameters().entrySet()) {
+            obfusc.add(new StringDouble(mapEntry.getKey(), mapEntry.getValue()));
+          }
+        }
+        bridgeExtra.hidserv_dir_onions_seen.obfuscation = obfusc;
+      }
+
+
+
+
       bridgeExtra.transport = desc.getTransports();
-      //  extra.router_sig_ed25519 = false; // no getter in metrics-lib
-      //  extra.router_signature = false; // no getter in metrics-lib
+      bridgeExtra.router_sig_ed25519 = desc.getRouterSignatureEd25519() != null;
+      bridgeExtra.router_signature = desc.getRouterSignature() != null;
+      bridgeExtra.extra_info_digest = desc.getExtraInfoDigest();
+      bridgeExtra.extra_info_digest_sha256 = desc.getExtraInfoDigestSha256();
+      bridgeExtra.master_key_ed25519 = desc.getMasterKeyEd25519();
       return ToJson.serialize(bridgeExtra);
     }
   }
@@ -1390,7 +1535,9 @@ public class ConvertToJson {
         cons.known_flags = desc.getKnownFlags();
       }
       if (desc.getConsensusParams() != null && !desc.getConsensusParams().isEmpty()) {
-        if (verbose) {
+        if (jagged) {
+          cons.params = desc.getConsensusParams();
+        } else {
           ArrayList<StringInt> verboseParams = new ArrayList<>();
           cons.params = new ArrayList<>();
           SortedMap<String,Integer> paramsC = desc.getConsensusParams();
@@ -1398,8 +1545,6 @@ public class ConvertToJson {
             verboseParams.add(new StringInt(paraC.getKey(), paraC.getValue()));
           }
           cons.params = verboseParams;
-        } else {
-          cons.params = desc.getConsensusParams();
         }
       }
       if (desc.getDirSourceEntries() != null && !desc.getDirSourceEntries().isEmpty()) {
@@ -1457,16 +1602,16 @@ public class ConvertToJson {
       if (desc.getDirectorySignatures() != null && !desc.getDirectorySignatures().isEmpty()) {
         cons.directory_footer = new DirFooter();
         if (desc.getBandwidthWeights() != null && !desc.getBandwidthWeights().isEmpty()) {
-          if (verbose) {
-              ArrayList<StringInt> verboseBwWeights = new ArrayList<>();
+          if (jagged) {
+            cons.directory_footer.bandwidth_weights = desc.getBandwidthWeights();
+          } else {
+            ArrayList<StringInt> verboseBwWeights = new ArrayList<>();
             cons.directory_footer.bandwidth_weights = new ArrayList<> ();
             SortedMap<String,Integer> bwWeights = desc.getBandwidthWeights();
             for(Map.Entry<String,Integer> bw : bwWeights.entrySet()) {
               verboseBwWeights.add(new StringInt(bw.getKey(), bw.getValue()));
             }
             cons.directory_footer.bandwidth_weights = verboseBwWeights;
-          } else {
-            cons.directory_footer.bandwidth_weights = desc.getBandwidthWeights();
           }
         }
         cons.directory_footer.consensus_digest = desc.getConsensusDigest();
@@ -1542,7 +1687,7 @@ public class ConvertToJson {
       String v;  // version
       W w;  // bandwidths
       Policy p;  // policies
-      Boolean id;                                     // getMasterKeyEd25519
+      String id;                                     // getMasterKeyEd25519
     }
     static class R {
       String nickname;
@@ -1629,7 +1774,9 @@ public class ConvertToJson {
         vote.known_flags = desc.getKnownFlags();
       }
       if (desc.getConsensusParams() != null && !desc.getConsensusParams().isEmpty()) {
-        if (verbose) {
+        if (jagged) {
+          vote.params = desc.getConsensusParams();
+        } else {
           ArrayList<StringInt> verboseConsParams = new ArrayList<>();
           vote.params = new ArrayList<> ();
           SortedMap<String,Integer> params = desc.getConsensusParams();
@@ -1637,8 +1784,6 @@ public class ConvertToJson {
             verboseConsParams.add(new StringInt(para.getKey(), para.getValue()));
           }
           vote.params = verboseConsParams;
-        } else {
-          vote.params = desc.getConsensusParams();
         }
       }
       vote.authority = new Authority();
@@ -1689,7 +1834,7 @@ public class ConvertToJson {
           router.p = new Policy();
           router.p.default_policy = status.getValue().getDefaultPolicy();
           router.p.port_summary = status.getValue().getPortList();
-          router.id = status.getValue().getMasterKeyEd25519() != null;
+          router.id = status.getValue().getMasterKeyEd25519();
           vote.router_status.add(router);
         }
       }
@@ -1969,7 +2114,8 @@ public class ConvertToJson {
     static String serialize(JsonDescriptor jsonDescriptor) {
       Gson gsonBuilder;
       String output;
-      if (verbose) {
+      
+      if (nulled) {
         gsonBuilder = new GsonBuilder()
                 .serializeNulls()
                 .disableHtmlEscaping()

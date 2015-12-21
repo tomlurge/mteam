@@ -1,18 +1,40 @@
 # TODO
 
+* flattened -> array of objects
+  jagged -> array of simple objects OR objects with key/value pairs?
+  
+* jagginess
+  - make sure that all arrays of key/value pairs have a jagged version (default)
+    and a flattened version (for Drill)
+
+* null's etc
+  * check for correct interpretation of return values
+    if the value we are looking for doesn't exist or can't be found
+    some methods return -1, some null, some just return nothing
+    it was not always perfectly clear to me what they do.
+    all this has to be checked again (yes, tedious...)
+  - make all objects and attributes appear regardless if they are empty or not
+  - return values of "-1" should be treated as null
+  - initialize all arrays, even if they are empty
+
+* streamline attribute names and structures (at least check for it)
+  - documentation in data.md or in excel or in avro schema?
+  
 * test
   - convert one tarball per type 
       to see if there is one suspiciously big JSON result
   - error handling
   - task-17872
     - server descriptors 
+      - brdges too ?
         x Ed25519 certificates 
         x Ed25519 master keys
         x Ed25519 signatures
         x SHA-256 digests
         x onion-key cross certificates
         x ntor-onion-key cross certificates
-      extra-info descriptors
+    - extra-info descriptors
+      - brdges too ?
         x Ed25519 certificates 
         x Ed25519 master keys 
         x Ed25519 signatures
@@ -25,21 +47,25 @@
   - review verbose branch line 275 & 416
   - add verbosity on new attributes
     
-* gegen speicherprobleme der javaVM
-    -Xmx8g 
-* compression as GZ !!! (not XZ, as was previously asked)
 * output wird komplett in eine datei geschrieben
   + verzeichnisstruktur wird igoriert und geht verloren
-  + ist das schlimm? wollen wir das?
+  >> Dann Bau doch deine Methoden wie
+  >> JsonRelayServerDescriptor.convert() um in
+  >> convertAndAppendToFile(), wobei jede Json*-Klasse selbst weiß
+  >> wohin sie schreiben soll.
+  >  Mach doch pro Dokumenttyp eine Map<String, Writer>, wobei String der
+  >  Monat im Format YYYY-MM ist und Writer der ensprechend offene Writer
+  >  für die Datei.
 
 * think through the process of mass ingestion  
 * and periodic ingestion  
-* streamline attribute names and structures (at least check for it)
+
 * convert to Parquet 
 * in Avro schema
   + make optional fields optional
   + add documentation
   + unify formatting (either automatic or handmade)
+  
 * check sizes
   + a bunch of Collector descriptors (say: 1 month)
   + converted to verbose and gzipped JSON
@@ -55,6 +81,12 @@
   + a bunch of archives, XZ, one of each type            ->  1 GB
   + the same as JSON, GZ, with nulls and chatty arrays   ->  5.7 GB
   + the same as JSON, GZ, with chatty arrays             ->  5.63 GB
+
+* check all things identity/digest/certificate
+  - the documentation was often not helpful in finding the right mapping
+    between methods and attributes.
+    befor the converter goes into production this has to be checked specifically
+    by someone who knows and understands the details
   
 * modularize
 * write tests
@@ -81,11 +113,6 @@
   [c] was hätte er machen können?
   
 # BUGS
-
-## DirSourceEntry
-
-is missing getter for 'adress', only has 'ip'  
-spec specifies fields for 'adress' and 'ip'
 
 ## NetworkStatusEntry
 
@@ -131,23 +158,6 @@ mapping is unclear:
     
   TorperfResult
     okay
-
-## UNRECOGNIZED LINES  
-
-BRIDGE EXTRA INFO
-Unrecognized lines in /Users/tl/tor/analyticsServer/mteam/data/in/bridge-extra-infos/00a1c16516d4624cf467fceaa4198bbe76eb8cf8:
-[
-  master-key-ed25519 0KqMQEq2jSzzG6N/pNc13lJJL25e8XmiVVBQFC5aIJ0, 
-  router-digest-sha256 pBWv7LVdJzOjZUxw+qcXc5hNMgrAPewGX3hR3IGuH1I
-]
-
-
-VOTES
-Unrecognized lines in /Users/tl/tor/analyticsServer/mteam/data/in/votes/2015-09-01-00-00-00-vote-EFCBE720AB3A82B99F9E953CD5BF50F7EEFC7B97-E2341F06E70659B9A5BB9E131AC24F91DAE7ED0E:
-[
-  id ed25519 8RH34kO07Pp+XYwzdoATVyCibIvmbslUjRkAm7J4IA8, 
-  id ed25519 none, 
-  ... id ed25519 none, id ed25519 none, id ed25519 none, id ed25519 none, iid ed25519 none, id ed25519 none, id ed25519 none, id ed25519 none, id ed25519 none, id ed25519 none, id ed25519 none, id ed25519 JGn65DiDJLfj0tDtKQwP8lkVBg0pRb1sXgg9/sMHGNQ, id ed25519 none, ... id ed25519 none]
 
 
 

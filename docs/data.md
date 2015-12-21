@@ -112,16 +112,26 @@ page. When it speaks about documents  "in archive" or "in recent" the original
 text links to directories containing those documents. Please check the [formats](https://collector.torproject.org/formats.html)
 page if you want to retrieve them.
 
-
-##### relay descriptors
-
 Relays and directory authorities publish relay descriptors, so that clients can 
 select relays for their paths through the Tor network. All these relay 
 descriptors are specified in the Tor directory protocol, version 3 specification 
 document (or in the earlier protocol versions 2 or 1).
 
+Bridges and the bridge authority publish bridge descriptors that are used by 
+censored clients to connect to the Tor network. We cannot, however, make bridge 
+descriptors available as we do with relay descriptors, because that would defeat 
+the purpose of making bridges hard to enumerate for censors. We therefore 
+sanitize bridge descriptors by removing all potentially identifying information 
+and publish sanitized versions here.   
+For a thorough description of the sanitizing steps see the section on 
+[sanitizing](https://collector.torproject.org/formats.html#bridge-descriptors)
+in the collector formats document mentioned above.
 
-######  server-descriptor 1.0
+
+
+
+######  relay - server-descriptor 1.0
+
 
 Server descriptors contain information that relays publish about themselves. 
 Tor clients once downloaded this information, but now they use microdescriptors 
@@ -201,15 +211,129 @@ JSON SERIALIZATION
 		"circuit_protocol_versions": [#,#,#...],
 		"allow_single_hop_exits": boolean,
 		"or_address": [
+		  // jagged
+		  { 
+		    "adress": #port 
+		  },
+		  ...
+		  // flattened
 			{
 				"adress": "",
 				"port": #
 			},
 			...
-		]
+		],
+		"router_digest": "",
+		"router_digest_sha256": ""
 	}
 
-###### extra-info 1.0
+
+
+
+######  bridge - bridge-server-descriptor 1.1
+
+
+Bridge server descriptors follow the same format as relay server descriptors, 
+except for the sanitizing steps mentioned above.   
+The format has changed over time to accomodate changes to the sanitizing 
+process, with earlier versions being:
+
+- @type bridge-server-descriptor 1.0 was the first version.
+- There was supposed to be a newer version indicating added ntor-onion-key 
+lines, but due to a mistake only the version number of sanitized bridge 
+extra-info descriptors was raised. As a result, there may be sanitized bridge 
+server descriptors with version @type bridge-server-descriptor 1.0 with and 
+without those lines.
+- @type bridge-server-descriptor 1.1 added master-key-ed25519 lines and 
+router-digest-sha256 to server descriptors published by bridges using an Ed25519 
+master key.
+
+
+	@type bridge-server-descriptor 1.1
+	router                        Unnamed 
+	                              10.143.227.19 
+	                              9001 
+	                              0 
+	                              0
+	platform                      Tor 0.2.6.2-alpha on Windows Server 2003 [server]
+	protocols                     Link 1 2 Circuit 1
+	published                     2015-09-29 21:36:18
+	fingerprint                   5E59 0229 A5CB 92A1 C40A A2D8 2021 AFA4 C860 69D5
+	uptime                        236
+	bandwidth                     1073741824 
+	                              1073741824 
+	                              70549
+	extra-info-digest             C457007438B350FABBA6AD75B08E0674A944E30D
+	hidden-service-dir
+	ntor-onion-key                cjj99BMgt2DdqglDgQgZyM0HSW4ZUzvYeL3s0IG+tzE=
+	reject                        *:*
+	router-digest                 00A0A2F7AA65DBDE7CE7A3FEF659368792FAAB2B
+	
+
+JSON SERIALIZATION
+ 
+	                                      
+	{
+	  "descriptor_type": "bridge_server_descriptor 1.1",       
+		"nickname": "",                     req
+		"adress": "",                       req
+		"or_port": #,                       req
+		"socks_port": #,                    req
+		"dir_port": #,                      req     
+		"identity_ed25519": boolean
+		"master_key_ed25519": string,   
+		"bandwidth_avg": #,                 req
+		"bandwidth_burst": #,               req
+		"bandwidth_observed": #,            opt
+		"or_addresses": [
+			{
+				"adress": "",
+				"port": #
+			}
+			...
+		],                                  
+		"platform": "",                     opt
+		"published": "",                    
+		"fingerprint": "",                  
+		"hibernating": boolean,             opt
+		"uptime": #,                        opt
+		"onion_key": boolean,               req           
+		"onion_key_crosscert": boolean,               
+		"ntor_onion_key": boolean,          
+		"ntor_onion_key_crosscert": boolean,    
+		"signing_key": boolean,             req
+		"exit_policy": ["","",""...],       req 
+		"ipv6_policy": "",                  opt
+		"router_sig_ed25519": boolean,
+		"contact": "",                      opt
+		"family": ["","",""...],            opt
+		"read_history": {                   opt
+			"date": "",                       req
+			"interval": #,                    req
+			"bytes": [#,#,#...]               req
+		},
+		"write_history":  {                 opt
+			"date": "",                       req
+			"interval": #,                    req
+			"bytes": [#,#,#...]               req
+		},                   
+		"eventdns": boolean,                  
+		"caches_extra_info": boolean,   
+		"extra_info_digest": "",            opt       
+		"hidden_service_dir_versions": [#,#,#...], 
+		"link_protocol_versions": [#,#,#...],      
+		"circuit_protocol_versions": [#,#,#...],   
+		"allow_single_hop_exits": boolean,      
+		"router_digest": ""              
+	}         
+		       
+	NEVER
+		"router_signature"
+		
+	  
+
+
+###### relayExtra - extra-info 1.0
 
 Extra-info descriptors contain relay information that Tor clients do not need in 
 order to function. This is self-published, like server descriptors, but not 
@@ -304,7 +428,6 @@ downloaded by clients by default.
 	                              max=3402475
 	router-signature              SIGNATURE
 
-
 JSON SERIALIZATION
 		
 	{
@@ -312,9 +435,7 @@ JSON SERIALIZATION
 		"nickname": "",
 		"fingerprint": "",
 		"identity_ed25519": boolean           getIdentityEd25519
-		"master_key_ed25519": boolean         getMasterKeyEd25519
 		"published": "",
-		"extra_info_digest": "",
 		"read_history": {
 			"date": "",
 			"interval": #,   // default: 86400
@@ -501,10 +622,327 @@ JSON SERIALIZATION
 		],
 		"router_sig_ed25519": boolean   getRouterSignatureEd25519
 		"router_signature": boolean     getRouterSignature
+		"extra_info_digest": "",
+		"extra_info_digest_sha256": "",       getExtraInfoDigestSha256
+		"master_key_ed25519": boolean         getMasterKeyEd25519
 	}
 		
 
-###### network-status-consensus-3 1.0
+
+
+###### bridgeExtra - bridge-extra-info 1.3
+
+Bridge extra-info descriptors follow the same format as relay extra-info 
+descriptors, except for the sanitizing steps mentioned above. The format has 
+changed over time to accomodate changes to the sanitizing process, with earlier 
+versions being:
+
+- @type bridge-extra-info 1.0 was the first version.
+- @type bridge-extra-info 1.1 added sanitized transport lines.
+- @type bridge-extra-info 1.2 was supposed to indicate added ntor-onion-key 
+lines, but those changes only affect bridge server descriptors, not extra-info 
+descriptors. So, nothing has changed as compared to version 1.1.
+- @type bridge-extra-info 1.3 added master-key-ed25519 lines and 
+router-digest-sha256 to extra-info descriptors published by bridges using an 
+Ed25519 master key.
+
+
+	extra-info                    Unnamed 
+	                              D38A157492E3F4CDAAFD6BDAFC5908CFF7255806
+	published                     2015-09-27 23:04:01
+	read-history                  2015-09-27 19:16:46 
+	                              (14400 s) 
+	                              50480128,
+	                              4490240,
+	                              11934720,
+	                              6256640,
+	                              89082880,
+	                              66740224
+	write-history                 2015-09-27 19:16:46 
+	                              (14400 s) 
+	                              46851072,
+	                              1771520,
+	                              9085952,
+	                              2136064,
+	                              85985280,
+	                              64917504
+	geoip-db-digest               D095D62E8A1607C2C3AF61366929BCAD0E6D3184
+	geoip6-db-digest              AC1BE3D0707D16AB04092FE00C9732658C926CD8
+	bridge-stats-end              2015-09-27 08:41:48 
+	                              (86400 s)
+	bridge-ips                    us=24,
+	                              cz=8,
+	                              fr=8,
+	                              gb=8,
+	                              ir=8,
+	                              ru=8,
+	                              sv=8
+	bridge-ip-versions            v4=32,
+	                              v6=0
+	bridge-ip-transports          <OR>=8,
+	                              obfs3=8,
+	                              obfs4=32
+	dirreq-write-history          2015-09-27 19:16:46 
+	                              (14400 s) 
+	                              1113088,
+	                              1165312,
+	                              1201152,
+	                              625664,
+	                              1170432,
+	                              3538944
+	dirreq-read-history           2015-09-27 19:16:46 
+	                              (14400 s) 
+	                              100352,
+	                              5120,
+	                              17408,
+	                              8192,
+	                              7168,
+	                              135168
+	dirreq-stats-end              2015-09-27 04:47:05 
+	                              (86400 s)
+	dirreq-v3-ips                 cz=8,
+	                              ir=8,
+	                              ru=8,
+	                              sv=8,
+	                              us=8
+	dirreq-v3-reqs                cz=8,
+	                              ir=8,
+	                              ru=8,
+	                              sv=8,
+	                              us=8
+	dirreq-v3-resp                ok=16,
+	                              not-enough-sigs=0,
+	                              unavailable=0,
+	                              not-found=0,
+	                              not-modified=0,
+	                              busy=0
+	dirreq-v3-direct-dl           complete=0,
+	                              timeout=0,
+	                              running=0
+	dirreq-v3-tunneled-dl         complete=16,
+	                              timeout=0,
+	                              running=0,
+	                              min=11874,
+	                              d1=11874,
+	                              d2=12283,
+	                              q1=24858,
+	                              d3=195862,
+	                              d4=312620,
+	                              md=387808,
+	                              d6=446494,
+	                              d7=1730520,
+	                              q3=5403163,
+	                              d8=5586742,
+	                              d9=5687171,
+	                              max=5795541
+	transport                     scramblesuit
+	transport                     obfs3
+	transport                     obfs4
+	transport                     fte
+	router-digest                 00A0BC18393D1CC4162998A06CE5B4FD606F268E
+
+JSON SERIALIZATION
+
+	{
+		"descriptor_type": "bridge-extra-info 1.3",
+		"nickname": "",
+		"fingerprint": "",
+		// "identity_ed25519": boolean,
+		"published": "",
+		"read_history": {
+			"date": "",
+			"interval": #,   // default: 86400
+			"bytes": [#,#,#...]
+		},
+		"write_history":  {
+			"date": "",
+			"interval": #,   // default: 86400
+			"bytes": [#,#,#...]
+		},
+		"geoip_db_digest": "",
+		"geoip6_db_digest": "",
+		"geoip_start_time": "",         
+		
+		// START ONLY BRIDGES
+		"geoip_client_origins": [
+			{
+				"countryCode": "",
+				"value": #
+			}
+			...
+		],
+		"bridge_stats_end_date": "",
+		"bridge_stats_end_interval": #   // default: 86400
+		},
+		"bridge_ips": [
+			{
+				"countryCode": "",
+				"value": #
+			}
+			...
+		],
+		"bridge_ip_versions": [
+			{
+				"family": "",
+				"value": #
+			}
+			...
+		],
+		"bridge_ip_transports": [
+			{
+				"transport": "",
+				"value": #
+			}
+			...
+		],
+		// END ONLY BRODGES
+		
+		"dirreq_stats_end":  {
+			"date": "",
+			"interval": #   // default: 86400
+		},
+		"dirreq_v2_ips": {                  
+			"": #   //  country code : number
+			...
+		},
+		"dirreq_v3_ips": [
+			{
+				"countryCode": "",
+				"value": #
+			}
+			...
+		],
+		"dirreq_v2_reqs": {                 
+			"": #   //  country code : number
+			...
+		},
+		"dirreq_v3_reqs": [
+			{
+				"countryCode": "",
+				"value": #
+			}
+			...
+		],
+		"dirreq_v2_share": "",     
+    "dirreq_v3_share": #,    
+		"dirreq_v2_resp": {                
+			"": #   //  status : number
+			...
+		},
+		"dirreq_v3_resp": [
+			{
+				"status": "",
+				"value": #
+			}
+			...
+		],
+		"dirreq_v2_direct_dl": {           
+			"": #   //  key : number
+			...
+		},
+		"dirreq_v3_direct_dl": [
+			{
+				"download": "",
+				"value": #
+			}
+			...
+		],
+		"dirreq_v2_tunneled_dl": {          
+			"": #   //  key : number
+			...
+		},
+		"dirreq_v3_tunneled_dl": [
+			{
+				"download": "",
+				"value": #
+			}
+			...
+		],
+		"dirreq_read_history": {
+			"date": "",
+			"interval": #,
+			"bytes": [#,#,#...]
+		},
+		"dirreq_write_history": {
+			"date": "",
+			"interval": #,
+			"bytes": [#,#,#...]
+		},
+		"entry_stats_end": {                
+			"date": "",
+			"interval": #   // default: 86400
+		},
+		"entry_ips": {                      
+			"": #   //  country code : number
+			...
+		},
+		"cell_stats_end": {                 
+			"date": "",
+			"interval": #   // default: 86400
+		},
+		"cell_processed_cells": [#,#,#...], 
+		"cell_queued_cells": [#,#,#...],    
+		"cell_time_in_queue": [#,#,#...],   
+		"cell_circuits_per_decile": #,      
+		"conn_bi_direct"::  {               
+			"date": "",
+			"interval": #,   // default: 86400
+			"below": #,
+			"read": #,
+			"write": #,
+			"both": #
+		},
+		"exit_stats_end"::  {               
+			"date": "",
+			"interval": #   // default: 86400
+		},
+		"exit_kibibytes_written": {         
+			"": #    // port : number
+			...
+		},
+		"exit_kibibytes_read": {            
+			"": #    // port : number
+			...
+		},
+		"exit_streams_opened": {            
+			"": #    // port : number
+			...
+		},
+		"hidserv_stats_end"::  {            
+			"date": "",
+			"interval": #   // default: 86400
+		},
+		"hidserv_rend_relayed_cells": {     
+			"cells": #,
+			"": #,    // key : number
+			...       // more key:number pairs
+		},
+		"hidserv_dir_onions_seen": {        
+			"cells": #,
+			"": #,    // key : number
+			...       // more key:number pairs
+		}
+		"transport": [
+			{
+				"name": "",
+				"adress": "",
+				"port": #,
+				"args": ""
+			}
+			...
+		],
+		"router_sig_ed25519": boolean   getRouterSignatureEd25519
+		"router_signature": boolean     getRouterSignature
+		"extra_info_digest": "",
+		"extra_info_digest_sha256": "",       getExtraInfoDigestSha256
+		"master_key_ed25519": boolean         getMasterKeyEd25519
+	}
+
+	      
+	      
+	          
+###### relayConsensus - network-status-consensus-3 1.0
+
 
 Though Tor relays are decentralized, the directories that track the overall 
 network are not. These central points are called directory authorities, and 
@@ -626,6 +1064,9 @@ JSON SERIALIZATION
                                        metrics-lib class/method
 	{                                    RelayNetworkStatusConsensus
 		"descriptor_type": "network-status-consensus-3 1.0",
+		"published": "",                   getValidAfterMillis 
+		                                   //  this attribute is NOT in the spec!
+		                                   //  it is used to sync with other descriptors
 		"vote_status": #,                  int getNetworkStatusVersion
     "consensus_method": #,             int getConsensusMethod
 		"consensus_flavor": ""             getConsensusFlavor
@@ -723,7 +1164,7 @@ JSON SERIALIZATION
 	
 	
 
-######  network-status-vote-3 1.0
+######  relayVote - network-status-vote-3 1.0
 
 The directory authorities exchange votes every hour to come up with a common 
 consensus. Vote documents are by far the largest documents provided here. 
@@ -977,135 +1418,8 @@ JSON SERIALIZATION
 	
 	
 	
-#### dir-key-certificate-3 1.0
-     
-The directory authorities sign their votes and the consensus with their key that 
-they publish in a key certificate. These key certificates change once every few 
-months, so they are only available in the archive. 
+###### bridgeStatus - bridge-network-status 1.0
 
-…
-
-JSON SERIALIZATION
-
-	{
-		"descriptor_type": "dir-key-certificate-3 1.0",
-		"dir_address": {
-			"adress": "",
-			"port": #
-		},
-		"fingerprint": "",
-		"dir_identity_key": boolean,
-		"dir_key_published": "",
-		"dir_key_expires": "",
-		"dir_signing_key": boolean,
-		"dir_key_crosscert": boolean,
-		"dir_key_certification": boolean
-	}
-
-
-######  network-status-microdesc-consensus-3 1.0
-
-Tor clients used to download all server descriptors of active relays, but now 
-they only download the smaller microdescriptors which are derived from server 
-descriptors. The microdescriptor consensus lists all active relays and 
-references their currently used microdescriptor. The tarballs in archive contain 
-both microdescriptor consensuses and referenced microdescriptors together. 
-
-They will not be included in the analytics server.   
-  
-	network-status-version        3 microdesc
-	vote-status                   consensus
-	consensus-method              20
-	valid-after                   2015-09-01 00:00:00
-	fresh-until                   2015-09-01 01:00:00
-	valid-until                   2015-09-01 03:00:00
-	voting-delay                  300 300
-	client-versions               0.2.4.23,0.2.4.24,0.2.4.25,0.2.4.26,0.2.4.27,0.2.5.8-rc,0.2.5.9-rc,0.2.5.10,0.2.5.11,0.2.5.12,0.2.6.5-rc,0.2.6.6,0.2.6.7,0.2.6.8,0.2.6.9,0.2.6.10,0.2.7.1-alpha,0.2.7.2-alpha
-	server-versions               0.2.4.23,0.2.4.24,0.2.4.25,0.2.4.26,0.2.4.27,0.2.5.8-rc,0.2.5.9-rc,0.2.5.10,0.2.5.11,0.2.5.12,0.2.6.5-rc,0.2.6.6,0.2.6.7,0.2.6.8,0.2.6.9,0.2.6.10,0.2.7.1-alpha,0.2.7.2-alpha
-	known-flags                   Authority BadExit Exit Fast Guard HSDir Running Stable V2Dir Valid
-	params                        CircuitPriorityHalflifeMsec=30000 
-	                              NumDirectoryGuards=3 
-	                              NumEntryGuards=1 
-	                              NumNTorsPerTAP=100 
-	                              Support022HiddenServices=0 
-	                              UseNTorHandshake=1 
-	                              UseOptimisticData=1 
-	                              bwauthpid=1 
-	                              cbttestfreq=1000 
-	                              pb_disablepct=0 
-	                              usecreatefast=0
-	
-	dir-source                    tor26 
-	                              14C131DFC5C6F93646BE72FA1401C02A8DF2E8B4 
-	                              86.59.21.38 
-	                              86.59.21.38 
-	                              80 
-	                              443
-	contact                       Peter Palfrader
-	vote-digest                   27CCBB171EE50155A74C12352BD1DF1109E3C7E6
-	
-	dir-source                    longclaw 
-	                              23D15D965BC35114467363C165C4F724B64B4F66 
-	                              longclaw.riseup.net 
-	                              199.254.238.52 
-	                              80 
-	                              443
-	contact                       Riseup Networks <collective at riseup dot net> - 1nNzekuHGGzBYRzyjfjFEfeisNvxkn4RT
-	vote-digest                   09818950D27BBB6CC4D25D3287A6D17584A25808
-	
-	[[ and so forth ]]
-
-	
-##### microdescriptor 1.0
-  
-Microdescriptors are minimalistic documents that just includes the information 
-necessary for Tor clients to work. The tarballs in archive contain both 
-microdescriptor consensuses and referenced microdescriptors together.
-The microdescriptors in archive contain one descriptor per file, whereas the 
-files in recent contain all descriptors collected in an hour concatenated into 
-a single file. 
-	
-NOTE: Microdescriptors will not be included. They're terribly hard to analyze, 
-and their content is already contained in server descriptors and consensuses
-
-	
-	
-##### network-status-2 1.0
-
-Version 2 network statuses have been published by the directory authorities 
-before consensuses have been introduced. In contrast to consensuses, each 
-directory authority published their own authoritative view on the network, and 
-clients combined these documents locally. We stopped archiving version 2 network 
-statuses in 2012.
-
-NOTE: they should be included at a later point. It's the only way to get 
-statistics from when version 3 statuses were not around. 
-
-
-##### directory 1.0
-
-The first directory protocol version combined the list of active relays with 
-server descriptors in a single directory document. We stopped archiving 
-version 1 directories in 2007. 
-
-NOTE: they should be included at a later point. It's the only way to get 
-statistics from when version 3 statuses were not around. 
-
-
-##### bridge descriptors
-
-Bridges and the bridge authority publish bridge descriptors that are used by 
-censored clients to connect to the Tor network. We cannot, however, make bridge 
-descriptors available as we do with relay descriptors, because that would defeat 
-the purpose of making bridges hard to enumerate for censors. We therefore 
-sanitize bridge descriptors by removing all potentially identifying information 
-and publish sanitized versions here.   
-For a thorough description of the sanitizing steps see the section on 
-[sanitizing](https://collector.torproject.org/formats.html#bridge-descriptors)
-in the collector formats document mentioned above.
-	
-	
-###### bridge-network-status 1.0
 
 Sanitized bridge network statuses are similar to version 2 relay network 
 statuses, but with only a published line in the header and without any lines in 
@@ -1187,502 +1501,13 @@ status is modeled after https://gitweb.torproject.org/torspec
 status format as defined in spec_v2 chapter 3. don't match. the spec v2 
 chapter 3.0 doesn't contain a field "flag-treshold" nor the fields "w" and 
 "p". it does however include a field "v".
+  
 
 
-######  bridge-server-descriptor 1.1
-
-Bridge server descriptors follow the same format as relay server descriptors, 
-except for the sanitizing steps mentioned above.   
-The format has changed over time to accomodate changes to the sanitizing 
-process, with earlier versions being:
-
-- @type bridge-server-descriptor 1.0 was the first version.
-- There was supposed to be a newer version indicating added ntor-onion-key 
-lines, but due to a mistake only the version number of sanitized bridge 
-extra-info descriptors was raised. As a result, there may be sanitized bridge 
-server descriptors with version @type bridge-server-descriptor 1.0 with and 
-without those lines.
-- @type bridge-server-descriptor 1.1 added master-key-ed25519 lines and 
-router-digest-sha256 to server descriptors published by bridges using an Ed25519 
-master key.
-
-
-	@type bridge-server-descriptor 1.1
-	router                        Unnamed 
-	                              10.143.227.19 
-	                              9001 
-	                              0 
-	                              0
-	platform                      Tor 0.2.6.2-alpha on Windows Server 2003 [server]
-	protocols                     Link 1 2 Circuit 1
-	published                     2015-09-29 21:36:18
-	fingerprint                   5E59 0229 A5CB 92A1 C40A A2D8 2021 AFA4 C860 69D5
-	uptime                        236
-	bandwidth                     1073741824 
-	                              1073741824 
-	                              70549
-	extra-info-digest             C457007438B350FABBA6AD75B08E0674A944E30D
-	hidden-service-dir
-	ntor-onion-key                cjj99BMgt2DdqglDgQgZyM0HSW4ZUzvYeL3s0IG+tzE=
-	reject                        *:*
-	router-digest                 00A0A2F7AA65DBDE7CE7A3FEF659368792FAAB2B
-	
-
-JSON SERIALIZATION
- 
-	                                      
-	{
-	  "descriptor_type": "bridge_server_descriptor 1.1",       
-		"nickname": "",                     req
-		"adress": "",                       req
-		"or_port": #,                       req
-		"socks_port": #,                    req
-		"dir_port": #,                      req     
-		"bandwidth_avg": #,                 req
-		"bandwidth_burst": #,               req
-		"bandwidth_observed": #,            opt
-		"or_addresses": [
-			{
-				"adress": "",
-				"port": #
-			}
-			...
-		],                                  
-		"platform": "",                     opt
-		"published": "",                    
-		"fingerprint": "",                  
-		"hibernating": boolean,             opt
-		"uptime": #,                        opt
-		"onion_key": boolean,               req
-		"signing_key": boolean,             req
-		"exit_policy": ["","",""...],       req 
-		"ipv6_policy": "",                  opt
-		"contact": "",                      opt
-		"family": ["","",""...],            opt
-		"read_history": {                   opt
-			"date": "",                       req
-			"interval": #,                    req
-			"bytes": [#,#,#...]               req
-		},
-		"write_history":  {                 opt
-			"date": "",                       req
-			"interval": #,                    req
-			"bytes": [#,#,#...]               req
-		},                   
-		"eventdns": boolean,                  
-		"caches_extra_info": boolean,   
-		"extra_info_digest": "",            opt       
-		"hidden_service_dir_versions": [#,#,#...], 
-		"link_protocol_versions": [#,#,#...],      
-		"circuit_protocol_versions": [#,#,#...],   
-		"allow_single_hop_exits": boolean,              
-		"ntor_onion_key": boolean,          
-		"router_digest": ""    
-	}
-		
-	MAYBE LATER:
-		"identity_ed25519": boolean
-		                       
-	PROBABLY NEVER
-		"master_key_ed25519": boolean,                     
-		"onion_key_crosscert": boolean,                    
-		"ntor_onion_key_crosscert": boolean,               
-		"router_sig_ed25519": boolean,
-		       
-	NEVER
-		"router_signature"
-		
-	  
-	
-###### bridge-extra-info 1.3
-
-Bridge extra-info descriptors follow the same format as relay extra-info 
-descriptors, except for the sanitizing steps mentioned above. The format has 
-changed over time to accomodate changes to the sanitizing process, with earlier 
-versions being:
-
-- @type bridge-extra-info 1.0 was the first version.
-- @type bridge-extra-info 1.1 added sanitized transport lines.
-- @type bridge-extra-info 1.2 was supposed to indicate added ntor-onion-key 
-lines, but those changes only affect bridge server descriptors, not extra-info 
-descriptors. So, nothing has changed as compared to version 1.1.
-- @type bridge-extra-info 1.3 added master-key-ed25519 lines and 
-router-digest-sha256 to extra-info descriptors published by bridges using an 
-Ed25519 master key.
-
-
-	extra-info                    Unnamed 
-	                              D38A157492E3F4CDAAFD6BDAFC5908CFF7255806
-	published                     2015-09-27 23:04:01
-	read-history                  2015-09-27 19:16:46 
-	                              (14400 s) 
-	                              50480128,
-	                              4490240,
-	                              11934720,
-	                              6256640,
-	                              89082880,
-	                              66740224
-	write-history                 2015-09-27 19:16:46 
-	                              (14400 s) 
-	                              46851072,
-	                              1771520,
-	                              9085952,
-	                              2136064,
-	                              85985280,
-	                              64917504
-	geoip-db-digest               D095D62E8A1607C2C3AF61366929BCAD0E6D3184
-	geoip6-db-digest              AC1BE3D0707D16AB04092FE00C9732658C926CD8
-	bridge-stats-end              2015-09-27 08:41:48 
-	                              (86400 s)
-	bridge-ips                    us=24,
-	                              cz=8,
-	                              fr=8,
-	                              gb=8,
-	                              ir=8,
-	                              ru=8,
-	                              sv=8
-	bridge-ip-versions            v4=32,
-	                              v6=0
-	bridge-ip-transports          <OR>=8,
-	                              obfs3=8,
-	                              obfs4=32
-	dirreq-write-history          2015-09-27 19:16:46 
-	                              (14400 s) 
-	                              1113088,
-	                              1165312,
-	                              1201152,
-	                              625664,
-	                              1170432,
-	                              3538944
-	dirreq-read-history           2015-09-27 19:16:46 
-	                              (14400 s) 
-	                              100352,
-	                              5120,
-	                              17408,
-	                              8192,
-	                              7168,
-	                              135168
-	dirreq-stats-end              2015-09-27 04:47:05 
-	                              (86400 s)
-	dirreq-v3-ips                 cz=8,
-	                              ir=8,
-	                              ru=8,
-	                              sv=8,
-	                              us=8
-	dirreq-v3-reqs                cz=8,
-	                              ir=8,
-	                              ru=8,
-	                              sv=8,
-	                              us=8
-	dirreq-v3-resp                ok=16,
-	                              not-enough-sigs=0,
-	                              unavailable=0,
-	                              not-found=0,
-	                              not-modified=0,
-	                              busy=0
-	dirreq-v3-direct-dl           complete=0,
-	                              timeout=0,
-	                              running=0
-	dirreq-v3-tunneled-dl         complete=16,
-	                              timeout=0,
-	                              running=0,
-	                              min=11874,
-	                              d1=11874,
-	                              d2=12283,
-	                              q1=24858,
-	                              d3=195862,
-	                              d4=312620,
-	                              md=387808,
-	                              d6=446494,
-	                              d7=1730520,
-	                              q3=5403163,
-	                              d8=5586742,
-	                              d9=5687171,
-	                              max=5795541
-	transport                     scramblesuit
-	transport                     obfs3
-	transport                     obfs4
-	transport                     fte
-	router-digest                 00A0BC18393D1CC4162998A06CE5B4FD606F268E
-
-
-JSON SERIALIZATION
-
-	{
-		"descriptor_type": "bridge-extra-info 1.3",
-		"nickname": "",
-		"fingerprint": "",
-		// "identity_ed25519": boolean,
-		"published": "",
-		"read_history": {
-			"date": "",
-			"interval": #,   // default: 86400
-			"bytes": [#,#,#...]
-		},
-		"write_history":  {
-			"date": "",
-			"interval": #,   // default: 86400
-			"bytes": [#,#,#...]
-		},
-		"geoip_db_digest": "",
-		"geoip6_db_digest": "",
-		"geoip_start_time": "",
-		
-		// START ONLY BRIDGES
-		"geoip_client_origins": [
-			{
-				"countryCode": "",
-				"value": #
-			}
-			...
-		],
-		"bridge_stats_end_date": "",
-		"bridge_stats_end_interval": #   // default: 86400
-		},
-		"bridge_ips": [
-			{
-				"countryCode": "",
-				"value": #
-			}
-			...
-		],
-		"bridge_ip_versions": [
-			{
-				"family": "",
-				"value": #
-			}
-			...
-		],
-		"bridge_ip_transports": [
-			{
-				"transport": "",
-				"value": #
-			}
-			...
-		],
-		// END ONLY BRODGES
-		
-		"dirreq_stats_end":  {
-			"date": "",
-			"interval": #   // default: 86400
-		},
-		"dirreq_v3_ips": [
-			{
-				"countryCode": "",
-				"value": #
-			}
-			...
-		],
-		"dirreq_v3_reqs": [
-			{
-				"countryCode": "",
-				"value": #
-			}
-			...
-		],
-    "dirreq_v3_share": #,    
-		"dirreq_v3_resp": [
-			{
-				"status": "",
-				"value": #
-			}
-			...
-		],
-		"dirreq_v3_direct_dl": [
-			{
-				"download": "",
-				"value": #
-			}
-			...
-		],
-		"dirreq_v3_tunneled_dl": [
-			{
-				"download": "",
-				"value": #
-			}
-			...
-		],
-		"dirreq_read_history": {
-			"date": "",
-			"interval": #,
-			"bytes": [#,#,#...]
-		},
-		"dirreq_write_history": {
-			"date": "",
-			"interval": #,
-			"bytes": [#,#,#...]
-		},
-		"transport": [
-			{
-				"name": "",
-				"adress": "",
-				"port": #,
-				"args": ""
-			}
-			...
-		],
-		"router_digest": ""
-	}
-
-
-
-
-	POSTPONED, maybe irrelevant for bridges
-	
-		"geoip_start_time": "",             
-		"geoip_client_origins": {           
-			"": #   //  country code : number
-			...
-		},
-		"dirreq_v2_ips": {                  
-			"": #   //  country code : number
-			...
-		},
-		"dirreq_v2_reqs": {                 
-			"": #   //  country code : number
-			...
-		},
-		"dirreq_v2_share": "",             
-		"dirreq_v2_resp": {                
-			"": #   //  status : number
-			...
-		},
-		"dirreq_v2_direct_dl": {           
-			"": #   //  key : number
-			...
-		},
-		"dirreq_v2_tunneled_dl": {          
-			"": #   //  key : number
-			...
-		},
-		"entry_stats_end": {                
-			"date": "",
-			"interval": #   // default: 86400
-		},
-		"entry_ips": {                      
-			"": #   //  country code : number
-			...
-		},
-		"cell_stats_end": {                 
-			"date": "",
-			"interval": #   // default: 86400
-		},
-		"cell_processed_cells": [#,#,#...], 
-		"cell_queued_cells": [#,#,#...],    
-		"cell_time_in_queue": [#,#,#...],   
-		"cell_circuits_per_decile": #,      
-		"conn_bi_direct"::  {               
-			"date": "",
-			"interval": #,   // default: 86400
-			"below": #,
-			"read": #,
-			"write": #,
-			"both": #
-		},
-		"exit_stats_end"::  {               
-			"date": "",
-			"interval": #   // default: 86400
-		},
-		"exit_kibibytes_written": {         
-			"": #    // port : number
-			...
-		},
-		"exit_kibibytes_read": {            
-			"": #    // port : number
-			...
-		},
-		"exit_streams_opened": {            
-			"": #    // port : number
-			...
-		},
-		"hidserv_stats_end"::  {            
-			"date": "",
-			"interval": #   // default: 86400
-		},
-		"hidserv_rend_relayed_cells": {     
-			"cells": #,
-			"": #,    // key : number
-			...       // more key:number pairs
-		},
-		"hidserv_dir_onions_seen": {        
-			"cells": #,
-			"": #,    // key : number
-			...       // more key:number pairs
-		}
-
-
-##### other 
-
-###### hidden-service-descriptor 1.0
-
-Tor hidden services make it possible for users to hide their locations while 
-offering various kinds of services. A hidden service assembles a hidden service 
-descriptor to make its service available in the network. This descriptor gets 
-stored on hidden service directories and can be retrieved by hidden service 
-clients. Hidden service descriptors are not formally archived, but some libraries 
-support parsing these descriptors when obtaining them from a locally running Tor 
-instance. 
-
-NOTE: We don't have these, so there's no way to analyze them. 
-
-
-###### bridge-pool-assignment 1.0
-
-The document below shows a BridgeDB pool assignment file from March 13, 2011. 
-Every such file begins with a line containing the timestamp when BridgeDB wrote 
-this file. Subsequent lines start with the SHA-1 hash of a bridge fingerprint, 
-followed by ring, subring, and/or file bucket information. There are currently 
-three distributor ring types in BridgeDB:
-
-  1. unallocated: These bridges are not distributed by BridgeDB, but are either
-   reserved for manual distribution or are written to file buckets for 
-   distribution via an external tool. If a bridge in the unallocated ring is 
-   assigned to a file bucket, this is noted by bucket=$bucketname.
-  2. email: These bridges are distributed via an e-mail autoresponder. Bridges 
-  can be assigned to subrings by their OR port or relay flag which is defined by 
-  port=$port and/or flag=$flag.
-  3. https: These bridges are distributed via https server. There are multiple 
-  https rings to further distribute bridges by IP address ranges, which is 
-  denoted by ring=$ring. Bridges in the https ring can also be assigned to 
-  subrings by OR port or relay flag which is defined by port=$port and/or 
-  flag=$flag.
-
-
-	bridge-pool-assignment 2011-03-13 14:38:03
-	00b834117566035736fc6bd4ece950eace8e057a unallocated
-	00e923e7a8d87d28954fee7503e480f3a03ce4ee email port=443 flag=stable
-	0103bb5b00ad3102b2dbafe9ce709a0a7c1060e4 https ring=2 port=443 flag=stable
-	[...]
-
-As of December 8, 2014, bridge pool assignment files are no longer archived. 
-
-	002941....8b0de74e97          email 
-	                              ip=4 
-	                              flag=stable 
-	                              transport=obfs3,
-	                                        obfs2,
-	                                        scramblesuit
-	0126c6....fa7f658257          https 
-	                              ip=4 
-	                              ring=3 
-	                              flag=stable 
-	                              transport=obfs3,
-	                                        obfs2,
-	                                        scramblesuit
-	0241c8....d81ccda97c          https 
-	                              ip=4 
-	                              ring=2 
-	                              flag=stable 
-	                              transport=fte,
-	                                        obfs3,
-	                                        scramblesuit
-
-
-NOTE: they may be included at a later point. They will be at least 1 year 
-old, so they are not terribly important.
 
                             
 ###### tordnsel 1.0
+
 
 The exit list service TorDNSEL publishes exit lists containing the IP addresses 
 of relays that it found when exiting through them. 
@@ -1749,6 +1574,7 @@ JSON SERIALIZATION
 
 	
 ######  torperf 1.0
+
 
 The performance measurement service Torperf publishes performance data from 
 making simple HTTP requests over the Tor network. Torperf uses a trivial SOCKS 
@@ -1829,3 +1655,190 @@ JSON SERIALIZATION
 		"circ_id": #,              int getCircId
 		"used_by": #               int getUsedBy
 	}
+	
+	
+	
+	
+##### other 
+	
+#### dir-key-certificate-3 1.0
+     
+The directory authorities sign their votes and the consensus with their key that 
+they publish in a key certificate. These key certificates change once every few 
+months, so they are only available in the archive. 
+
+…
+
+JSON SERIALIZATION
+
+	{
+		"descriptor_type": "dir-key-certificate-3 1.0",
+		"dir_address": {
+			"adress": "",
+			"port": #
+		},
+		"fingerprint": "",
+		"dir_identity_key": boolean,
+		"dir_key_published": "",
+		"dir_key_expires": "",
+		"dir_signing_key": boolean,
+		"dir_key_crosscert": boolean,
+		"dir_key_certification": boolean
+	}
+
+######  network-status-microdesc-consensus-3 1.0
+
+Tor clients used to download all server descriptors of active relays, but now 
+they only download the smaller microdescriptors which are derived from server 
+descriptors. The microdescriptor consensus lists all active relays and 
+references their currently used microdescriptor. The tarballs in archive contain 
+both microdescriptor consensuses and referenced microdescriptors together. 
+
+They will not be included in the analytics server.   
+  
+	network-status-version        3 microdesc
+	vote-status                   consensus
+	consensus-method              20
+	valid-after                   2015-09-01 00:00:00
+	fresh-until                   2015-09-01 01:00:00
+	valid-until                   2015-09-01 03:00:00
+	voting-delay                  300 300
+	client-versions               0.2.4.23,0.2.4.24,0.2.4.25,0.2.4.26,0.2.4.27,0.2.5.8-rc,0.2.5.9-rc,0.2.5.10,0.2.5.11,0.2.5.12,0.2.6.5-rc,0.2.6.6,0.2.6.7,0.2.6.8,0.2.6.9,0.2.6.10,0.2.7.1-alpha,0.2.7.2-alpha
+	server-versions               0.2.4.23,0.2.4.24,0.2.4.25,0.2.4.26,0.2.4.27,0.2.5.8-rc,0.2.5.9-rc,0.2.5.10,0.2.5.11,0.2.5.12,0.2.6.5-rc,0.2.6.6,0.2.6.7,0.2.6.8,0.2.6.9,0.2.6.10,0.2.7.1-alpha,0.2.7.2-alpha
+	known-flags                   Authority BadExit Exit Fast Guard HSDir Running Stable V2Dir Valid
+	params                        CircuitPriorityHalflifeMsec=30000 
+	                              NumDirectoryGuards=3 
+	                              NumEntryGuards=1 
+	                              NumNTorsPerTAP=100 
+	                              Support022HiddenServices=0 
+	                              UseNTorHandshake=1 
+	                              UseOptimisticData=1 
+	                              bwauthpid=1 
+	                              cbttestfreq=1000 
+	                              pb_disablepct=0 
+	                              usecreatefast=0
+	
+	dir-source                    tor26 
+	                              14C131DFC5C6F93646BE72FA1401C02A8DF2E8B4 
+	                              86.59.21.38 
+	                              86.59.21.38 
+	                              80 
+	                              443
+	contact                       Peter Palfrader
+	vote-digest                   27CCBB171EE50155A74C12352BD1DF1109E3C7E6
+	
+	dir-source                    longclaw 
+	                              23D15D965BC35114467363C165C4F724B64B4F66 
+	                              longclaw.riseup.net 
+	                              199.254.238.52 
+	                              80 
+	                              443
+	contact                       Riseup Networks <collective at riseup dot net> - 1nNzekuHGGzBYRzyjfjFEfeisNvxkn4RT
+	vote-digest                   09818950D27BBB6CC4D25D3287A6D17584A25808
+	
+	[[ and so forth ]]
+	
+##### microdescriptor 1.0
+  
+Microdescriptors are minimalistic documents that just includes the information 
+necessary for Tor clients to work. The tarballs in archive contain both 
+microdescriptor consensuses and referenced microdescriptors together.
+The microdescriptors in archive contain one descriptor per file, whereas the 
+files in recent contain all descriptors collected in an hour concatenated into 
+a single file. 
+	
+NOTE: Microdescriptors will not be included. They're terribly hard to analyze, 
+and their content is already contained in server descriptors and consensuses
+
+	
+	
+##### network-status-2 1.0
+
+Version 2 network statuses have been published by the directory authorities 
+before consensuses have been introduced. In contrast to consensuses, each 
+directory authority published their own authoritative view on the network, and 
+clients combined these documents locally. We stopped archiving version 2 network 
+statuses in 2012.
+
+NOTE: they should be included at a later point. It's the only way to get 
+statistics from when version 3 statuses were not around. 
+
+
+##### directory 1.0
+
+The first directory protocol version combined the list of active relays with 
+server descriptors in a single directory document. We stopped archiving 
+version 1 directories in 2007. 
+
+NOTE: they should be included at a later point. It's the only way to get 
+statistics from when version 3 statuses were not around. 
+
+
+###### hidden-service-descriptor 1.0
+
+Tor hidden services make it possible for users to hide their locations while 
+offering various kinds of services. A hidden service assembles a hidden service 
+descriptor to make its service available in the network. This descriptor gets 
+stored on hidden service directories and can be retrieved by hidden service 
+clients. Hidden service descriptors are not formally archived, but some libraries 
+support parsing these descriptors when obtaining them from a locally running Tor 
+instance. 
+
+NOTE: We don't have these, so there's no way to analyze them. 
+
+
+###### bridge-pool-assignment 1.0
+
+The document below shows a BridgeDB pool assignment file from March 13, 2011. 
+Every such file begins with a line containing the timestamp when BridgeDB wrote 
+this file. Subsequent lines start with the SHA-1 hash of a bridge fingerprint, 
+followed by ring, subring, and/or file bucket information. There are currently 
+three distributor ring types in BridgeDB:
+
+  1. unallocated: These bridges are not distributed by BridgeDB, but are either
+   reserved for manual distribution or are written to file buckets for 
+   distribution via an external tool. If a bridge in the unallocated ring is 
+   assigned to a file bucket, this is noted by bucket=$bucketname.
+  2. email: These bridges are distributed via an e-mail autoresponder. Bridges 
+  can be assigned to subrings by their OR port or relay flag which is defined by 
+  port=$port and/or flag=$flag.
+  3. https: These bridges are distributed via https server. There are multiple 
+  https rings to further distribute bridges by IP address ranges, which is 
+  denoted by ring=$ring. Bridges in the https ring can also be assigned to 
+  subrings by OR port or relay flag which is defined by port=$port and/or 
+  flag=$flag.
+
+
+	bridge-pool-assignment 2011-03-13 14:38:03
+	00b834117566035736fc6bd4ece950eace8e057a unallocated
+	00e923e7a8d87d28954fee7503e480f3a03ce4ee email port=443 flag=stable
+	0103bb5b00ad3102b2dbafe9ce709a0a7c1060e4 https ring=2 port=443 flag=stable
+	[...]
+
+As of December 8, 2014, bridge pool assignment files are no longer archived. 
+
+	002941....8b0de74e97          email 
+	                              ip=4 
+	                              flag=stable 
+	                              transport=obfs3,
+	                                        obfs2,
+	                                        scramblesuit
+	0126c6....fa7f658257          https 
+	                              ip=4 
+	                              ring=3 
+	                              flag=stable 
+	                              transport=obfs3,
+	                                        obfs2,
+	                                        scramblesuit
+	0241c8....d81ccda97c          https 
+	                              ip=4 
+	                              ring=2 
+	                              flag=stable 
+	                              transport=fte,
+	                                        obfs3,
+	                                        scramblesuit
+
+
+NOTE: they may be included at a later point. They will be at least 1 year 
+old, so they are not terribly important.
+
