@@ -204,3 +204,61 @@ mapping is unclear:
       List: first check that the list is not null, then if it's empty
           if (desc.XXX() != null && !desc.XXX().isEmpty()) {
 
+
+## SOME JAGGED MAPS AND FLATTENED ARRAYS
+
+      // <!-- role model SortedMap<String, Integer>
+      if (jagged) {
+        relayExtra.attribute = new HashMap<>();
+        if (desc.method() != null && !desc.method().isEmpty()) {
+          relayExtra.attribute = desc.method();
+        }
+      } else {
+        relayExtra.attribute = new ArrayList<StringInt>();
+        if (desc.method() != null && !desc.method().isEmpty()) {
+          ArrayList<StringInt> flatList = new ArrayList<>();
+          for (Map.Entry<String, Integer> entry : desc.method().entrySet()) {
+            flatList.add(new StringInt(entry.getKey(), entry.getValue()));
+          }
+          relayExtra.attribute = flatList;
+        }
+      }
+      // role model -->
+
+      // <!-- role model SortedMap<String, Long>
+      if (jagged) {
+        relayExtra.attribute = new HashMap<>();
+        if (desc.method() != null && !desc.method().isEmpty()) {
+          relayExtra.attribute = desc.method();
+        }
+      } else {
+        relayExtra.attribute = new ArrayList<StringLong>();
+        if (desc.method() != null && !desc.method().isEmpty()) {
+          ArrayList<StringLong> flatList = new ArrayList<>();
+          for (Map.Entry<String, Long> entry : desc.method().entrySet()) {
+            flatList.add(new StringLong(entry.getKey(), entry.getValue()));
+          }
+          relayExtra.attribute = flatList;
+        }
+      }
+      // role model -->
+
+      // <!-- role model SortedMap<String, Double>
+      if (jagged) {
+        relayExtra.attribute = new HashMap<>();
+        if (desc.method() != null && !desc.method().isEmpty()) {
+          relayExtra.attribute = desc.method();
+        }
+      } else {
+        relayExtra.attribute = new ArrayList<StringDouble>();
+        if (desc.method() != null && !desc.method().isEmpty()) {
+          ArrayList<StringDouble> flatList = new ArrayList<>();
+          for (Map.Entry<String, Double> entry : desc.method().entrySet()) {
+            flatList.add(new StringDouble(entry.getKey(), entry.getValue()));
+          }
+          relayExtra.attribute = flatList;
+        }
+      }
+      // role model -->
+
+
