@@ -12,6 +12,9 @@ import com.google.gson.GsonBuilder;
 /*  metrics-lib  */
 import org.torproject.descriptor.*;
 
+/* command line interface */
+import org.apache.commons.cli.*;
+
 
 public class ConvertToJson {
 
@@ -19,47 +22,100 @@ public class ConvertToJson {
   static boolean jagged = true;
   static boolean nulled = true;
   static boolean compressed = true;
-  static String dir = "";
+  static String format = "json";
+  static String in = "data/in/singles";
+  static String out = "data/out/";
+  static String name = "result";
+
+  /*  optional command line arguments:
+   *
+   *  -h, -help            print this text
+   *  -a, -array           'flattening' objects to arrays
+   *                       all objects with non-uniform attribute sets are
+   *                       converted to arrays as required by Apache Drill
+   *  -w, -withoutNulls    attributes with value null are not emitted
+   *                       gains a little advantage in storage space
+   *  -u, -uncompressed    do not generate .gz archive
+   *                       mainly for testing
+   *  -f, -format          e.g. '-f=json'
+   *                       to which serialization format to convert
+   *                       defaults to 'json'
+   *                       currently only 'json' is supported
+   *  -i, -in              e.g. '-i=~my/data/in/dir'
+   *                       from which directory to read data
+   *                       defaults to 'data/in/'
+   *  -o, -out             e.g. '-i=~my/data/out/dir'
+   *                       to which directory to write the converted data
+   *                       defaults to 'data/out/'
+   *  -n, -name            e.g. '-n=~myFile'
+   *                       file name of the converted result
+   *                       defaults to 'result'
+   */
 
   /*  Read all descriptors in the provided directory and
    *  convert them to the appropriate JSON format.  */
   public static void main(String[] args) throws IOException {
 
-    /*  optional command line arguments
-     *    -j                jagged arrays
-     *                        some objects have more attributes than others
-     *    -f                flattened arrays
-     *                        all objects have the same attributes
-     *                        all other objects are converted to arrays
-     *                        Apache Drill needs this
-     *    -n                null - also emit attributes with value null
-     *                        mainly Drill needs this
-     *    -w                without null - do not emit attributes of value null
-     *                        gains a little advantage in storage space
-     *    -c                compressed: do generate .gz archive
-     *    -u                uncompressed: do not generate .gz archive
-     *                        mainly for testing
-     *    <directory name>  scan only a given subdirectory of data/in
-     *
-     */
-    for (String arg : args) {
-      if (arg.equals("-f")) jagged = false;
-      else if (arg.equals("-j")) jagged = true;
-      else if (arg.equals("-n")) nulled = true;
-      else if (arg.equals("-w")) nulled = false;
-      else if (arg.equals("-c")) compressed = true;
-      else if (arg.equals("-u")) compressed = false;
-      else dir = arg;
+    Options options = new Options();
+    options.addOption("h", "help", false, "display this help text");
+    options.addOption("a", "array", false, "'flattening' objects to arrays \nall objects with non-uniform attribute sets are \nconverted to arrays as required by Apache Drill");
+    options.addOption("w", "withoutNulls", false, "attributes with value null are not emitted \nwhich gains a little advantage in storage space");
+    options.addOption("u", "uncompressed", false, "does not generate .gz archive, \nmainly useful for testing");
+    options.addOption("f", "format", true, "e.g. '-f=json'\nto which serialization format to convert\ndefaults to 'json'\n(currently only 'json' is supported)");
+    options.addOption("i", "in", true, "e.g. '-i=~my/data/in/dir'\nfrom which directory to read data\ndefaults to 'data/in/'");
+    options.addOption("o", "out", true, "e.g. '-i=~my/data/out/dir'\nto which directory to write the converted data\ndefaults to 'data/out/'");
+    options.addOption("n", "name", true, "e.g. '-n=~myFile'\nfile name of the converted result\ndefaults to 'result'");
+    CommandLineParser parser = new DefaultParser();
+    CommandLine cmd = null;
+    try {
+      cmd = parser.parse( options, args);
+    } catch (ParseException e) {
+      e.printStackTrace();
+    }
+    if(cmd.hasOption("h")) {
+      // printHelp();
+
+      HelpFormatter formatter = new HelpFormatter();
+      formatter.printHelp( "ConvertToJson", options );
+    }
+    if(cmd.hasOption("a")) {
+      jagged = false;
+    }
+    if(cmd.hasOption("w")) {
+      nulled = false;
+    }
+    if(cmd.hasOption("u")) {
+      compressed = false;
+    }
+    if(cmd.hasOption("f") && cmd.getOptionValue("f") != null) {
+      format = cmd.getOptionValue("f");
+    }
+    if(cmd.hasOption("i") && cmd.getOptionValue("i") != null) {
+      in = cmd.getOptionValue("i");
+    }
+    if(cmd.hasOption("o") && cmd.getOptionValue("o") != null) {
+      out = cmd.getOptionValue("o");
+    }
+    if(cmd.hasOption("n") && cmd.getOptionValue("n") != null) {
+      name  = cmd.getOptionValue("n");
     }
 
+    System.out.println("jagged = " + jagged);
+    System.out.println("nulled = " + nulled);
+    System.out.println("compressed = " + compressed);
+    System.out.println("format = " + format);
+    System.out.println("in = " + in);
+    System.out.println("out = " + out);
+    System.out.println("name = " + name);
+
     DescriptorReader descriptorReader = DescriptorSourceFactory.createDescriptorReader();
-    descriptorReader.addDirectory(new File("data/in/" + dir));
+    descriptorReader.addDirectory(new File(in));
     descriptorReader.setMaxDescriptorFilesInQueue(5);
     Iterator<DescriptorFile> descriptorFiles = descriptorReader.readDescriptors();
 
     int written = 0;
-    String outputPath = "data/out/";
-    String outputName = "result.json";
+    String outputPath = out;
+    String outputName = name + "." + format;
     Writer JsonWriter;
     if (compressed) {
       JsonWriter = new OutputStreamWriter(new GZIPOutputStream(
@@ -69,14 +125,6 @@ public class ConvertToJson {
       JsonWriter = new FileWriter(outputPath + outputName);
     }
     BufferedWriter bw = new BufferedWriter(JsonWriter);
-
-    /*  TODO remove after testing
-      bw.write(
-        "{\"verbose\": " + verbose +
-        ", \"compress\": " + compress +
-        ", \"starting at directory\" : \"data/in/" + dir + "\"},\n"
-      );
-    */
 
     while (descriptorFiles.hasNext()) {
       DescriptorFile descriptorFile = descriptorFiles.next();
@@ -148,6 +196,7 @@ public class ConvertToJson {
     }
     bw.close();
   }
+
 
 
   //  all descriptors
@@ -914,8 +963,7 @@ public class ConvertToJson {
       if (desc.getHidservRendRelayedCellsParameters() != null &&
               !desc.getHidservRendRelayedCellsParameters().isEmpty()) {
         if (jagged) {
-          Map<String,Double> tmpMap = desc.getHidservRendRelayedCellsParameters();
-          relayExtra.hidserv_rend_relayed_cells.obfuscation = tmpMap;
+          relayExtra.hidserv_rend_relayed_cells.obfuscation = desc.getHidservRendRelayedCellsParameters();
         } else {
           ArrayList<StringDouble> tmpList = new ArrayList<>();
             for (Map.Entry<String, Double> mapEntry : desc.getHidservRendRelayedCellsParameters().entrySet()) {
@@ -929,8 +977,7 @@ public class ConvertToJson {
       if (desc.getHidservRendRelayedCellsParameters() != null &&
               !desc.getHidservRendRelayedCellsParameters().isEmpty()) {
         if (jagged) {
-          Map<String,Double> tmpMap = desc.getHidservRendRelayedCellsParameters();
-          relayExtra.hidserv_dir_onions_seen.obfuscation = tmpMap;
+          relayExtra.hidserv_dir_onions_seen.obfuscation = desc.getHidservRendRelayedCellsParameters();
         } else {
           ArrayList<StringDouble> tmpList = new ArrayList<>();
           for (Map.Entry<String, Double> mapEntry : desc.getHidservDirOnionsSeenParameters().entrySet()) {
@@ -1375,8 +1422,7 @@ public class ConvertToJson {
       if (desc.getHidservRendRelayedCellsParameters() != null &&
               !desc.getHidservRendRelayedCellsParameters().isEmpty()) {
         if (jagged) {
-          Map<String,Double> tmpMap = desc.getHidservRendRelayedCellsParameters();
-          bridgeExtra.hidserv_rend_relayed_cells.obfuscation = tmpMap;
+          bridgeExtra.hidserv_rend_relayed_cells.obfuscation = desc.getHidservRendRelayedCellsParameters();
         } else {
           ArrayList<StringDouble> tmpList = new ArrayList<>();
           for (Map.Entry<String, Double> mapEntry : desc.getHidservRendRelayedCellsParameters().entrySet()) {
@@ -1391,8 +1437,7 @@ public class ConvertToJson {
       if (desc.getHidservRendRelayedCellsParameters() != null &&
               !desc.getHidservRendRelayedCellsParameters().isEmpty()) {
         if (jagged) {
-          Map<String,Double> tmpMap = desc.getHidservRendRelayedCellsParameters();
-          bridgeExtra.hidserv_dir_onions_seen.obfuscation = tmpMap;
+          bridgeExtra.hidserv_dir_onions_seen.obfuscation = desc.getHidservRendRelayedCellsParameters();
         } else {
           ArrayList<StringDouble> tmpList = new ArrayList<>();
           for (Map.Entry<String, Double> mapEntry : desc.getHidservDirOnionsSeenParameters().entrySet()) {
