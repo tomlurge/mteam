@@ -18,44 +18,46 @@ import org.apache.commons.cli.*;
 
 public class ConvertToJson {
 
+  /*  optional command line arguments:
+   *
+   *  -h, --help           print this text
+   *  -a, --array          'flattening' objects to arrays
+   *                       all objects with non-uniform attribute sets are
+   *                       converted to arrays as required by Apache Drill
+   *  -w, --withoutNulls   attributes with value null are not emitted
+   *                       gains a little advantage in storage space
+   *  -u, --uncompressed   do not generate .gz archive
+   *                       mainly for testing
+   *  -f, --format         e.g. '-f=json'
+   *                       to which serialization format to convert
+   *                       defaults to 'json'
+   *                       currently only 'json' is supported
+   *  -i, --in             e.g. '-i=~my/data/in/dir'
+   *                       from which directory to read data
+   *                       defaults to 'data/in/'
+   *  -o, --out            e.g. '-i=~my/data/out/dir'
+   *                       to which directory to write the converted data
+   *                       defaults to 'data/out/'
+   *  -n, --name           e.g. '-n=~myFile'
+   *                       file name of the converted result
+   *                       defaults to 'result'
+   */
+
   /*  argument defaults  */
   static boolean jagged = true;
   static boolean nulled = true;
   static boolean compressed = true;
   static String format = "json";
-  static String in = "data/in/singles";
+  static String in = "data/in/";
   static String out = "data/out/";
   static String name = "result";
 
-  /*  optional command line arguments:
-   *
-   *  -h, -help            print this text
-   *  -a, -array           'flattening' objects to arrays
-   *                       all objects with non-uniform attribute sets are
-   *                       converted to arrays as required by Apache Drill
-   *  -w, -withoutNulls    attributes with value null are not emitted
-   *                       gains a little advantage in storage space
-   *  -u, -uncompressed    do not generate .gz archive
-   *                       mainly for testing
-   *  -f, -format          e.g. '-f=json'
-   *                       to which serialization format to convert
-   *                       defaults to 'json'
-   *                       currently only 'json' is supported
-   *  -i, -in              e.g. '-i=~my/data/in/dir'
-   *                       from which directory to read data
-   *                       defaults to 'data/in/'
-   *  -o, -out             e.g. '-i=~my/data/out/dir'
-   *                       to which directory to write the converted data
-   *                       defaults to 'data/out/'
-   *  -n, -name            e.g. '-n=~myFile'
-   *                       file name of the converted result
-   *                       defaults to 'result'
-   */
 
   /*  Read all descriptors in the provided directory and
    *  convert them to the appropriate JSON format.  */
   public static void main(String[] args) throws IOException {
 
+    // https://commons.apache.org/proper/commons-cli/usage.html
     Options options = new Options();
     options.addOption("h", "help", false, "display this help text");
     options.addOption("a", "array", false, "'flattening' objects to arrays \nall objects with non-uniform attribute sets are \nconverted to arrays as required by Apache Drill");
@@ -73,10 +75,8 @@ public class ConvertToJson {
       e.printStackTrace();
     }
     if(cmd.hasOption("h")) {
-      // printHelp();
-
       HelpFormatter formatter = new HelpFormatter();
-      formatter.printHelp( "ConvertToJson", options );
+      formatter.printHelp( "ConvertToJson\n", options );
     }
     if(cmd.hasOption("a")) {
       jagged = false;
@@ -88,6 +88,13 @@ public class ConvertToJson {
       compressed = false;
     }
     if(cmd.hasOption("f") && cmd.getOptionValue("f") != null) {
+      if(cmd.getOptionValue("f") != "json") {
+        System.out.println(
+          "\n\nSorry, can't do format '" + cmd.getOptionValue("f") +
+          "'!\nCurrently JSON is the only supported format"
+        );
+        System.exit(1);
+      }
       format = cmd.getOptionValue("f");
     }
     if(cmd.hasOption("i") && cmd.getOptionValue("i") != null) {
@@ -99,7 +106,6 @@ public class ConvertToJson {
     if(cmd.hasOption("n") && cmd.getOptionValue("n") != null) {
       name  = cmd.getOptionValue("n");
     }
-
     System.out.println("jagged = " + jagged);
     System.out.println("nulled = " + nulled);
     System.out.println("compressed = " + compressed);
