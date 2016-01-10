@@ -88,7 +88,7 @@ public class ConvertToJson {
       compressed = false;
     }
     if(cmd.hasOption("f") && cmd.getOptionValue("f") != null) {
-      if(cmd.getOptionValue("f") != "json") {
+      if(!cmd.getOptionValue("f").equals("json")) {
         System.out.println(
           "\n\nSorry, can't do format '" + cmd.getOptionValue("f") +
           "'!\nCurrently JSON is the only supported format"
