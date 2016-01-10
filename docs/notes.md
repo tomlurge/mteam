@@ -1,43 +1,5 @@
 # TODO
-
-* flattened -> array of objects
-  jagged -> array of simple objects OR objects with key/value pairs?
-  
-* jagginess
-  - make sure that all arrays of key/value pairs have a jagged version (default)
-    and a flattened version (for Drill)
-    
-    
-    relay     or_adresses       address:port      any number 
-    bridge    dito
-              
-              -> unklar ... wie eine Map erzeugen?
-                 aber ich hab das doch schon zb für die country liste
-                 extraInfo dirreq_v3_reqs   
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-* null's etc
-  * check for correct interpretation of return values
-    if the value we are looking for doesn't exist or can't be found
-    some methods return -1, some null, some just return nothing
-    it was not always perfectly clear to me what they do.
-    all this has to be checked again (yes, tedious...)
-  - make all objects and attributes appear regardless if they are empty or not
-  - return values of "-1" should be treated as null
-  - initialize all arrays, even if they are empty
-
+   
 * streamline attribute names and structures (at least check for it)
   - documentation in data.md or in excel or in avro schema?
   
@@ -45,28 +7,6 @@
   - convert one tarball per type 
       to see if there is one suspiciously big JSON result
   - error handling
-  - task-17872
-    - server descriptors 
-      - brdges too ?
-        x Ed25519 certificates 
-        x Ed25519 master keys
-        x Ed25519 signatures
-        x SHA-256 digests
-        x onion-key cross certificates
-        x ntor-onion-key cross certificates
-    - extra-info descriptors
-      - brdges too ?
-        x Ed25519 certificates 
-        x Ed25519 master keys 
-        x Ed25519 signatures
-        x SHA-256 digests
-        x hidden-service statistics
-      micro
-        RSA-1024 signatures of SHA-1 digests
-      votes
-        x Ed25519 master keys
-  - review verbose branch line 275 & 416
-  - add verbosity on new attributes
     
 * output wird komplett in eine datei geschrieben
   + verzeichnisstruktur wird igoriert und geht verloren

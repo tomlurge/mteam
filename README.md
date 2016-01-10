@@ -1,16 +1,40 @@
 # mteam
 ### analytics server for Tor measurement data
 
-measurement team is setting up a server for you to play with raw metrics data.  
+measurement team is setting up an analytics environment to play with raw metrics data.  
 please check below if it meets your requirements and if you have any suggestions for the setup.
 
+ Setting up an environment to analyze Tor data is no trivial task. Access to the 
+ raw data is only feasable programatically through special libraries. Also the 
+ data is collected on a node per hour basis whereas most of the time one will be 
+ interested in certain kinds of nodes within a certain period of time. Therefor a 
+ lot of aggregation has to be performed upfront before you can even start to ask 
+ the questions that you came for. Not to mention that the shere amount of data 
+ might block your notebook for days and eat up your harddrive on the way. 
+    
+ The analytics project plans to provide a small set of tools to ease these 
+ problems:   
+ 
+ * a converter from raw CollecTor data to JSON and more performant Avro/Parquet
+ * a Big Data setup providing popular interfaces like MapReduce, R and SQL
+   and an easy migration path to scale huge tasks from notebook to cloud 
+ * a collection of pre-aggregated datasets and aggregation scripts.
+ 
+ With these tools it should become much more feasable to work with Tor data and 
+ perform analytics as need arises, without too much fuzz and effort upfront. 
+ 
+<img src="docs/32c3/slide.png">
 
+This is still work in progress - please allow a few more months.
+ 
+ 
 ## Motivation + Setup
 An idea came up during the Berlin dev meeting: it would be good to have all measurement data on one server, loaded into a database, with a suite of analytics software readily set up, available to everybody who needs to do aggregation, analytics, research etc on the data. 
 
 Right now everybody who wants to analyze Tor metrics data first has to downlod raw data from the metrics website, load it into a local database, massage it, setup a query environment etc. That can be cumbersome and use siginificant computing resources, making your notebook unusable for hours or eating up hundreds of gigabytes of disk space if you don’t optimize properly. That makes on the fly quick and dirty prototyping and analysis quite unfeasable and prohibitively tedious.
 
 We plan to change this by setting up an analytics server free for everybody to use:
+
 * containing as much raw metrics data as possible
 * in a HBase database on Hadoop/HDFS 
 * with analytic tools like Spark and Drill on top
