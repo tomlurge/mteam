@@ -1,0 +1,30 @@
+@type server-descriptor 1.0
+router dudewheresmycar 188.60.146.242 5379 0 0
+platform Tor 0.2.6.10 on Linux
+protocols Link 1 2 Circuit 1
+published 2015-09-30 06:53:59
+fingerprint BF73 418B C50A 8F29 F7F1 DD98 1C07 231A 0F46 82D6
+uptime 802506
+bandwidth 1073741824 1073741824 257926
+extra-info-digest 592CBFDC8895975A6520525B5ED19B6B8BA81163
+onion-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBAMo5RFZX5hdJoQem7M2JN2vaO/fdOMCfAiPT9YLq2yOOgj3Q0QAcfumL
+1ISZjezgMnVrPg5joMZxo7hn4gxFxp3zy8P/ljRls4ZkGUFvTqPhLeE1EHjPP+9M
+LLpkAy5Yh/AV5e8xm6/L0gXx57HhRL3MmV3rKfq0fIHRcDIPrIm/AgMBAAE=
+-----END RSA PUBLIC KEY-----
+signing-key
+-----BEGIN RSA PUBLIC KEY-----
+MIGJAoGBAM8z6edoMzPpHlqgoahO7m1rh5GDbW/hSTEfCbgjsH05UfPHUHZ0w32y
+LgX1FLWlMYl6KAzRjKqOU7CQb0iUdXgUpgf1C+rCUyrmWLC50zGRdsgPjmE1WLy/
+hIRsNtQq67G7yjNeYHD49uqJZjY6oXP5fHZzwZYk0ui1aQlMf9A9AgMBAAE=
+-----END RSA PUBLIC KEY-----
+hidden-service-dir
+ntor-onion-key tIZI74dYq6iptXUxdDRamOruJBYBkuZnwGNqrTcWNlM=
+reject *:*
+router-signature
+-----BEGIN SIGNATURE-----
+WbZDra6qbLzOWGrYNcwynHqCMC8yndbDhkM3UMSLvVBcTnZo7NV7inYgPJm0Y8le
+8JTRkySP/DDoYIEnLjIDUxhSxuREqDxeCeeuEWXxH/9eS811w7xG8LEWt+1qnHRD
+Jvqd8hfsj4wu/vYSL27d/ThuCmPOEVyX8FM5CKLtw70=
+-----END SIGNATURE-----

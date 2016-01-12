@@ -20,3 +20,5 @@ TestMe.java
 TestMeToo.java
 *.pdf
 *.iml
+classes
+build

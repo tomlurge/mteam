@@ -52,7 +52,6 @@ public class ConvertToJson {
   static String out = "data/out/";
   static String name = "result";
 
-
   /*  Read all descriptors in the provided directory and
    *  convert them to the appropriate JSON format.  */
   public static void main(String[] args) throws IOException {
@@ -64,13 +63,13 @@ public class ConvertToJson {
     options.addOption("w", "withoutNulls", false, "attributes with value null are not emitted \nwhich gains a little advantage in storage space");
     options.addOption("u", "uncompressed", false, "does not generate .gz archive, \nmainly useful for testing");
     options.addOption("f", "format", true, "e.g. '-f=json'\nto which serialization format to convert\ndefaults to 'json'\n(currently only 'json' is supported)");
-    options.addOption("i", "in", true, "e.g. '-i=~my/data/in/dir'\nfrom which directory to read data\ndefaults to 'data/in/'");
-    options.addOption("o", "out", true, "e.g. '-i=~my/data/out/dir'\nto which directory to write the converted data\ndefaults to 'data/out/'");
-    options.addOption("n", "name", true, "e.g. '-n=~myFile'\nfile name of the converted result\ndefaults to 'result'");
+    options.addOption("i", "in", true, "e.g. '-i=/my/data/in/dir'\nfrom which directory to read data\ndefaults to 'data/in/'");
+    options.addOption("o", "out", true, "e.g. '-i=/my/data/out/dir'\nto which directory to write the converted data\ndefaults to 'data/out/'");
+    options.addOption("n", "name", true, "e.g. '-n=myFile'\nfile name of the converted result\ndefaults to 'result'");
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd = null;
     try {
-      cmd = parser.parse( options, args);
+      cmd = parser.parse(options, args);
     } catch (ParseException e) {
       e.printStackTrace();
     }
@@ -123,6 +122,7 @@ public class ConvertToJson {
     String outputPath = out;
     String outputName = name + "." + format;
     Writer JsonWriter;
+
     if (compressed) {
       JsonWriter = new OutputStreamWriter(new GZIPOutputStream(
               new FileOutputStream(outputPath + outputName + ".gz")));
@@ -130,6 +130,7 @@ public class ConvertToJson {
     else {
       JsonWriter = new FileWriter(outputPath + outputName);
     }
+
     BufferedWriter bw = new BufferedWriter(JsonWriter);
 
     while (descriptorFiles.hasNext()) {

@@ -1,5 +1,15 @@
 # TODO
-   
+
+
+* harrrr IntelliJ doesn't know how to handle long classpaths,
+  messes them up when building the MANIFEST.MF
+  therefor, after building artifacts
+  - decompress the jar
+  - edit the MANIFEST.MF to correct IntelliJs garbage
+  - run "jar cmf META-INF/MANIFEST.MF convertToJson.jar lib mteam"
+  see https://docs.oracle.com/javase/tutorial/deployment/jar/build.html 
+  and https://youtrack.jetbrains.com/issue/IDEA-148005
+        
 * streamline attribute names and structures (at least check for it)
   - documentation in data.md or in excel or in avro schema?
   
@@ -10,10 +20,12 @@
     
 * output wird komplett in eine datei geschrieben
   + verzeichnisstruktur wird igoriert und geht verloren
+  
   >> Dann Bau doch deine Methoden wie
   >> JsonRelayServerDescriptor.convert() um in
   >> convertAndAppendToFile(), wobei jede Json*-Klasse selbst weiß
   >> wohin sie schreiben soll.
+  
   >  Mach doch pro Dokumenttyp eine Map<String, Writer>, wobei String der
   >  Monat im Format YYYY-MM ist und Writer der ensprechend offene Writer
   >  für die Datei.
