@@ -10,38 +10,17 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 /*  metrics-lib  */
+import org.apache.commons.io.FileUtils;
 import org.torproject.descriptor.*;
 
 /* command line interface */
 import org.apache.commons.cli.*;
 
+/* fileWriter */
+import org.apache.commons.io.FileUtils.*;
+
 
 public class ConvertToJson {
-
-  /*  optional command line arguments:
-   *
-   *  -h, --help           print this text
-   *  -a, --array          'flattening' objects to arrays
-   *                       all objects with non-uniform attribute sets are
-   *                       converted to arrays as required by Apache Drill
-   *  -w, --withoutNulls   attributes with value null are not emitted
-   *                       gains a little advantage in storage space
-   *  -u, --uncompressed   do not generate .gz archive
-   *                       mainly for testing
-   *  -f, --format         e.g. '-f=json'
-   *                       to which serialization format to convert
-   *                       defaults to 'json'
-   *                       currently only 'json' is supported
-   *  -i, --in             e.g. '-i=~my/data/in/dir'
-   *                       from which directory to read data
-   *                       defaults to 'data/in/'
-   *  -o, --out            e.g. '-i=~my/data/out/dir'
-   *                       to which directory to write the converted data
-   *                       defaults to 'data/out/'
-   *  -n, --name           e.g. '-n=~myFile'
-   *                       file name of the converted result
-   *                       defaults to 'result'
-   */
 
   /*  argument defaults  */
   static boolean jagged = true;
@@ -50,7 +29,13 @@ public class ConvertToJson {
   static String format = "json";
   static String in = "data/in/";
   static String out = "data/out/";
-  static String name = "result";
+  static String prefix = "";
+  static String suffix = "";
+
+  static class Converted {
+    String yearMonth;
+    String jsonDesc;
+  }
 
   /*  Read all descriptors in the provided directory and
    *  convert them to the appropriate JSON format.  */
@@ -58,14 +43,38 @@ public class ConvertToJson {
 
     // https://commons.apache.org/proper/commons-cli/usage.html
     Options options = new Options();
-    options.addOption("h", "help", false, "display this help text");
-    options.addOption("a", "array", false, "'flattening' objects to arrays \nall objects with non-uniform attribute sets are \nconverted to arrays as required by Apache Drill");
-    options.addOption("w", "withoutNulls", false, "attributes with value null are not emitted \nwhich gains a little advantage in storage space");
-    options.addOption("u", "uncompressed", false, "does not generate .gz archive, \nmainly useful for testing");
-    options.addOption("f", "format", true, "e.g. '-f=json'\nto which serialization format to convert\ndefaults to 'json'\n(currently only 'json' is supported)");
-    options.addOption("i", "in", true, "e.g. '-i=/my/data/in/dir'\nfrom which directory to read data\ndefaults to 'data/in/'");
-    options.addOption("o", "out", true, "e.g. '-i=/my/data/out/dir'\nto which directory to write the converted data\ndefaults to 'data/out/'");
-    options.addOption("n", "name", true, "e.g. '-n=myFile'\nfile name of the converted result\ndefaults to 'result'");
+    options.addOption("h", "help", false,
+            "display this help text");
+    options.addOption("a", "array", false,
+            "'flattening' objects to arrays\n" +
+            "all objects with non-uniform attribute sets are\n" +
+            "converted to arrays as required by Apache Drill");
+    options.addOption("w", "withoutNulls", false,
+            "attributes with value null are not emitted \n" +
+            "which gains a little advantage in storage space");
+    options.addOption("u", "uncompressed", false,
+            "does not generate .gz archive,\n" +
+            "mainly useful for testing");
+    options.addOption("f", "format", true,
+            "e.g. '-f=json'\n" +
+            "to which serialization format to convert\n" +
+            "defaults to 'json'\n(currently only 'json' is supported)");
+    options.addOption("i", "in", true,
+            "e.g. '-i=/my/data/in/dir'\n" +
+            "from which directory to read data\n" +
+            "defaults to 'data/in/'");
+    options.addOption("o", "out", true,
+            "e.g. '-i=/my/data/out/dir'\n" +
+            "to which directory to write the converted data\n" +
+            "defaults to 'data/out/'");
+    options.addOption("p", "prefix", true,
+            "e.g. '-p=prequel'\n" +
+            "prefix to file name of the converted result\n" +
+            "defaults to ''");
+    options.addOption("s", "suffix", true,
+            "e.g. '-s=sequel'\n" +
+            "suffix to file name of the converted result\n" +
+            "defaults to ''");
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd = null;
     try {
@@ -102,8 +111,11 @@ public class ConvertToJson {
     if(cmd.hasOption("o") && cmd.getOptionValue("o") != null) {
       out = cmd.getOptionValue("o");
     }
-    if(cmd.hasOption("n") && cmd.getOptionValue("n") != null) {
-      name  = cmd.getOptionValue("n");
+    if(cmd.hasOption("p") && cmd.getOptionValue("p") != null) {
+      prefix  = cmd.getOptionValue("p");
+    }
+    if(cmd.hasOption("s") && cmd.getOptionValue("s") != null) {
+      suffix  = cmd.getOptionValue("s");
     }
     System.out.println("jagged = " + jagged);
     System.out.println("nulled = " + nulled);
@@ -111,27 +123,63 @@ public class ConvertToJson {
     System.out.println("format = " + format);
     System.out.println("in = " + in);
     System.out.println("out = " + out);
-    System.out.println("name = " + name);
+    System.out.println("prefix = " + prefix);
+    System.out.println("suffix = " + suffix);
 
     DescriptorReader descriptorReader = DescriptorSourceFactory.createDescriptorReader();
     descriptorReader.addDirectory(new File(in));
-    descriptorReader.setMaxDescriptorFilesInQueue(5);
+    descriptorReader.setMaxDescriptorFilesInQueue(20);
     Iterator<DescriptorFile> descriptorFiles = descriptorReader.readDescriptors();
 
-    int written = 0;
-    String outputPath = out;
-    String outputName = name + "." + format;
-    Writer JsonWriter;
+// TODO remove after testing
+/*
+    Writer RelayWriter;
+    Writer BridgeWriter;
+    Writer RelayExtraWriter;
+    Writer BridgeExtraWriter;
+    Writer ConsenusWriter;
+    Writer VoteWriter;
+    Writer BridgeStatusWriter;
+    Writer TordnselWriter;
+    Writer TorperfWriter;
 
     if (compressed) {
-      JsonWriter = new OutputStreamWriter(new GZIPOutputStream(
-              new FileOutputStream(outputPath + outputName + ".gz")));
+      // JsonWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(outputPath + outputName + ".gz")));     TODO remove
+      RelayWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(out + prefix + "relay_" + descDate + suffix + "." + format + ".gz")));
+      BridgeWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(out + prefix + "relay_" + descDate + suffix + "." + format + ".gz")));
+      RelayExtraWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(out + prefix + "relay_" + descDate + suffix + "." + format + ".gz")));
+      BridgeExtraWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(out + prefix + "relay_" + descDate + suffix + "." + format + ".gz")));
+      ConsenusWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(out + prefix + "relay_" + descDate + suffix + "." + format + ".gz")));
+      VoteWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(out + prefix + "relay_" + descDate + suffix + "." + format + ".gz")));
+      BridgeStatusWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(out + prefix + "relay_" + descDate + suffix + "." + format + ".gz")));
+      TordnselWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(out + prefix + "relay_" + descDate + suffix + "." + format + ".gz")));
+      TorperfWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(out + prefix + "relay_" + descDate + suffix + "." + format + ".gz")));
     }
     else {
-      JsonWriter = new FileWriter(outputPath + outputName);
+      // JsonWriter = new FileWriter(outputPath + outputName);    TODO remove
+      RelayWriter = new FileWriter(out + prefix + "relay_" + descDate + suffix + "." + format );
+      BridgeWriter = new FileWriter(out + prefix + "bridge_" + descDate + suffix + "." + format );
+      RelayExtraWriter = new FileWriter(out + prefix + "relayExtra_" + descDate + suffix + "." + format );
+      BridgeExtraWriter = new FileWriter(out + prefix + "bridegExtra_" + descDate + suffix + "." + format );
+      ConsenusWriter = new FileWriter(out + prefix + "consensus_" + descDate + suffix + "." + format );
+      VoteWriter = new FileWriter(out + prefix + "vote_" + descDate + suffix + "." + format );
+      BridgeStatusWriter = new FileWriter(out + prefix + "bridgeStatus_" + descDate + suffix + "." + format );
+      TordnselWriter = new FileWriter(out + prefix + "tordnsel_" + descDate + suffix + "." + format );
+      TorperfWriter = new FileWriter(out + prefix + "torperf_" + descDate + suffix + "." + format );
     }
 
-    BufferedWriter bw = new BufferedWriter(JsonWriter);
+    // BufferedWriter bw = new BufferedWriter(JsonWriter);    TODO remove
+    BufferedWriter bufferedRelayWriter = new BufferedWriter(RelayWriter);
+    BufferedWriter bufferedBridgeWriter = new BufferedWriter(BridgeWriter);
+    BufferedWriter bufferedRelayExtraWriter = new BufferedWriter(RelayExtraWriter);
+    BufferedWriter bufferedBridgeExtraWriter = new BufferedWriter(BridgeExtraWriter);
+    BufferedWriter bufferedConsenusWriter = new BufferedWriter(ConsenusWriter);
+    BufferedWriter bufferedVoteWriter = new BufferedWriter(VoteWriter);
+    BufferedWriter bufferedBridgeStatusWriter = new BufferedWriter(BridgeStatusWriter);
+    BufferedWriter bufferedTordnselWriter = new BufferedWriter(TordnselWriter);
+    BufferedWriter bufferedTorperfWriter = new BufferedWriter(TorperfWriter);
+*/
+
 
     while (descriptorFiles.hasNext()) {
       DescriptorFile descriptorFile = descriptorFiles.next();
@@ -141,52 +189,93 @@ public class ConvertToJson {
       }
 
       for (Descriptor descriptor : descriptorFile.getDescriptors()) {
-        String jsonDescriptor = null;
+        Converted jsonDescriptor = null;
+
 
         //  relay descriptors
         if (descriptor instanceof RelayServerDescriptor) {
           jsonDescriptor = JsonRelayServerDescriptor
                   .convert((RelayServerDescriptor) descriptor);
+          String pathFileName = out + prefix + "relay_" + jsonDescriptor.yearMonth + suffix + "." + format;
+          File theFile;
+          if (!compressed) {
+            theFile = new File(pathFileName);
+            // TODO                                      remove this comma -v- after testing
+            FileUtils.writeStringToFile(theFile, jsonDescriptor.jsonDesc + ",\n", "UTF8", true);
+          }
+          else {
+            pathFileName += ".gz";
+            theFile = new File(pathFileName);
+            // TODO                                      remove this comma -v- after testing
+            FileUtils.writeStringToFile(theFile, jsonDescriptor.jsonDesc + ",\n", "UTF8", true);
+
+            //  RelayWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(pathFileName)));
+          }
+
         }
+        
         //  bridge descriptors
         if (descriptor instanceof BridgeServerDescriptor) {
           jsonDescriptor = JsonBridgeServerDescriptor
                   .convert((BridgeServerDescriptor) descriptor);
+          
+          
         }
+        
         //  relays extra info descriptors
         if (descriptor instanceof RelayExtraInfoDescriptor) {
           jsonDescriptor = JsonRelayExtraInfoDescriptor
                   .convert((RelayExtraInfoDescriptor) descriptor);
+          
+          
         }
+        
         //  bridge extra info descriptors
         if (descriptor instanceof BridgeExtraInfoDescriptor) {
           jsonDescriptor = JsonBridgeExtraInfoDescriptor
                   .convert((BridgeExtraInfoDescriptor) descriptor);
+          
+          
         }
+        
         //  network status consensus
         if (descriptor instanceof RelayNetworkStatusConsensus) {
           jsonDescriptor = JsonRelayNetworkStatusConsensus
                   .convert((RelayNetworkStatusConsensus) descriptor);
+          
+          
         }
+        
         //  network status vote
         if (descriptor instanceof RelayNetworkStatusVote) {
           jsonDescriptor = JsonRelayNetworkStatusVote
                   .convert((RelayNetworkStatusVote) descriptor);
+          
+          
         }
+        
         //  bridge network status
         if (descriptor instanceof BridgeNetworkStatus) {
           jsonDescriptor = JsonBridgeNetworkStatus
                   .convert((BridgeNetworkStatus) descriptor);
+          
+          
         }
+        
         //  tordnsel
         if (descriptor instanceof ExitList) {
-          jsonDescriptor = JsonExitList
+          jsonDescriptor = JsonTordnsel
                   .convert((ExitList) descriptor);
+          
+          
         }
+        
         //  torperf
         if (descriptor instanceof TorperfResult) {
-          jsonDescriptor = JsonTorperfResult
+          jsonDescriptor = JsonTorperf
                   .convert((TorperfResult) descriptor);
+          
+          
         }
 
         if (!descriptor.getUnrecognizedLines().isEmpty()) {
@@ -195,15 +284,22 @@ public class ConvertToJson {
           System.err.println(descriptor.getUnrecognizedLines());
           continue;
         }
-        if (jsonDescriptor != null) {
-          // TODO remove this comma -v- after testing
-          bw.write((written++ > 0 ? ",\n" : "") + jsonDescriptor);
-        }
       }
     }
-    bw.close();
-  }
 
+// TODO remove after testing
+/*    // bw.close();
+    bufferedRelayWriter.close();
+    bufferedBridgeWriter.close();
+    bufferedRelayExtraWriter.close();
+    bufferedBridgeExtraWriter.close();
+    bufferedConsenusWriter.close();
+    bufferedVoteWriter.close();
+    bufferedBridgeStatusWriter.close();
+    bufferedTordnselWriter.close();
+    bufferedTorperfWriter.close();*/
+
+  }
 
 
   //  all descriptors
@@ -310,7 +406,7 @@ public class ConvertToJson {
     String router_digest;  // upper-case hex
     String router_digest_sha256;                                                // getServerDescriptorDigestSha256
 
-    static String convert(ServerDescriptor desc) {
+    static Converted convert(ServerDescriptor desc) {
       JsonRelayServerDescriptor relay = new JsonRelayServerDescriptor();
       for (String annotation : desc.getAnnotations()) {
         relay.descriptor_type = annotation.substring("@type ".length());
@@ -429,7 +525,10 @@ public class ConvertToJson {
       relay.router_digest = desc.getServerDescriptorDigest().toUpperCase();
       relay.router_digest_sha256 = desc.getServerDescriptorDigest();
 
-      return ToJson.serialize(relay);
+      Converted converted = new Converted();
+      converted.yearMonth = relay.published.substring(0,7);
+      converted.jsonDesc = ToJson.serialize(relay);
+      return converted;
     }
   }
 
@@ -481,7 +580,7 @@ public class ConvertToJson {
     String router_digest;  // upper-case hex
     String router_digest_sha256;                                                // getServerDescriptorDigestSha256
 
-    static String convert(ServerDescriptor desc) {
+    static Converted convert(ServerDescriptor desc) {
       JsonBridgeServerDescriptor bridge = new JsonBridgeServerDescriptor();
       for (String annotation : desc.getAnnotations()) {
         bridge.descriptor_type = annotation.substring("@type ".length());
@@ -598,7 +697,10 @@ public class ConvertToJson {
       bridge.router_digest = desc.getServerDescriptorDigest().toUpperCase();
       bridge.router_digest_sha256 = desc.getServerDescriptorDigest();
 
-      return ToJson.serialize(bridge);
+      Converted converted = new Converted();
+      converted.yearMonth = bridge.published.substring(0,7);
+      converted.jsonDesc = ToJson.serialize(bridge);
+      return converted;
     }
   }
 
@@ -684,7 +786,7 @@ public class ConvertToJson {
     String extra_info_digest_sha256;                                            // getExtraInfoDigestSha256
     String master_key_ed25519;                                                  // getMasterKeyEd25519
 
-    static String convert(RelayExtraInfoDescriptor desc) {
+    static Converted convert(RelayExtraInfoDescriptor desc) {
       JsonRelayExtraInfoDescriptor relayExtra = new JsonRelayExtraInfoDescriptor();
       for (String annotation : desc.getAnnotations()) {
         relayExtra.descriptor_type = annotation.substring("@type ".length());
@@ -1000,7 +1102,10 @@ public class ConvertToJson {
       relayExtra.extra_info_digest_sha256 = desc.getExtraInfoDigestSha256();
       relayExtra.master_key_ed25519 = desc.getMasterKeyEd25519();
 
-      return ToJson.serialize(relayExtra);
+      Converted converted = new Converted();
+      converted.yearMonth = relayExtra.published.substring(0,7);
+      converted.jsonDesc = ToJson.serialize(relayExtra);
+      return converted;
     }
   }
 
@@ -1097,7 +1202,7 @@ public class ConvertToJson {
     String extra_info_digest_sha256;                                            // getExtraInfoDigestSha256
     String master_key_ed25519;                                                  // getMasterKeyEd25519
 
-    static String convert(BridgeExtraInfoDescriptor desc) {
+    static Converted convert(BridgeExtraInfoDescriptor desc) {
       JsonBridgeExtraInfoDescriptor bridgeExtra = new JsonBridgeExtraInfoDescriptor();
       for (String annotation : desc.getAnnotations()) {
         bridgeExtra.descriptor_type = annotation.substring("@type ".length());
@@ -1461,7 +1566,10 @@ public class ConvertToJson {
       bridgeExtra.extra_info_digest_sha256 = desc.getExtraInfoDigestSha256();
       bridgeExtra.master_key_ed25519 = desc.getMasterKeyEd25519();
 
-      return ToJson.serialize(bridgeExtra);
+      Converted converted = new Converted();
+      converted.yearMonth = bridgeExtra.published.substring(0,7);
+      converted.jsonDesc = ToJson.serialize(bridgeExtra);
+      return converted;
     }
   }
 
@@ -1536,7 +1644,7 @@ public class ConvertToJson {
       Boolean signature;
     }
 
-    static String convert(RelayNetworkStatusConsensus desc) {
+    static Converted convert(RelayNetworkStatusConsensus desc) {
       JsonRelayNetworkStatusConsensus cons = new JsonRelayNetworkStatusConsensus();
       for (String annotation : desc.getAnnotations()) {
         cons.descriptor_type = annotation.substring("@type ".length());
@@ -1651,7 +1759,11 @@ public class ConvertToJson {
           }
         }
       }
-      return ToJson.serialize(cons);
+
+      Converted converted = new Converted();
+      converted.yearMonth = cons.published.substring(0,7);
+      converted.jsonDesc = ToJson.serialize(cons);
+      return converted;
     }
   }
 
@@ -1742,7 +1854,7 @@ public class ConvertToJson {
       Boolean signature;
     }
 
-    static String convert(RelayNetworkStatusVote desc) {
+    static Converted convert(RelayNetworkStatusVote desc) {
       JsonRelayNetworkStatusVote vote = new JsonRelayNetworkStatusVote();
       for (String annotation : desc.getAnnotations()) {
         vote.descriptor_type = annotation.substring("@type ".length());
@@ -1876,7 +1988,11 @@ public class ConvertToJson {
                   dirSig.getValue().getSignature() != null;
         }
       }
-      return ToJson.serialize(vote);
+
+      Converted converted = new Converted();
+      converted.yearMonth = vote.published.substring(0,7);
+      converted.jsonDesc = ToJson.serialize(vote);
+      return converted;
     }
   }
 
@@ -1921,7 +2037,7 @@ public class ConvertToJson {
       Boolean unmeasured_bw;
     }
 
-    static String convert(BridgeNetworkStatus desc) {
+    static Converted convert(BridgeNetworkStatus desc) {
       JsonBridgeNetworkStatus status = new JsonBridgeNetworkStatus();
       for (String annotation : desc.getAnnotations()) {
         status.descriptor_type = annotation.substring("@type ".length());
@@ -1986,21 +2102,24 @@ public class ConvertToJson {
           status.bridges.add(b);
         }
       }
-      return ToJson.serialize(status);
+
+      Converted converted = new Converted();
+      converted.yearMonth = status.published.substring(0,7);
+      converted.jsonDesc = ToJson.serialize(status);
+      return converted;
     }
   }
 
 
   //  tordnsel
-  static class JsonExitList extends JsonDescriptor {
+  static class JsonTordnsel extends JsonDescriptor {
     String descriptor_type;
-    Long downloaded;
+    String downloaded;
     List<Entry> relays;
     static class Entry {
       String fingerprint;
       String published;
       String last_status;
-      // List<Exit> exit_list;
       Object exit_list;
     }
     static class Exit {
@@ -2008,12 +2127,12 @@ public class ConvertToJson {
       String date;
     }
 
-    static String convert(ExitList desc) {
-      JsonExitList tordnsel = new JsonExitList();
+    static Converted convert(ExitList desc) {
+      JsonTordnsel tordnsel = new JsonTordnsel();
       for (String annotation : desc.getAnnotations()) {
         tordnsel.descriptor_type = annotation.substring("@type ".length());
       }
-      tordnsel.downloaded = desc.getDownloadedMillis();
+      tordnsel.downloaded = dateTimeFormat.format(desc.getDownloadedMillis());
       tordnsel.relays = new ArrayList<>();
       if (desc.getEntries() != null && !desc.getEntries().isEmpty()) {
         for(ExitList.Entry exitEntry : desc.getEntries()) {
@@ -2044,13 +2163,17 @@ public class ConvertToJson {
           tordnsel.relays.add(entry);
         }
       }
-      return ToJson.serialize(tordnsel);
+
+      Converted converted = new Converted();
+      converted.yearMonth = tordnsel.downloaded.substring(0,7);
+      converted.jsonDesc = ToJson.serialize(tordnsel);
+      return converted;
     }
   }
 
 
   //  torperf
-  static class JsonTorperfResult extends JsonDescriptor {
+  static class JsonTorperf extends JsonDescriptor {
     String descriptor_type;
     String source;
     Integer filesize;
@@ -2084,8 +2207,8 @@ public class ConvertToJson {
     Integer circ_id;
     Integer used_by;
 
-    static String convert(TorperfResult desc) {
-      JsonTorperfResult torperf = new JsonTorperfResult();
+    static Converted convert(TorperfResult desc) {
+      JsonTorperf torperf = new JsonTorperf();
       for (String annotation : desc.getAnnotations()) {
         torperf.descriptor_type = annotation.substring("@type ".length());
       }
@@ -2138,7 +2261,11 @@ public class ConvertToJson {
       if (desc.getUsedBy() >= 0) {
         torperf.used_by = desc.getUsedBy();
       }
-      return ToJson.serialize(torperf);
+
+      Converted converted = new Converted();
+      converted.yearMonth = torperf.start.substring(0,7);
+      converted.jsonDesc = ToJson.serialize(torperf);
+      return converted;
     }
   }
 
