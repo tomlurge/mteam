@@ -18,31 +18,6 @@ import org.apache.commons.cli.*;
 
 public class ConvertToJson {
 
-  /*  optional command line arguments:
-   *
-   *  -h, --help           print this text
-   *  -a, --array          'flattening' objects to arrays
-   *                       all objects with non-uniform attribute sets are
-   *                       converted to arrays as required by Apache Drill
-   *  -w, --withoutNulls   attributes with value null are not emitted
-   *                       gains a little advantage in storage space
-   *  -u, --uncompressed   do not generate .gz archive
-   *                       mainly for testing
-   *  -f, --format         e.g. '-f=json'
-   *                       to which serialization format to convert
-   *                       defaults to 'json'
-   *                       currently only 'json' is supported
-   *  -i, --in             e.g. '-i=~my/data/in/dir'
-   *                       from which directory to read data
-   *                       defaults to 'data/in/'
-   *  -o, --out            e.g. '-i=~my/data/out/dir'
-   *                       to which directory to write the converted data
-   *                       defaults to 'data/out/'
-   *  -n, --name           e.g. '-n=~myFile'
-   *                       file name of the converted result
-   *                       defaults to 'result'
-   */
-
   /*  argument defaults  */
   static boolean jagged = true;
   static boolean nulled = true;
@@ -58,14 +33,31 @@ public class ConvertToJson {
 
     // https://commons.apache.org/proper/commons-cli/usage.html
     Options options = new Options();
-    options.addOption("h", "help", false, "display this help text");
-    options.addOption("a", "array", false, "'flattening' objects to arrays \nall objects with non-uniform attribute sets are \nconverted to arrays as required by Apache Drill");
-    options.addOption("w", "withoutNulls", false, "attributes with value null are not emitted \nwhich gains a little advantage in storage space");
-    options.addOption("u", "uncompressed", false, "does not generate .gz archive, \nmainly useful for testing");
-    options.addOption("f", "format", true, "e.g. '-f=json'\nto which serialization format to convert\ndefaults to 'json'\n(currently only 'json' is supported)");
-    options.addOption("i", "in", true, "e.g. '-i=/my/data/in/dir'\nfrom which directory to read data\ndefaults to 'data/in/'");
-    options.addOption("o", "out", true, "e.g. '-i=/my/data/out/dir'\nto which directory to write the converted data\ndefaults to 'data/out/'");
-    options.addOption("n", "name", true, "e.g. '-n=myFile'\nfile name of the converted result\ndefaults to 'result'");
+    options.addOption("h", "help", false,
+            "display this help text");
+    options.addOption("a", "array", false,
+            "'flattening' objects to arrays \n" +
+            "all objects with non-uniform attribute sets are \n" +
+            "converted to arrays as required by Apache Drill");
+    options.addOption("w", "withoutNulls", false,
+            "attributes with value null are not emitted \n" +
+            "which gains a little advantage in storage space");
+    options.addOption("u", "uncompressed", false,
+            "does not generate .gz archive, \n" +
+            "mainly useful for testing");
+    options.addOption("f", "format", true,
+            "e.g. '-f=json'\n" +
+            "to which serialization format to convert\n" +
+            "defaults to 'json'\n" +
+            "(currently only 'json' is supported)");
+    options.addOption("i", "in", true,
+            "e.g. '-i=/my/data/in/dir'\n" +
+            "from which directory to read data\n" +
+            "defaults to 'data/in/'");
+    options.addOption("o", "out", true,
+            "e.g. '-i=/my/data/out/dir'\n" +
+            "to which directory to write the converted data\n" +
+            "defaults to 'data/out/'");
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd = null;
     try {
@@ -196,8 +188,7 @@ public class ConvertToJson {
           continue;
         }
         if (jsonDescriptor != null) {
-          // TODO remove this comma -v- after testing
-          bw.write((written++ > 0 ? ",\n" : "") + jsonDescriptor);
+          bw.write((written++ > 0 ? "\n" : "") + jsonDescriptor);
         }
       }
     }
@@ -270,8 +261,8 @@ public class ConvertToJson {
     int or_port;
     int socks_port;  // most likely 0 except for *very* old descriptors
     int dir_port;
-    Boolean identity_ed25519;                                                   // getIdentityEd25519
-    String master_key_ed25519;                                                  // getMasterKeyEd25519
+    Boolean identity_ed25519;
+    String master_key_ed25519;
     Integer bandwidth_avg;
     Integer bandwidth_burst;
     Integer bandwidth_observed;  // missing in older descriptors!
@@ -281,18 +272,18 @@ public class ConvertToJson {
     Boolean hibernating;
     Long uptime;  // though usually set
     Boolean onion_key;  // usually false b/c sanitization
-    Boolean onion_key_crosscert;                                                // getOnionKeyCrosscert
+    Boolean onion_key_crosscert;
     Boolean ntor_onion_key;
     CrossCert ntor_onion_key_crosscert;
     static class CrossCert {
-      String cert;                                                              // getNtorOnionKeyCrosscert
-      Integer bit;                                                              // getNtorOnionKeyCrosscertSign
+      String cert;
+      Integer bit;
     }
     Boolean signing_key;  // usually false b/c sanitization
     List<String> exit_policy;
     String ipv6_policy;
-    String ipv6_portlist;  // getIpv6PortList
-    Boolean router_sig_ed25519;                                                 // getRouterSignatureEd25519
+    String ipv6_portlist;
+    Boolean router_sig_ed25519;
     Boolean router_signature;
     String contact;
     List<String> family;  // apparently not used at all
@@ -301,14 +292,14 @@ public class ConvertToJson {
     Boolean eventdns;
     Boolean caches_extra_info;
     String extra_info_digest;  // upper-case hex
-    String extra_info_digest_sha256;                                            // getExtraInfoDigestSha256
+    String extra_info_digest_sha256;
     List<Integer> hidden_service_dir_versions;
     List<Integer> link_protocol_versions;
     List<Integer> circuit_protocol_versions;
     Boolean allow_single_hop_exits;
     Object or_addresses;  // addresses sanitized!
     String router_digest;  // upper-case hex
-    String router_digest_sha256;                                                // getServerDescriptorDigestSha256
+    String router_digest_sha256;
 
     static String convert(ServerDescriptor desc) {
       JsonRelayServerDescriptor relay = new JsonRelayServerDescriptor();
@@ -442,8 +433,8 @@ public class ConvertToJson {
     int or_port;
     int socks_port;  // most likely 0 except for *very* old descriptors
     int dir_port;
-    Boolean identity_ed25519;                                                   // getIdentityEd25519
-    String master_key_ed25519;                                                  // getMasterKeyEd25519
+    Boolean identity_ed25519;
+    String master_key_ed25519;
     Integer bandwidth_avg;
     Integer bandwidth_burst;
     Integer bandwidth_observed;  // missing in older descriptors!
@@ -453,18 +444,18 @@ public class ConvertToJson {
     Boolean hibernating;
     Long uptime;  // though usually set
     Boolean onion_key;  // usually false b/c sanitization
-    Boolean onion_key_crosscert;                                                // getOnionKeyCrosscert
+    Boolean onion_key_crosscert;
     Boolean ntor_onion_key;
     CrossCert ntor_onion_key_crosscert;
     static class CrossCert {
-      String cert;                                                              // getNtorOnionKeyCrosscert
-      Integer bit;                                                              // getNtorOnionKeyCrosscertSign
+      String cert;
+      Integer bit;
     }
     Boolean signing_key;  // usually false b/c sanitization
     List<String> exit_policy;
     String ipv6_policy;
     String ipv6_portlist;  // getIpv6PortList
-    Boolean router_sig_ed25519;                                                 // getRouterSignatureEd25519
+    Boolean router_sig_ed25519;
     String contact;
     List<String> family;  // apparently not used at all
     BandwidthHistory read_history;
@@ -472,14 +463,14 @@ public class ConvertToJson {
     Boolean eventdns;
     Boolean caches_extra_info;
     String extra_info_digest;  // upper-case hex
-    String extra_info_digest_sha256;                                            // getExtraInfoDigestSha256
+    String extra_info_digest_sha256;
     List<Integer> hidden_service_dir_versions;
     List<Integer> link_protocol_versions;
     List<Integer> circuit_protocol_versions;
     Boolean allow_single_hop_exits;
     Object or_addresses;  // addresses sanitized!
     String router_digest;  // upper-case hex
-    String router_digest_sha256;                                                // getServerDescriptorDigestSha256
+    String router_digest_sha256;
 
     static String convert(ServerDescriptor desc) {
       JsonBridgeServerDescriptor bridge = new JsonBridgeServerDescriptor();
@@ -608,7 +599,7 @@ public class ConvertToJson {
     String descriptor_type;
     String nickname;
     String fingerprint;
-    Boolean identity_ed25519;                                                   // getIdentityEd25519
+    Boolean identity_ed25519;
     String published;
     BandwidthHistory read_history;
     BandwidthHistory write_history;
@@ -664,25 +655,25 @@ public class ConvertToJson {
 
     HidStats hidserv_stats_end;
     static class HidStats {
-      String date;                                                              // long getHidservStatsEndMillis
-      Long interval;                                                            // long getHidservStatsIntervalLength();
+      String date;
+      Long interval;
     }
     HidRend hidserv_rend_relayed_cells;
     static class HidRend {
-      Double cells;                                                             // Double getHidservRendRelayedCells();
-      Object obfuscation;                                                       // Map<String, Double> getHidservRendRelayedCellsParameters()
+      Double cells;
+      Object obfuscation;
     }
     HidDir hidserv_dir_onions_seen;
     static class HidDir {
-      Double onions;                                                            // Double getHidservDirOnionsSeen();
-      Object obfuscation;                                                       // Map<String, Double> getHidservDirOnionsSeenParameters();
+      Double onions;
+      Object obfuscation;
     }
     List<String> transport;
-    Boolean router_sig_ed25519;                                                 // getRouterSignatureEd25519
-    Boolean router_signature;                                                   // getRouterSignature
+    Boolean router_sig_ed25519;
+    Boolean router_signature;
     String extra_info_digest;
-    String extra_info_digest_sha256;                                            // getExtraInfoDigestSha256
-    String master_key_ed25519;                                                  // getMasterKeyEd25519
+    String extra_info_digest_sha256;
+    String master_key_ed25519;
 
     static String convert(RelayExtraInfoDescriptor desc) {
       JsonRelayExtraInfoDescriptor relayExtra = new JsonRelayExtraInfoDescriptor();
@@ -1010,7 +1001,7 @@ public class ConvertToJson {
     String descriptor_type;
     String nickname;
     String fingerprint;
-    Boolean identity_ed25519;                                                   // getIdentityEd25519
+    Boolean identity_ed25519;
     String published;
     BandwidthHistory read_history;
     BandwidthHistory write_history;
@@ -1076,26 +1067,26 @@ public class ConvertToJson {
 
     HidStats hidserv_stats_end;
     static class HidStats {
-      String date;                                                              // long getHidservStatsEndMillis
-      Long interval;                                                            // long getHidservStatsIntervalLength();
+      String date;
+      Long interval;
     }
     HidRend hidserv_rend_relayed_cells;
     static class HidRend {
-      Double cells;                                                             // Double getHidservRendRelayedCells();
-      Object obfuscation;                                                       // Map<String, Double> getHidservRendRelayedCellsParameters()
+      Double cells;
+      Object obfuscation;
     }
     HidDir hidserv_dir_onions_seen;
     static class HidDir {
-      Double onions;                                                            // Double getHidservDirOnionsSeen();
-      Object obfuscation;                                                       // Map<String, Double> getHidservDirOnionsSeenParameters();
+      Double onions;
+      Object obfuscation;
     }
 
     List<String> transport;
-    Boolean router_sig_ed25519;                                                 // getRouterSignatureEd25519
-    Boolean router_signature;                                                   // getRouterSignature
+    Boolean router_sig_ed25519;
+    Boolean router_signature;
     String extra_info_digest;
-    String extra_info_digest_sha256;                                            // getExtraInfoDigestSha256
-    String master_key_ed25519;                                                  // getMasterKeyEd25519
+    String extra_info_digest_sha256;
+    String master_key_ed25519;
 
     static String convert(BridgeExtraInfoDescriptor desc) {
       JsonBridgeExtraInfoDescriptor bridgeExtra = new JsonBridgeExtraInfoDescriptor();
@@ -1711,7 +1702,7 @@ public class ConvertToJson {
       String v;  // version
       W w;  // bandwidths
       Policy p;  // policies
-      String id;                                                                // getMasterKeyEd25519
+      String id;
     }
     static class R {
       String nickname;
