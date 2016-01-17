@@ -24,7 +24,7 @@ public class ConvertToJson {
   /*  argument defaults  */
   static boolean jagged = true;
   static boolean nulled = true;
-  static boolean compressed = true;
+  //  static boolean compressed = true;
   static String format = "json";
   static String in = "data/in/";
   static String out = "data/out/";
@@ -51,9 +51,9 @@ public class ConvertToJson {
     options.addOption("w", "withoutNulls", false,
             "attributes with value null are not emitted \n" +
             "which gains a little advantage in storage space");
-    options.addOption("u", "uncompressed", false,
-            "does not generate .gz archive,\n" +
-            "mainly useful for testing");
+    //  options.addOption("u", "uncompressed", false,
+    //         "does not generate .gz archive,\n" +
+    //         "mainly useful for testing");
     options.addOption("f", "format", true,
             "e.g. '-f=json'\n" +
             "to which serialization format to convert\n" +
@@ -91,9 +91,9 @@ public class ConvertToJson {
     if(cmd.hasOption("w")) {
       nulled = false;
     }
-    if(cmd.hasOption("u")) {
-      compressed = false;
-    }
+    //  if(cmd.hasOption("u")) {
+    //    compressed = false;
+    //  }
     if(cmd.hasOption("f") && cmd.getOptionValue("f") != null) {
       if(!cmd.getOptionValue("f").equals("json")) {
         System.out.println(
@@ -118,7 +118,7 @@ public class ConvertToJson {
     }
     System.out.println("jagged = " + jagged);
     System.out.println("nulled = " + nulled);
-    System.out.println("compressed = " + compressed);
+    //  System.out.println("compressed = " + compressed);
     System.out.println("format = " + format);
     System.out.println("in = " + in);
     System.out.println("out = " + out);
