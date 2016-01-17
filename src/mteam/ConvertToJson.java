@@ -10,14 +10,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 /*  metrics-lib  */
-import org.apache.commons.io.FileUtils;
 import org.torproject.descriptor.*;
 
 /* command line interface */
 import org.apache.commons.cli.*;
 
 /* fileWriter */
-import org.apache.commons.io.FileUtils.*;
+import org.apache.commons.io.FileUtils;
 
 
 public class ConvertToJson {
@@ -131,56 +130,6 @@ public class ConvertToJson {
     descriptorReader.setMaxDescriptorFilesInQueue(20);
     Iterator<DescriptorFile> descriptorFiles = descriptorReader.readDescriptors();
 
-// TODO remove after testing
-/*
-    Writer RelayWriter;
-    Writer BridgeWriter;
-    Writer RelayExtraWriter;
-    Writer BridgeExtraWriter;
-    Writer ConsenusWriter;
-    Writer VoteWriter;
-    Writer BridgeStatusWriter;
-    Writer TordnselWriter;
-    Writer TorperfWriter;
-
-    if (compressed) {
-      // JsonWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(outputPath + outputName + ".gz")));     TODO remove
-      RelayWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(out + prefix + "relay_" + descDate + suffix + "." + format + ".gz")));
-      BridgeWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(out + prefix + "relay_" + descDate + suffix + "." + format + ".gz")));
-      RelayExtraWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(out + prefix + "relay_" + descDate + suffix + "." + format + ".gz")));
-      BridgeExtraWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(out + prefix + "relay_" + descDate + suffix + "." + format + ".gz")));
-      ConsenusWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(out + prefix + "relay_" + descDate + suffix + "." + format + ".gz")));
-      VoteWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(out + prefix + "relay_" + descDate + suffix + "." + format + ".gz")));
-      BridgeStatusWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(out + prefix + "relay_" + descDate + suffix + "." + format + ".gz")));
-      TordnselWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(out + prefix + "relay_" + descDate + suffix + "." + format + ".gz")));
-      TorperfWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(out + prefix + "relay_" + descDate + suffix + "." + format + ".gz")));
-    }
-    else {
-      // JsonWriter = new FileWriter(outputPath + outputName);    TODO remove
-      RelayWriter = new FileWriter(out + prefix + "relay_" + descDate + suffix + "." + format );
-      BridgeWriter = new FileWriter(out + prefix + "bridge_" + descDate + suffix + "." + format );
-      RelayExtraWriter = new FileWriter(out + prefix + "relayExtra_" + descDate + suffix + "." + format );
-      BridgeExtraWriter = new FileWriter(out + prefix + "bridegExtra_" + descDate + suffix + "." + format );
-      ConsenusWriter = new FileWriter(out + prefix + "consensus_" + descDate + suffix + "." + format );
-      VoteWriter = new FileWriter(out + prefix + "vote_" + descDate + suffix + "." + format );
-      BridgeStatusWriter = new FileWriter(out + prefix + "bridgeStatus_" + descDate + suffix + "." + format );
-      TordnselWriter = new FileWriter(out + prefix + "tordnsel_" + descDate + suffix + "." + format );
-      TorperfWriter = new FileWriter(out + prefix + "torperf_" + descDate + suffix + "." + format );
-    }
-
-    // BufferedWriter bw = new BufferedWriter(JsonWriter);    TODO remove
-    BufferedWriter bufferedRelayWriter = new BufferedWriter(RelayWriter);
-    BufferedWriter bufferedBridgeWriter = new BufferedWriter(BridgeWriter);
-    BufferedWriter bufferedRelayExtraWriter = new BufferedWriter(RelayExtraWriter);
-    BufferedWriter bufferedBridgeExtraWriter = new BufferedWriter(BridgeExtraWriter);
-    BufferedWriter bufferedConsenusWriter = new BufferedWriter(ConsenusWriter);
-    BufferedWriter bufferedVoteWriter = new BufferedWriter(VoteWriter);
-    BufferedWriter bufferedBridgeStatusWriter = new BufferedWriter(BridgeStatusWriter);
-    BufferedWriter bufferedTordnselWriter = new BufferedWriter(TordnselWriter);
-    BufferedWriter bufferedTorperfWriter = new BufferedWriter(TorperfWriter);
-*/
-
-
     while (descriptorFiles.hasNext()) {
       DescriptorFile descriptorFile = descriptorFiles.next();
       if(null != descriptorFile.getException()){
@@ -198,84 +147,101 @@ public class ConvertToJson {
                   .convert((RelayServerDescriptor) descriptor);
           String pathFileName = out + prefix + "relay_" + jsonDescriptor.yearMonth + suffix + "." + format;
           File theFile;
+          theFile = new File(pathFileName);
+          FileUtils.writeStringToFile(theFile, jsonDescriptor.jsonDesc + "\n", "UTF8", true);
+          /*  TODO compression
           if (!compressed) {
             theFile = new File(pathFileName);
-            // TODO                                      remove this comma -v- after testing
-            FileUtils.writeStringToFile(theFile, jsonDescriptor.jsonDesc + ",\n", "UTF8", true);
+            FileUtils.writeStringToFile(theFile, jsonDescriptor.jsonDesc + "\n", "UTF8", true);
           }
           else {
             pathFileName += ".gz";
             theFile = new File(pathFileName);
-            // TODO                                      remove this comma -v- after testing
-            FileUtils.writeStringToFile(theFile, jsonDescriptor.jsonDesc + ",\n", "UTF8", true);
+            FileUtils.writeStringToFile(theFile, jsonDescriptor.jsonDesc + "\n", "UTF8", true);
 
             //  RelayWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(pathFileName)));
           }
-
+          */
         }
         
         //  bridge descriptors
         if (descriptor instanceof BridgeServerDescriptor) {
           jsonDescriptor = JsonBridgeServerDescriptor
                   .convert((BridgeServerDescriptor) descriptor);
-          
-          
+          String pathFileName = out + prefix + "bridge_" + jsonDescriptor.yearMonth + suffix + "." + format;
+          File theFile;
+          theFile = new File(pathFileName);
+          FileUtils.writeStringToFile(theFile, jsonDescriptor.jsonDesc + "\n", "UTF8", true);
         }
         
         //  relays extra info descriptors
         if (descriptor instanceof RelayExtraInfoDescriptor) {
           jsonDescriptor = JsonRelayExtraInfoDescriptor
                   .convert((RelayExtraInfoDescriptor) descriptor);
-          
-          
+          String pathFileName = out + prefix + "relayExtra_" + jsonDescriptor.yearMonth + suffix + "." + format;
+          File theFile;
+          theFile = new File(pathFileName);
+          FileUtils.writeStringToFile(theFile, jsonDescriptor.jsonDesc + "\n", "UTF8", true);
         }
         
         //  bridge extra info descriptors
         if (descriptor instanceof BridgeExtraInfoDescriptor) {
           jsonDescriptor = JsonBridgeExtraInfoDescriptor
                   .convert((BridgeExtraInfoDescriptor) descriptor);
-          
-          
+          String pathFileName = out + prefix + "bridgeExtra_" + jsonDescriptor.yearMonth + suffix + "." + format;
+          File theFile;
+          theFile = new File(pathFileName);
+          FileUtils.writeStringToFile(theFile, jsonDescriptor.jsonDesc + "\n", "UTF8", true);
         }
         
         //  network status consensus
         if (descriptor instanceof RelayNetworkStatusConsensus) {
           jsonDescriptor = JsonRelayNetworkStatusConsensus
                   .convert((RelayNetworkStatusConsensus) descriptor);
-          
-          
+          String pathFileName = out + prefix + "consensus_" + jsonDescriptor.yearMonth + suffix + "." + format;
+          File theFile;
+          theFile = new File(pathFileName);
+          FileUtils.writeStringToFile(theFile, jsonDescriptor.jsonDesc + "\n", "UTF8", true);
         }
         
         //  network status vote
         if (descriptor instanceof RelayNetworkStatusVote) {
           jsonDescriptor = JsonRelayNetworkStatusVote
                   .convert((RelayNetworkStatusVote) descriptor);
-          
-          
+          String pathFileName = out + prefix + "vote_" + jsonDescriptor.yearMonth + suffix + "." + format;
+          File theFile;
+          theFile = new File(pathFileName);
+          FileUtils.writeStringToFile(theFile, jsonDescriptor.jsonDesc + "\n", "UTF8", true);
         }
         
         //  bridge network status
         if (descriptor instanceof BridgeNetworkStatus) {
           jsonDescriptor = JsonBridgeNetworkStatus
                   .convert((BridgeNetworkStatus) descriptor);
-          
-          
+          String pathFileName = out + prefix + "bridgeStatus_" + jsonDescriptor.yearMonth + suffix + "." + format;
+          File theFile;
+          theFile = new File(pathFileName);
+          FileUtils.writeStringToFile(theFile, jsonDescriptor.jsonDesc + "\n", "UTF8", true);
         }
         
         //  tordnsel
         if (descriptor instanceof ExitList) {
           jsonDescriptor = JsonTordnsel
                   .convert((ExitList) descriptor);
-          
-          
+          String pathFileName = out + prefix + "tordnsel_" + jsonDescriptor.yearMonth + suffix + "." + format;
+          File theFile;
+          theFile = new File(pathFileName);
+          FileUtils.writeStringToFile(theFile, jsonDescriptor.jsonDesc + "\n", "UTF8", true);
         }
         
         //  torperf
         if (descriptor instanceof TorperfResult) {
           jsonDescriptor = JsonTorperf
                   .convert((TorperfResult) descriptor);
-          
-          
+          String pathFileName = out + prefix + "torperf_" + jsonDescriptor.yearMonth + suffix + "." + format;
+          File theFile;
+          theFile = new File(pathFileName);
+          FileUtils.writeStringToFile(theFile, jsonDescriptor.jsonDesc + "\n", "UTF8", true);
         }
 
         if (!descriptor.getUnrecognizedLines().isEmpty()) {
@@ -286,18 +252,6 @@ public class ConvertToJson {
         }
       }
     }
-
-// TODO remove after testing
-/*    // bw.close();
-    bufferedRelayWriter.close();
-    bufferedBridgeWriter.close();
-    bufferedRelayExtraWriter.close();
-    bufferedBridgeExtraWriter.close();
-    bufferedConsenusWriter.close();
-    bufferedVoteWriter.close();
-    bufferedBridgeStatusWriter.close();
-    bufferedTordnselWriter.close();
-    bufferedTorperfWriter.close();*/
 
   }
 
