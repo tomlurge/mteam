@@ -1,5 +1,6 @@
 # TODO
 
+* in der multiFileOutput version fehlt compression
 
 * harrrr IntelliJ doesn't know how to handle long classpaths,
   messes them up when building the MANIFEST.MF
