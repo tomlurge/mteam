@@ -38,7 +38,8 @@ public class ConvertToJson {
     options.addOption("a", "array", false,
             "'flattening' objects to arrays \n" +
             "all objects with non-uniform attribute sets are \n" +
-            "converted to arrays as required by Apache Drill");
+            "converted to arrays as required by Apache Drill." +
+            "probably wise to document this setting with a prefix/suffix");
     options.addOption("w", "withoutNulls", false,
             "attributes with value null are not emitted \n" +
             "which gains a little advantage in storage space");
