@@ -261,8 +261,8 @@ public class ConvertToJson {
     int or_port;
     int socks_port;  // most likely 0 except for *very* old descriptors
     int dir_port;
-    Boolean identity_ed25519;
-    String master_key_ed25519;
+    Boolean identity_ed25519;                                                   // getIdentityEd25519
+    String master_key_ed25519;                                                  // getMasterKeyEd25519
     Integer bandwidth_avg;
     Integer bandwidth_burst;
     Integer bandwidth_observed;  // missing in older descriptors!
@@ -272,18 +272,18 @@ public class ConvertToJson {
     Boolean hibernating;
     Long uptime;  // though usually set
     Boolean onion_key;  // usually false b/c sanitization
-    Boolean onion_key_crosscert;
+    Boolean onion_key_crosscert;                                                // getOnionKeyCrosscert
     Boolean ntor_onion_key;
     CrossCert ntor_onion_key_crosscert;
     static class CrossCert {
-      String cert;
-      Integer bit;
+      String cert;                                                              // getNtorOnionKeyCrosscert
+      Integer bit;                                                              // getNtorOnionKeyCrosscertSign
     }
     Boolean signing_key;  // usually false b/c sanitization
     List<String> exit_policy;
     String ipv6_policy;
-    String ipv6_portlist;
-    Boolean router_sig_ed25519;
+    String ipv6_portlist;                                                       // getIpv6PortList
+    Boolean router_sig_ed25519;                                                 // getRouterSignatureEd25519
     Boolean router_signature;
     String contact;
     List<String> family;  // apparently not used at all
@@ -292,14 +292,14 @@ public class ConvertToJson {
     Boolean eventdns;
     Boolean caches_extra_info;
     String extra_info_digest;  // upper-case hex
-    String extra_info_digest_sha256;
+    String extra_info_digest_sha256;                                            // getExtraInfoDigestSha256
     List<Integer> hidden_service_dir_versions;
     List<Integer> link_protocol_versions;
     List<Integer> circuit_protocol_versions;
     Boolean allow_single_hop_exits;
     Object or_addresses;  // addresses sanitized!
     String router_digest;  // upper-case hex
-    String router_digest_sha256;
+    String router_digest_sha256;                                                // getServerDescriptorDigestSha256
 
     static String convert(ServerDescriptor desc) {
       JsonRelayServerDescriptor relay = new JsonRelayServerDescriptor();
@@ -433,8 +433,8 @@ public class ConvertToJson {
     int or_port;
     int socks_port;  // most likely 0 except for *very* old descriptors
     int dir_port;
-    Boolean identity_ed25519;
-    String master_key_ed25519;
+    Boolean identity_ed25519;                                                   // getIdentityEd25519
+    String master_key_ed25519;                                                  // getMasterKeyEd25519
     Integer bandwidth_avg;
     Integer bandwidth_burst;
     Integer bandwidth_observed;  // missing in older descriptors!
@@ -444,18 +444,18 @@ public class ConvertToJson {
     Boolean hibernating;
     Long uptime;  // though usually set
     Boolean onion_key;  // usually false b/c sanitization
-    Boolean onion_key_crosscert;
+    Boolean onion_key_crosscert;                                                // getOnionKeyCrosscert
     Boolean ntor_onion_key;
     CrossCert ntor_onion_key_crosscert;
     static class CrossCert {
-      String cert;
-      Integer bit;
+      String cert;                                                              // getNtorOnionKeyCrosscert
+      Integer bit;                                                              // getNtorOnionKeyCrosscertSign
     }
     Boolean signing_key;  // usually false b/c sanitization
     List<String> exit_policy;
     String ipv6_policy;
     String ipv6_portlist;  // getIpv6PortList
-    Boolean router_sig_ed25519;
+    Boolean router_sig_ed25519;                                                 // getRouterSignatureEd25519
     String contact;
     List<String> family;  // apparently not used at all
     BandwidthHistory read_history;
@@ -463,14 +463,14 @@ public class ConvertToJson {
     Boolean eventdns;
     Boolean caches_extra_info;
     String extra_info_digest;  // upper-case hex
-    String extra_info_digest_sha256;
+    String extra_info_digest_sha256;                                            // getExtraInfoDigestSha256
     List<Integer> hidden_service_dir_versions;
     List<Integer> link_protocol_versions;
     List<Integer> circuit_protocol_versions;
     Boolean allow_single_hop_exits;
     Object or_addresses;  // addresses sanitized!
     String router_digest;  // upper-case hex
-    String router_digest_sha256;
+    String router_digest_sha256;                                                // getServerDescriptorDigestSha256
 
     static String convert(ServerDescriptor desc) {
       JsonBridgeServerDescriptor bridge = new JsonBridgeServerDescriptor();
@@ -599,7 +599,7 @@ public class ConvertToJson {
     String descriptor_type;
     String nickname;
     String fingerprint;
-    Boolean identity_ed25519;
+    Boolean identity_ed25519;                                                   // getIdentityEd25519
     String published;
     BandwidthHistory read_history;
     BandwidthHistory write_history;
@@ -655,25 +655,25 @@ public class ConvertToJson {
 
     HidStats hidserv_stats_end;
     static class HidStats {
-      String date;
-      Long interval;
+      String date;                                                              // long getHidservStatsEndMillis
+      Long interval;                                                            // long getHidservStatsIntervalLength();
     }
     HidRend hidserv_rend_relayed_cells;
     static class HidRend {
-      Double cells;
-      Object obfuscation;
+      Double cells;                                                             // Double getHidservRendRelayedCells();
+      Object obfuscation;                                                       // Map<String, Double> getHidservRendRelayedCellsParameters()
     }
     HidDir hidserv_dir_onions_seen;
     static class HidDir {
-      Double onions;
-      Object obfuscation;
+      Double onions;                                                            // Double getHidservDirOnionsSeen();
+      Object obfuscation;                                                       // Map<String, Double> getHidservDirOnionsSeenParameters();
     }
     List<String> transport;
-    Boolean router_sig_ed25519;
-    Boolean router_signature;
+    Boolean router_sig_ed25519;                                                 // getRouterSignatureEd25519
+    Boolean router_signature;                                                   // getRouterSignature
     String extra_info_digest;
-    String extra_info_digest_sha256;
-    String master_key_ed25519;
+    String extra_info_digest_sha256;                                            // getExtraInfoDigestSha256
+    String master_key_ed25519;                                                  // getMasterKeyEd25519
 
     static String convert(RelayExtraInfoDescriptor desc) {
       JsonRelayExtraInfoDescriptor relayExtra = new JsonRelayExtraInfoDescriptor();
@@ -1001,7 +1001,7 @@ public class ConvertToJson {
     String descriptor_type;
     String nickname;
     String fingerprint;
-    Boolean identity_ed25519;
+    Boolean identity_ed25519;                                                   // getIdentityEd25519
     String published;
     BandwidthHistory read_history;
     BandwidthHistory write_history;
@@ -1067,26 +1067,26 @@ public class ConvertToJson {
 
     HidStats hidserv_stats_end;
     static class HidStats {
-      String date;
-      Long interval;
+      String date;                                                              // long getHidservStatsEndMillis
+      Long interval;                                                            // long getHidservStatsIntervalLength();
     }
     HidRend hidserv_rend_relayed_cells;
     static class HidRend {
-      Double cells;
-      Object obfuscation;
+      Double cells;                                                             // Double getHidservRendRelayedCells();
+      Object obfuscation;                                                       // Map<String, Double> getHidservRendRelayedCellsParameters()
     }
     HidDir hidserv_dir_onions_seen;
     static class HidDir {
-      Double onions;
-      Object obfuscation;
+      Double onions;                                                            // Double getHidservDirOnionsSeen();
+      Object obfuscation;                                                       // Map<String, Double> getHidservDirOnionsSeenParameters();
     }
 
     List<String> transport;
-    Boolean router_sig_ed25519;
-    Boolean router_signature;
+    Boolean router_sig_ed25519;                                                 // getRouterSignatureEd25519
+    Boolean router_signature;                                                   // getRouterSignature
     String extra_info_digest;
-    String extra_info_digest_sha256;
-    String master_key_ed25519;
+    String extra_info_digest_sha256;                                            // getExtraInfoDigestSha256
+    String master_key_ed25519;                                                  // getMasterKeyEd25519
 
     static String convert(BridgeExtraInfoDescriptor desc) {
       JsonBridgeExtraInfoDescriptor bridgeExtra = new JsonBridgeExtraInfoDescriptor();
@@ -1702,7 +1702,7 @@ public class ConvertToJson {
       String v;  // version
       W w;  // bandwidths
       Policy p;  // policies
-      String id;
+      String id;                                                                // getMasterKeyEd25519
     }
     static class R {
       String nickname;
