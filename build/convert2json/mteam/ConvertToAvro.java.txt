@@ -1,0 +1,1283 @@
+/*
+
+TODO
+
+think: are the null's/defaults rightly laid out?
+integrate avro builder objects
+avro schema is not always like json schema (more records/sub-objects)
+  -> consequences ?!
+
+ */
+package mteam;
+
+import java.io.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+import org.apache.avro.file.DataFileReader;
+import org.apache.avro.file.DataFileWriter;
+import org.apache.avro.io.DatumReader;
+import org.apache.avro.io.DatumWriter;
+import org.apache.avro.specific.SpecificDatumReader;
+import org.apache.avro.specific.SpecificDatumWriter;
+
+/*  metrics-lib  */
+import org.torproject.descriptor.*;
+
+
+public class ConvertToAvro {
+
+  /*  argument defaults  */
+  static String format = "avro";
+  static String dir = "";
+
+  /*  Read all descriptors in the provided directory and
+   *  convert them to the appropriate JSON format.  */
+  public static void main(String[] args) throws IOException {
+
+    /*  optional command line arguments
+     *    -a, -avro         convert to Avro (default)
+     *    -p, -parquet      convert to Parquet
+     *    -j, -json         convert to JSON
+     *    <directory name>  scan only given subdirectory of default dir data/in/
+     */
+    for (String arg : args) {
+      if (arg.equals("-a") || arg.equals("--avro")) format = "avro";
+      else if (arg.equals("-p") || arg.equals("--parquet")) format = "parquet";
+      else if (arg.equals("-j") || arg.equals("--json")) format = "json";
+      else dir = arg;
+    }
+
+    DescriptorReader descriptorReader = DescriptorSourceFactory.createDescriptorReader();
+    descriptorReader.addDirectory(new File("data/in/" + dir));
+    descriptorReader.setMaxDescriptorFilesInQueue(5);
+    Iterator<DescriptorFile> descriptorFiles = descriptorReader.readDescriptors();
+
+    int written = 0;
+    String outputPath = "data/out/" + format + "/";
+    String outputName = "";
+    Writer AvroWriter = new FileWriter(outputPath + outputName);
+    BufferedWriter bw = new BufferedWriter(AvroWriter);
+
+
+    while (descriptorFiles.hasNext()) {
+      DescriptorFile descriptorFile = descriptorFiles.next();
+
+      for (Descriptor descriptor : descriptorFile.getDescriptors()) {
+
+        // TODO which type?!
+        Object avroDescriptor = null;
+
+        //  relays & bridges descriptors
+        if (descriptor instanceof ServerDescriptor) {
+          avroDescriptor = AvroServerDescriptor
+                  .convert((ServerDescriptor) descriptor);
+        }
+        //  relays & bridges descriptors - extra info
+        if (descriptor instanceof ExtraInfoDescriptor) {
+          avroDescriptor = AvroExtraInfoDescriptor
+                  .convert((ExtraInfoDescriptor) descriptor);
+        }
+        //  network status consensus
+        if (descriptor instanceof RelayNetworkStatusConsensus) {
+          avroDescriptor = AvroRelayNetworkStatusConsensus
+                  .convert((RelayNetworkStatusConsensus) descriptor);
+        }
+        //  network status vote
+        if (descriptor instanceof RelayNetworkStatusVote) {
+          avroDescriptor = AvroRelayNetworkStatusVote
+                  .convert((RelayNetworkStatusVote) descriptor);
+        }
+        //  bridge network status
+        if (descriptor instanceof BridgeNetworkStatus) {
+          avroDescriptor = AvroBridgeNetworkStatus
+                  .convert((BridgeNetworkStatus) descriptor);
+        }
+        //  tordnsel
+        if (descriptor instanceof ExitList) {
+          avroDescriptor = AvroExitList
+                  .convert((ExitList) descriptor);
+          //  TODO can be removed?
+          //  if(null != descriptorFile.getException()){
+          //    System.err.print(descriptorFile.getException());
+          //  }
+        }
+        //  torperf
+        if (descriptor instanceof TorperfResult) {
+          avroDescriptor = AvroTorperfResult
+                  .construct((TorperfResult) descriptor);
+        }
+
+        if (!descriptor.getUnrecognizedLines().isEmpty()) {
+          System.err.println("Unrecognized lines in "
+                  + descriptorFile.getFileName() + ":");
+          System.err.println(descriptor.getUnrecognizedLines());
+          continue;
+        }
+        if (avroDescriptor != null) {
+          // TODO remove this comma -v- after testing
+          bw.write((written++ > 0 ? ",\n" : "") + avroDescriptor);
+        }
+      }
+    }
+    bw.close();
+  }
+
+
+  static class AvroDescriptor {
+
+    /*  generic key/value objects for verbose output  */
+    static class StringInt {
+      String key;
+      int val;
+      StringInt(String key, int val) {
+        this.key = key;
+        this.val = val;
+      }
+    }
+    static class StringLong {
+      String key;
+      Long val;
+      StringLong(String key, Long val) {
+        this.key = key;
+        this.val = val;
+      }
+    }
+
+    /*  Serialize "read-history" and "write-history" lines  */
+    static class BandwidthHistory {
+      String date; // format is YYYY-MM-DD HH:MM:SS
+      long interval; // seconds
+      Collection<Long> bytes;
+    }
+    /*  Convert read or write history  */
+    static BandwidthHistory convertBandwidthHistory(org.torproject.descriptor.BandwidthHistory hist) {
+      BandwidthHistory bandwidthHistory = new BandwidthHistory();
+      bandwidthHistory.date = dateTimeFormat.format(hist.getHistoryEndMillis());
+      bandwidthHistory.interval = hist.getIntervalLength();
+      bandwidthHistory.bytes = hist.getBandwidthValues().values();
+      return bandwidthHistory;
+    }
+    /*  Date/time formatter  */
+    static final String dateTimePattern = "yyyy-MM-dd HH:mm:ss";
+    static final Locale dateTimeLocale = Locale.US;
+    static final TimeZone dateTimezone = TimeZone.getTimeZone("UTC");
+    static DateFormat dateTimeFormat;
+    static {
+      dateTimeFormat = new SimpleDateFormat(dateTimePattern, dateTimeLocale);
+      dateTimeFormat.setLenient(false);
+      dateTimeFormat.setTimeZone(dateTimezone);
+    }
+
+  }
+
+  static class AvroServerDescriptor extends AvroDescriptor {
+
+    /*  Take a single server descriptor, test if it is a server-descriptor or a
+     *  bridge-server-descriptor and return a JSON string representation. */
+
+    static Server construct(ServerDescriptor desc) {
+
+      //  TODO that will probably not work out as expected
+      if (annotation.startsWith("@type server-descriptor")) {
+        Relay server = Relay.newBuilder();
+      }
+      else {
+        Bridge server = Bridge.newBuilder();
+      }
+
+      for (String annotation : desc.getAnnotations()) {
+        server.setDescriptorType(annotation.substring("@type ".length()));
+        //  relay specific attribute
+        if (annotation.startsWith("@type server-descriptor")) {
+          server.setRouterSignature(desc.getRouterSignature() != null);
+        }
+      }
+      // TODO router record
+      server.setNickname(desc.getNickname());
+      server.setAddress(desc.getAddress());
+      server.setOr_port(desc.getOrPort());
+      server.setSocks_port(desc.getSocksPort());
+      server.setDir_port(desc.getDirPort());
+      // TODO bandwidth record
+      server.setBandwidth_avg(desc.getBandwidthRate());
+      server.setBandwidth_burst(desc.getBandwidthBurst());
+      //  test, if there is a key: return 'true' if yes, 'false' otherwise
+      server.setOnion_key(desc.getOnionKey() != null);
+      server.setSigning_key(desc.getSigningKey() != null);
+      //  verbose testing because of List type
+      //  first check that the list is not null, then if it's empty
+      //  (checking for emptiness right away could lead to null pointer exc)
+      if (desc.getExitPolicyLines() != null && !desc.getExitPolicyLines().isEmpty()) {
+        server.setExit_policy(desc.getExitPolicyLines());
+      }
+      //  can be '-1' if null. in that case we don't touch it here, leaving the
+      //  default from the class definition intact
+      if (desc.getBandwidthObserved() >= 0) {
+        server.setBandwidth_observed(desc.getBandwidthObserved());
+      }
+      if (desc.getOrAddresses() != null && !desc.getOrAddresses().isEmpty()) {
+        server.setOr_addresses(new ArrayList<StringInt>());
+        for (String orAddress : desc.getOrAddresses()) {
+          if (!orAddress.contains(":")) {
+            continue;
+          }
+          int lastColon = orAddress.lastIndexOf(":");
+          try {
+            int val = Integer.parseInt(orAddress.substring(lastColon + 1));
+            server.setOr_addresses.add(
+                    new StringInt(orAddress.substring(0, lastColon), val)
+            );
+          } catch (NumberFormatException e) {
+            continue;
+          }
+        }
+      }
+      server.setPlatform(desc.getPlatform());
+      server.setPublished(dateTimeFormat.format(desc.getPublishedMillis()));
+      server.setFingerprint(desc.getFingerprint().toUpperCase());
+      //  isHibernating can't return 'null' because it's of type 'boolean'
+      //  (with little 'b') but it's only present in the collecTor data if it's
+      //  true. therefor we check for it's existence and include it if it
+      //  exists. otherwise we leave it alone / to the default value from
+      //  the class definition above (which is null)
+      if (desc.isHibernating()) {
+        server.setHibernating(desc.isHibernating());
+      }
+      server.setUptime(desc.getUptime());
+      server.setIpv6_policy(desc.getIpv6DefaultPolicy());
+      server.setContact(desc.getContact());
+      server.setFamily(desc.getFamilyEntries());
+      //  check for 'null' first because we want to run a method on it
+      //  and not get a null pointer exception meanwhile
+      if (desc.getReadHistory() != null) {
+        server.setRead_history(convertBandwidthHistory(desc.getReadHistory()));
+      }
+      if (desc.getWriteHistory() != null) {
+        server.setWrite_history(convertBandwidthHistory(desc.getWriteHistory()));
+      }
+      server.setEventdns(desc.getUsesEnhancedDnsLogic());
+      server.setCaches_extra_info(desc.getCachesExtraInfo());
+      if (desc.getExtraInfoDigest() != null) {
+        server.setExtra_info_digest(desc.getExtraInfoDigest().toUpperCase());
+      }
+      server.setHidden_service_dir_versions(desc.getHiddenServiceDirVersions());
+      server.setLink_protocol_versions(desc.getLinkProtocolVersions());
+      server.setCircuit_protocol_versions(desc.getCircuitProtocolVersions());
+      server.setAllow_single_hop_exits(desc.getAllowSingleHopExits());
+      server.setNtor_onion_key(desc.getNtorOnionKey() != null);
+      server.setRouter_digest(desc.getServerDescriptorDigest().toUpperCase());
+
+      return ToAvro.serialize(server);
+    }
+  }
+
+  static class AvroExtraInfoDescriptor extends AvroDescriptor {
+    String descriptor_type;
+    /*  only bridges  */
+    List<StringInt> geoip_client_origins;
+    String bridge_stats_end_date;
+    Long bridge_stats_end_interval;
+    List<StringInt> bridge_ips;
+    List<StringInt> bridge_ip_versions;
+    List<StringInt> bridge_ip_transports;
+    /*  relays + bridges  */
+    String nickname;
+    String fingerprint;
+    String published;
+    String extra_info_digest;
+    BandwidthHistory read_history;
+    BandwidthHistory write_history;
+    String geoip_db_digest;
+    String geoip6_db_digest;
+    String geoip_start_time;
+    String dirreq_stats_end_date;
+    Long dirreq_stats_end_interval;
+    List<StringInt> dirreq_v2_ips;
+    List<StringInt> dirreq_v3_ips;
+    List<StringInt> dirreq_v2_reqs;
+    List<StringInt> dirreq_v3_reqs;
+    Double dirreq_v2_share;
+    Double dirreq_v3_share;
+    List<StringInt> dirreq_v2_resp;
+    List<StringInt> dirreq_v3_resp;
+    List<StringInt> dirreq_v2_direct_dl;
+    List<StringInt> dirreq_v3_direct_dl;
+    List<StringInt> dirreq_v2_tunneled_dl;
+    List<StringInt> dirreq_v3_tunneled_dl;
+    BandwidthHistory dirreq_read_history;
+    BandwidthHistory dirreq_write_history;
+    String entry_stats_end_date;
+    Long entry_stats_end_interval;
+    List<StringInt> entry_ips;
+    String cell_stats_end_date;
+    Long cell_stats_end_interval;
+    List<Integer> cell_processed_cells;
+    List<Double> cell_queued_cells;
+    List<Integer> cell_time_in_queue;
+    Integer cell_circuits_per_decile;
+    ConnBiDirect conn_bi_direct;
+    static class ConnBiDirect {
+      String date;
+      Long interval;
+      Integer below;
+      Integer read;
+      Integer write;
+      Integer both;
+    }
+    String exit_stats_end_date;
+    Long exit_stats_end_interval;
+    List<StringLong> exit_kibibytes_written;
+    List<StringLong> exit_kibibytes_read;
+    List<StringLong> exit_streams_opened;
+    //  StringInt hidserv_stats_end;
+    //  Object hidserv_rend_relayed_cells;
+    //  Object hidserv_dir_onions_seen;
+    List<String> transport;
+    //  Boolean router_sig_ed25519;
+    //  Boolean router_signature;
+
+    static String convert(ExtraInfoDescriptor desc) {
+      AvroExtraInfoDescriptor extra = new AvroExtraInfoDescriptor();
+      for (String annotation : desc.getAnnotations()) {
+        extra.descriptor_type = annotation.substring("@type ".length());
+        //  bridge specific attributes
+        if (annotation.startsWith("@type bridge-extra-info")) {
+          if (desc.getGeoipClientOrigins() != null && !desc.getGeoipClientOrigins().isEmpty()) {
+            extra.geoip_client_origins = new ArrayList<StringInt>();
+            SortedMap<String, Integer> origins = desc.getGeoipClientOrigins();
+            for (Map.Entry<String, Integer> geo : origins.entrySet()) {
+              extra.geoip_client_origins.add(new StringInt(geo.getKey(), geo.getValue()));
+            }
+          }
+          // TODO bidgestatsend record
+          if (desc.getBridgeStatsEndMillis() >= 0) {
+            extra.bridge_stats_end_date = dateTimeFormat.format(desc.getBridgeStatsEndMillis());
+          }
+          if (desc.getBridgeStatsIntervalLength() >= 0) {
+            extra.bridge_stats_end_interval = desc.getBridgeStatsIntervalLength();
+          }
+          if (desc.getBridgeIps() != null && !desc.getBridgeIps().isEmpty()) {
+            extra.bridge_ips = new ArrayList<StringInt>();
+            SortedMap<String, Integer> b_ips = desc.getBridgeIps();
+            for (Map.Entry<String, Integer> b_ip : b_ips.entrySet()) {
+              extra.bridge_ips.add(new StringInt(b_ip.getKey(), b_ip.getValue()));
+            }
+          }
+          if (desc.getBridgeIpVersions() != null && !desc.getBridgeIpVersions().isEmpty()) {
+            extra.bridge_ip_versions = new ArrayList<StringInt>();
+            SortedMap<String, Integer> b_ips_v = desc.getBridgeIpVersions();
+            for (Map.Entry<String, Integer> b_ip_v : b_ips_v.entrySet()) {
+              extra.bridge_ip_versions.add(new StringInt(b_ip_v.getKey(), b_ip_v.getValue()));
+            }
+          }
+          if (desc.getBridgeIpTransports() != null && !desc.getBridgeIpTransports().isEmpty()) {
+            extra.bridge_ip_transports = new ArrayList<StringInt>();
+            SortedMap<String, Integer> b_ips_t = desc.getBridgeIpTransports();
+            for (Map.Entry<String, Integer> b_ip_t : b_ips_t.entrySet()) {
+              extra.bridge_ip_transports.add(new StringInt(b_ip_t.getKey(), b_ip_t.getValue()));
+            }
+          }
+        }
+        // end bridge specific attributes
+      }
+      extra.nickname = desc.getNickname();
+      extra.fingerprint = desc.getFingerprint().toUpperCase();
+      extra.published = dateTimeFormat.format(desc.getPublishedMillis());
+      extra.extra_info_digest = desc.getExtraInfoDigest();
+      if (desc.getReadHistory() != null) {
+        extra.read_history = convertBandwidthHistory(desc.getReadHistory());
+      }
+      if (desc.getWriteHistory() != null) {
+        extra.write_history = convertBandwidthHistory(desc.getWriteHistory());
+      }
+      extra.geoip_db_digest = desc.getGeoipDbDigest();
+      extra.geoip6_db_digest = desc.getGeoip6DbDigest();
+      if (desc.getGeoipStartTimeMillis() >= 0) {
+        extra.geoip_start_time = dateTimeFormat.format(desc.getGeoipStartTimeMillis());
+      }
+      if (desc.getDirreqStatsEndMillis() >= 0) {
+        extra.dirreq_stats_end_date = dateTimeFormat.format(desc.getDirreqStatsEndMillis());
+      }
+      if (desc.getDirreqStatsIntervalLength() >= 0) {
+        extra.dirreq_stats_end_interval = desc.getDirreqStatsIntervalLength();
+      }
+      if (desc.getDirreqV2Ips() != null && !desc.getDirreqV2Ips().isEmpty()) {
+        extra.dirreq_v2_ips = new ArrayList<StringInt>();
+        SortedMap<String, Integer> v2_ips = desc.getDirreqV2Ips();
+        for (Map.Entry<String, Integer> v2_ip : v2_ips.entrySet()) {
+          extra.dirreq_v2_ips.add(new StringInt(v2_ip.getKey(), v2_ip.getValue()));
+        }
+      }
+      if (desc.getDirreqV3Ips() != null && !desc.getDirreqV3Ips().isEmpty()) {
+        extra.dirreq_v3_ips = new ArrayList<StringInt>();
+        SortedMap<String, Integer> v3_ips = desc.getDirreqV3Ips();
+        for (Map.Entry<String, Integer> v3_ip : v3_ips.entrySet()) {
+          extra.dirreq_v3_ips.add(new StringInt(v3_ip.getKey(), v3_ip.getValue()));
+        }
+      }
+      if (desc.getDirreqV2Reqs() != null && !desc.getDirreqV2Reqs().isEmpty()) {
+        extra.dirreq_v2_reqs = new ArrayList<StringInt>();
+        SortedMap<String, Integer> v2_reqs = desc.getDirreqV2Reqs();
+        for (Map.Entry<String, Integer> v2_req : v2_reqs.entrySet()) {
+          extra.dirreq_v2_reqs.add(new StringInt(v2_req.getKey(), v2_req.getValue()));
+        }
+      }
+      if (desc.getDirreqV3Reqs() != null && !desc.getDirreqV3Reqs().isEmpty()) {
+        extra.dirreq_v3_reqs = new ArrayList<StringInt>();
+        SortedMap<String, Integer> v3_reqs = desc.getDirreqV3Reqs();
+        for (Map.Entry<String, Integer> v3_req : v3_reqs.entrySet()) {
+          extra.dirreq_v3_reqs.add(new StringInt(v3_req.getKey(), v3_req.getValue()));
+        }
+      }
+      if (desc.getDirreqV2Share() >= 0) {
+        extra.dirreq_v2_share = desc.getDirreqV2Share();
+      }
+      if (desc.getDirreqV3Share() >= 0) {
+        extra.dirreq_v3_share = desc.getDirreqV3Share();
+      }
+      if (desc.getDirreqV2Resp() != null && !desc.getDirreqV2Resp().isEmpty()) {
+        extra.dirreq_v2_resp = new ArrayList<StringInt>();
+        SortedMap<String, Integer> v2_resps = desc.getDirreqV2Resp();
+        for (Map.Entry<String, Integer> v2_resp : v2_resps.entrySet()) {
+          extra.dirreq_v2_resp.add(new StringInt(v2_resp.getKey(), v2_resp.getValue()));
+        }
+      }
+      if (desc.getDirreqV3Resp() != null && !desc.getDirreqV3Resp().isEmpty()) {
+        extra.dirreq_v3_resp = new ArrayList<StringInt>();
+        SortedMap<String, Integer> v3_resps = desc.getDirreqV3Resp();
+        for (Map.Entry<String, Integer> v3_resp : v3_resps.entrySet()) {
+          extra.dirreq_v3_resp.add(new StringInt(v3_resp.getKey(), v3_resp.getValue()));
+        }
+      }
+      if (desc.getDirreqV2DirectDl() != null && !desc.getDirreqV2DirectDl().isEmpty()) {
+        extra.dirreq_v2_direct_dl = new ArrayList<StringInt>();
+        SortedMap<String, Integer> v2_direct = desc.getDirreqV2DirectDl();
+        for (Map.Entry<String, Integer> v2_dir : v2_direct.entrySet()) {
+          extra.dirreq_v2_direct_dl.add(new StringInt(v2_dir.getKey(), v2_dir.getValue()));
+        }
+      }
+      if (desc.getDirreqV3DirectDl() != null && !desc.getDirreqV3DirectDl().isEmpty()) {
+        extra.dirreq_v3_direct_dl = new ArrayList<StringInt>();
+        SortedMap<String, Integer> v3_direct = desc.getDirreqV3DirectDl();
+        for (Map.Entry<String, Integer> v3_dir : v3_direct.entrySet()) {
+          extra.dirreq_v3_direct_dl.add(new StringInt(v3_dir.getKey(), v3_dir.getValue()));
+        }
+      }
+      if (desc.getDirreqV2TunneledDl() != null && !desc.getDirreqV2TunneledDl().isEmpty()) {
+        extra.dirreq_v2_tunneled_dl = new ArrayList<StringInt>();
+        SortedMap<String, Integer> v2_tunneled = desc.getDirreqV2TunneledDl();
+        for (Map.Entry<String, Integer> v2_tun : v2_tunneled.entrySet()) {
+          extra.dirreq_v2_tunneled_dl.add(new StringInt(v2_tun.getKey(), v2_tun.getValue()));
+        }
+      }
+      if (desc.getDirreqV3TunneledDl() != null && !desc.getDirreqV3TunneledDl().isEmpty()) {
+        extra.dirreq_v3_tunneled_dl = new ArrayList<StringInt>();
+        SortedMap<String, Integer> v3_tunneled = desc.getDirreqV3TunneledDl();
+        for (Map.Entry<String, Integer> v3_tun : v3_tunneled.entrySet()) {
+          extra.dirreq_v3_tunneled_dl.add(new StringInt(v3_tun.getKey(), v3_tun.getValue()));
+        }
+      }
+      if (desc.getDirreqReadHistory() != null) {
+        extra.dirreq_read_history =
+                convertBandwidthHistory(desc.getDirreqReadHistory());
+      }
+      if (desc.getDirreqWriteHistory() != null) {
+        extra.dirreq_write_history =
+                convertBandwidthHistory(desc.getDirreqWriteHistory());
+      }
+      // TODO entrystatsend record
+      if (desc.getEntryStatsEndMillis() >= 0) {
+        extra.entry_stats_end_date = dateTimeFormat.format(desc.getEntryStatsEndMillis());
+      }
+      if (desc.getEntryStatsIntervalLength() >= 0) {
+        extra.entry_stats_end_interval = desc.getEntryStatsIntervalLength();
+      }
+      if (desc.getEntryIps() != null && !desc.getEntryIps().isEmpty()) {
+        extra.entry_ips = new ArrayList<StringInt>();
+        SortedMap<String, Integer> ips = desc.getEntryIps();
+        for (Map.Entry<String, Integer> ip : ips.entrySet()) {
+          extra.entry_ips.add(new StringInt(ip.getKey(), ip.getValue()));
+        }
+      }
+      // TODO cellstatsend record
+      if (desc.getCellStatsEndMillis() >= 0) {
+        extra.cell_stats_end_date = dateTimeFormat.format(desc.getCellStatsEndMillis());
+      }
+      if (desc.getCellStatsIntervalLength() >= 0) {
+        extra.cell_stats_end_interval = desc.getCellStatsIntervalLength();
+      }
+      extra.cell_processed_cells = desc.getCellProcessedCells();
+      extra.cell_queued_cells = desc.getCellQueuedCells();
+      extra.cell_time_in_queue = desc.getCellTimeInQueue();
+      if (desc.getCellCircuitsPerDecile() >= 0) {
+        extra.cell_circuits_per_decile = desc.getCellCircuitsPerDecile();
+      }
+      if (desc.getConnBiDirectStatsEndMillis() >= 0) {
+        extra.conn_bi_direct = new ConnBiDirect();
+        extra.conn_bi_direct.date = dateTimeFormat.format(desc.getConnBiDirectStatsEndMillis());
+        if (desc.getConnBiDirectStatsIntervalLength() >= 0) {
+          extra.conn_bi_direct.interval = desc.getConnBiDirectStatsIntervalLength();
+        }
+        if (desc.getConnBiDirectBelow() >= 0) {
+          extra.conn_bi_direct.below = desc.getConnBiDirectBelow();
+        }
+        if (desc.getConnBiDirectRead() >= 0) {
+          extra.conn_bi_direct.read = desc.getConnBiDirectRead();
+        }
+        if (desc.getConnBiDirectWrite() >= 0) {
+          extra.conn_bi_direct.write = desc.getConnBiDirectWrite();
+        }
+        if (desc.getConnBiDirectBoth() >= 0) {
+          extra.conn_bi_direct.both = desc.getConnBiDirectBoth();
+        }
+      }
+      // TODO exitstatsend record
+      if (desc.getExitStatsEndMillis() >= 0) {
+        extra.exit_stats_end_date = dateTimeFormat.format(desc.getExitStatsEndMillis());
+      }
+      if (desc.getExitStatsIntervalLength() >= 0) {
+        extra.exit_stats_end_interval = desc.getExitStatsIntervalLength();
+      }
+      if (desc.getExitKibibytesWritten() != null && !desc.getExitKibibytesWritten().isEmpty()) {
+        extra.exit_kibibytes_written = new ArrayList<StringLong>();
+        SortedMap<String, Long> written = desc.getExitKibibytesWritten();
+        for (Map.Entry<String, Long> writ : written.entrySet()) {
+          extra.exit_kibibytes_written.add(new StringLong(writ.getKey(), writ.getValue()));
+        }
+      }
+      if (desc.getExitKibibytesRead() != null && !desc.getExitKibibytesRead().isEmpty()) {
+        extra.exit_kibibytes_read = new ArrayList<StringLong>();
+        SortedMap<String, Long> reads = desc.getExitKibibytesRead();
+        for (Map.Entry<String, Long> read : reads.entrySet()) {
+          extra.exit_kibibytes_read.add(new StringLong(read.getKey(), read.getValue()));
+        }
+      }
+      if (desc.getExitStreamsOpened() != null && !desc.getExitStreamsOpened().isEmpty()) {
+        extra.exit_streams_opened = new ArrayList<StringLong>();
+        SortedMap<String, Long> opened = desc.getExitStreamsOpened();
+        for (Map.Entry<String, Long> open : opened.entrySet()) {
+          extra.exit_streams_opened.add(new StringLong(open.getKey(), open.getValue()));
+        }
+      }
+      //  extra.hidserv_stats_end = new StringInt(); // no getter in metrics-lib
+      //  extra.hidserv_rend_relayed_cells = new Object(); // no getter in metrics-lib
+      //  extra.hidserv_dir_onions_seen = new Object(); // no getter in metrics-lib
+      extra.transport = desc.getTransports();
+      //  extra.router_sig_ed25519 = false; // no getter in metrics-lib
+      //  extra.router_signature = false; // no getter in metrics-lib
+      return ToAvro.serialize(extra);
+    }
+  }
+
+  static class AvroRelayNetworkStatusConsensus extends AvroDescriptor {
+    String descriptor_type;
+    String published;
+    Integer vote_status;
+    Integer consensus_method;
+    String consensus_flavor;
+    String valid_after;
+    String fresh_until;
+    String valid_until;
+    Vote voting_delay;
+    static class Vote {
+      Long vote_seconds;
+      Long dist_seconds;
+    }
+    List<String> client_version;
+    List<String> server_versions;
+    SortedSet<String> known_flags;
+    List<StringInt> params;
+    List<Authority> dir_source;
+    static class Authority {
+      String nickname;
+      String identity;
+      String adress;
+      Integer dir_port;
+      Integer or_port;
+      String contact;
+      String vote_digest;
+      Boolean legacy;
+    }
+    List<Router> router_status;
+    static class Router {
+      R r;  // router description
+      List<String> a;  // additinal OR adresses and ports
+      List<String> s;  // flags
+      String v;  // version
+      W w;  // bandwidths
+      Policy p;  // policies
+    }
+    static class R {
+      String nickname;
+      String identity;
+      String digest;
+      String publication;
+      String ip;
+      Integer or_port;
+      Integer dir_port;
+    }
+    static class W {
+      Long bandwidth;
+      Long measured_bw;
+      Boolean unmeasured_bw;
+    }
+    static class Policy {
+      String default_policy;
+      String port_summary;
+    }
+    DirFooter directory_footer;
+    static class DirFooter {
+      List<StringInt> bandwidth_weights;
+      String consensus_digest;
+      List<DirSig> directory_signature;
+    }
+    static class DirSig {
+      String algorithm;
+      String identity;
+      String signing_key_digest;
+      Boolean signature;
+    }
+
+    static String convert(RelayNetworkStatusConsensus desc) {
+      AvroRelayNetworkStatusConsensus cons = new AvroRelayNetworkStatusConsensus();
+      for (String annotation : desc.getAnnotations()) {
+        cons.descriptor_type = annotation.substring("@type ".length());
+      }
+      cons.published = dateTimeFormat.format(desc.getValidAfterMillis());
+      cons.vote_status = desc.getNetworkStatusVersion();
+      cons.consensus_method = desc.getConsensusMethod();
+      cons.consensus_flavor = desc.getConsensusFlavor();
+      cons.valid_after = dateTimeFormat.format(desc.getValidAfterMillis());
+      cons.fresh_until = dateTimeFormat.format(desc.getFreshUntilMillis());
+      cons.valid_until = dateTimeFormat.format(desc.getValidUntilMillis());
+      cons.voting_delay = new Vote();
+      cons.voting_delay.vote_seconds = desc.getVoteSeconds();
+      cons.voting_delay.dist_seconds = desc.getDistSeconds();
+      if (desc.getRecommendedClientVersions() != null && !desc.getRecommendedClientVersions().isEmpty()) {
+        cons.client_version = desc.getRecommendedClientVersions();
+      }
+      if (desc.getRecommendedServerVersions() != null && !desc.getRecommendedServerVersions().isEmpty()) {
+        cons.server_versions = desc.getRecommendedServerVersions();
+      }
+      if (desc.getKnownFlags() != null && !desc.getKnownFlags().isEmpty()) {
+        cons.known_flags = desc.getKnownFlags();
+      }
+      if (desc.getConsensusParams() != null && !desc.getConsensusParams().isEmpty()) {
+        cons.params = new ArrayList<StringInt>();
+        SortedMap<String,Integer> paramsC = desc.getConsensusParams();
+        for(Map.Entry<String,Integer> paraC : paramsC.entrySet()) {
+          cons.params.add(new StringInt(paraC.getKey(), paraC.getValue()));
+        }
+      }
+      if (desc.getDirSourceEntries() != null && !desc.getDirSourceEntries().isEmpty()) {
+        cons.dir_source = new ArrayList<Authority>();
+        SortedMap<String, DirSourceEntry> AuthorityMap = desc.getDirSourceEntries();
+        for (Map.Entry<String, DirSourceEntry> mAuth : AuthorityMap.entrySet()) {
+          Authority auth = new Authority();
+          auth.nickname = mAuth.getValue().getNickname();
+          auth.identity = mAuth.getValue().getIdentity();
+          auth.adress = mAuth.getValue().getIp();
+          auth.dir_port = mAuth.getValue().getDirPort();
+          auth.or_port = mAuth.getValue().getOrPort();
+          auth.contact = mAuth.getValue().getContactLine();
+          auth.vote_digest = mAuth.getValue().getVoteDigest();
+          auth.legacy = mAuth.getValue().isLegacy();
+          cons.dir_source.add(auth);
+        }
+      }
+      if (desc.getStatusEntries() != null && !desc.getStatusEntries().isEmpty()) {
+        cons.router_status = new ArrayList();
+        SortedMap<String,NetworkStatusEntry> statusMap = desc.getStatusEntries();
+        for(Map.Entry<String,NetworkStatusEntry> status : statusMap.entrySet()) {
+          Router router = new Router();
+          router.r = new R();
+          router.r.nickname = status.getValue().getNickname();
+          router.r.identity = status.getValue().getFingerprint();
+          router.r.digest = status.getValue().getDescriptor();
+          router.r.publication = dateTimeFormat.format(status.getValue().getPublishedMillis());
+          router.r.ip = status.getValue().getAddress();
+          router.r.or_port = status.getValue().getOrPort();
+          router.r.dir_port = status.getValue().getDirPort();
+          if (status.getValue().getOrAddresses() != null && !status.getValue().getOrAddresses().isEmpty()) {
+            router.a = status.getValue().getOrAddresses();
+          }
+          if (status.getValue().getFlags() != null && !status.getValue().getFlags().isEmpty()) {
+            router.s = new ArrayList<String>();
+            for (String flag : status.getValue().getFlags()) router.s.add(flag);
+          }
+          router.v = status.getValue().getVersion();
+          router.w = new W();
+          if (status.getValue().getBandwidth() >= 0) {
+            router.w.bandwidth = status.getValue().getBandwidth();
+          }
+          if (status.getValue().getMeasured() >= 0) {
+            router.w.measured_bw = status.getValue().getMeasured();
+          }
+          router.w.unmeasured_bw = status.getValue().getUnmeasured();
+          router.p = new Policy();
+          router.p.default_policy = status.getValue().getDefaultPolicy();
+          router.p.port_summary = status.getValue().getPortList();
+          cons.router_status.add(router);
+        }
+      }
+      if (desc.getDirectorySignatures() != null && !desc.getDirectorySignatures().isEmpty()) {
+        cons.directory_footer = new DirFooter();
+        if (desc.getBandwidthWeights() != null && !desc.getBandwidthWeights().isEmpty()) {
+          cons.directory_footer.bandwidth_weights = new ArrayList<StringInt> ();
+          SortedMap<String,Integer> bwWeights = desc.getBandwidthWeights();
+          for(Map.Entry<String,Integer> bw : bwWeights.entrySet()) {
+            cons.directory_footer.bandwidth_weights.add(new StringInt(bw.getKey(), bw.getValue()));
+          }
+        }
+        cons.directory_footer.consensus_digest = desc.getConsensusDigest();
+        if (desc.getDirectorySignatures() != null && !desc.getDirectorySignatures().isEmpty()) {
+          cons.directory_footer.directory_signature = new ArrayList<DirSig>();
+          SortedMap<String,DirectorySignature> dirSigMap = desc.getDirectorySignatures();
+          for(Map.Entry<String,DirectorySignature> dirSigEntry : dirSigMap.entrySet()) {
+            DirSig dirSig = new DirSig();
+            dirSig.algorithm = dirSigEntry.getValue().getAlgorithm();
+            dirSig.identity = dirSigEntry.getValue().getIdentity();
+            dirSig.signing_key_digest = dirSigEntry.getValue().getSigningKeyDigest();
+            dirSig.signature = dirSigEntry.getValue().getSignature() != null;
+            cons.directory_footer.directory_signature.add(dirSig);
+          }
+        }
+      }
+      return ToAvro.serialize(cons);
+    }
+  }
+
+  static class AvroRelayNetworkStatusVote extends AvroDescriptor {
+    String descriptor_type;
+    String published;
+    Integer vote_status;
+    List<Integer> consensus_method;
+    String valid_after;
+    String fresh_until;
+    String valid_until;
+    Vote voting_delay;
+    static class Vote {
+      Long vote_seconds;
+      Long dist_seconds;
+    }
+    List<String> client_version;
+    List<String> server_versions;
+    FlagTreshold flagTreshold;
+    static class FlagTreshold {
+      Long stable_uptime;
+      Long stable_mtbf;
+      Integer enough_mtbf;
+      Long fast_speed;
+      Double guard_wfu;
+      Long guard_tk;
+      Long guard_bw_inc_exits;
+      Long guard_bw_exc_exits;
+      Integer ignoring_advertised;
+    }
+    SortedSet<String> known_flags;
+    List<StringInt> params;
+    Authority authority;
+    static class Authority {
+      String nickname;
+      String identity;
+      String adress;
+      Integer dir_port;
+      Integer or_port;
+      String contact;
+      String legacy_dir_key;
+      Cert key_certificate;
+    }
+    static class Cert {
+      Integer version;
+      String dir_key_published;
+      String dir_key_expires;
+      Boolean dir_signing_key;
+    }
+    List<Router> router_status;
+    static class Router {
+      R r;  // router description
+      List<String> a;  // additinal OR adresses and ports
+      List<String> s;  // flags
+      String v;  // version
+      W w;  // bandwidths
+      Policy p;  // policies
+    }
+    static class R {
+      String nickname;
+      String identity;
+      String digest;
+      String publication;
+      String ip;
+      Integer or_port;
+      Integer dir_port;
+    }
+    static class W {
+      Long bandwidth;
+      Long measured_bw;
+      Boolean unmeasured_bw;
+    }
+    static class Policy {
+      String default_policy;
+      String port_summary;
+    }
+    DirFooter directory_footer;
+    static class DirFooter {
+      DirSig directory_signature;
+    }
+    static class DirSig {
+      String algorithm;
+      String identity;
+      String signing_key_digest;
+      Boolean signature;
+    }
+
+    static String convert(RelayNetworkStatusVote desc) {
+      AvroRelayNetworkStatusVote vote = new AvroRelayNetworkStatusVote();
+      for (String annotation : desc.getAnnotations()) {
+        vote.descriptor_type = annotation.substring("@type ".length());
+      }
+      vote.published = dateTimeFormat.format(desc.getPublishedMillis());
+      vote.vote_status = desc.getNetworkStatusVersion();
+      if (desc.getConsensusMethods() != null && !desc.getConsensusMethods().isEmpty()) {
+        vote.consensus_method = desc.getConsensusMethods();
+      }
+      vote.valid_after = dateTimeFormat.format(desc.getValidAfterMillis());
+      vote.fresh_until = dateTimeFormat.format(desc.getFreshUntilMillis());
+      vote.valid_until = dateTimeFormat.format(desc.getValidUntilMillis());
+      vote.voting_delay = new Vote();
+      vote.voting_delay.vote_seconds = desc.getVoteSeconds();
+      vote.voting_delay.dist_seconds = desc.getDistSeconds();
+      if (desc.getRecommendedClientVersions() != null && !desc.getRecommendedClientVersions().isEmpty()) {
+        vote.client_version = desc.getRecommendedClientVersions();
+      }
+      if (desc.getRecommendedServerVersions() != null && !desc.getRecommendedServerVersions().isEmpty()) {
+        vote.server_versions = desc.getRecommendedServerVersions();
+      }
+      vote.flagTreshold = new FlagTreshold();
+      if (desc.getStableUptime() >= 0) {
+        vote.flagTreshold.stable_uptime = desc.getStableUptime();
+      }
+      if (desc.getStableMtbf() >= 0) {
+        vote.flagTreshold.stable_mtbf = desc.getStableMtbf();
+      }
+      if (desc.getEnoughMtbfInfo() >= 0) {
+        vote.flagTreshold.enough_mtbf = desc.getEnoughMtbfInfo();
+      }
+      if (desc.getFastBandwidth() >= 0) {
+        vote.flagTreshold.fast_speed = desc.getFastBandwidth();
+      }
+      if (desc.getGuardWfu() >= 0) {
+        vote.flagTreshold.guard_wfu = desc.getGuardWfu();
+      }
+      if (desc.getGuardTk() >= 0) {
+        vote.flagTreshold.guard_tk = desc.getGuardTk();
+      }
+      if (desc.getGuardBandwidthIncludingExits() >= 0) {
+        vote.flagTreshold.guard_bw_inc_exits = desc.getGuardBandwidthIncludingExits();
+      }
+      if (desc.getGuardBandwidthExcludingExits() >= 0) {
+        vote.flagTreshold.guard_bw_exc_exits = desc.getGuardBandwidthExcludingExits();
+      }
+      if (desc.getIgnoringAdvertisedBws() >= 0) {
+        vote.flagTreshold.ignoring_advertised = desc.getIgnoringAdvertisedBws();
+      }
+      if (desc.getKnownFlags() != null && !desc.getKnownFlags().isEmpty()) {
+        vote.known_flags = desc.getKnownFlags();
+      }
+      if (desc.getConsensusParams() != null && !desc.getConsensusParams().isEmpty()) {
+        vote.params = new ArrayList<StringInt> ();
+        SortedMap<String,Integer> params = desc.getConsensusParams();
+        for(Map.Entry<String,Integer> para : params.entrySet()) {
+          vote.params.add(new StringInt(para.getKey(), para.getValue()));
+        }
+      }
+      vote.authority = new Authority();
+      vote.authority.nickname = desc.getNickname();
+      vote.authority.identity = desc.getIdentity();
+      vote.authority.adress = desc.getAddress();
+      vote.authority.dir_port = desc.getDirport();
+      vote.authority.or_port = desc.getOrport();
+      vote.authority.contact = desc.getContactLine();
+      vote.authority.legacy_dir_key = desc.getLegacyDirKey();
+      vote.authority.key_certificate = new Cert();
+      vote.authority.key_certificate.version = desc.getDirKeyCertificateVersion();
+      vote.authority.key_certificate.dir_key_published = dateTimeFormat.format(desc.getDirKeyPublishedMillis());
+      vote.authority.key_certificate.dir_key_expires = dateTimeFormat.format(desc.getDirKeyExpiresMillis());
+      vote.authority.key_certificate.dir_signing_key = desc.getSigningKeyDigest() != null;
+      if (desc.getStatusEntries() != null && !desc.getStatusEntries().isEmpty()) {
+        vote.router_status = new ArrayList();
+        SortedMap<String,NetworkStatusEntry> statusMap = desc.getStatusEntries();
+        for(Map.Entry<String,NetworkStatusEntry> status : statusMap.entrySet()) {
+          Router router = new Router();
+          router.r = new R();
+          router.r.nickname = status.getValue().getNickname();
+          router.r.identity = status.getValue().getFingerprint();
+          router.r.digest = status.getValue().getDescriptor();
+          router.r.publication = dateTimeFormat.format(status.getValue().getPublishedMillis());
+          router.r.ip = status.getValue().getAddress();
+          router.r.or_port = status.getValue().getOrPort();
+          router.r.dir_port = status.getValue().getDirPort();
+          if (status.getValue().getOrAddresses() != null && !status.getValue().getOrAddresses().isEmpty()) {
+            router.a = status.getValue().getOrAddresses();
+          }
+          if (status.getValue().getFlags() != null && !status.getValue().getFlags().isEmpty()) {
+            router.s = new ArrayList<String>();
+            for (String flag : status.getValue().getFlags()) router.s.add(flag);
+          }
+          router.v = status.getValue().getVersion();
+          router.w = new W();
+          if (status.getValue().getBandwidth() >= 0) {
+            router.w.bandwidth = status.getValue().getBandwidth();
+          }
+          if (status.getValue().getMeasured() >= 0) {
+            router.w.measured_bw = status.getValue().getMeasured();
+          }
+          router.w.unmeasured_bw = status.getValue().getUnmeasured();
+          router.p = new Policy();
+          router.p.default_policy = status.getValue().getDefaultPolicy();
+          router.p.port_summary = status.getValue().getPortList();
+          vote.router_status.add(router);
+        }
+      }
+      if (desc.getDirectorySignatures() != null && !desc.getDirectorySignatures().isEmpty()) {
+        vote.directory_footer = new DirFooter();
+        vote.directory_footer.directory_signature = new DirSig();
+        SortedMap<String,DirectorySignature> dirSigs = desc.getDirectorySignatures();
+        for(Map.Entry<String,DirectorySignature> dirSig : dirSigs.entrySet()) {
+          vote.directory_footer.directory_signature.algorithm = dirSig.getValue().getAlgorithm();
+          vote.directory_footer.directory_signature.identity = dirSig.getValue().getIdentity();
+          vote.directory_footer.directory_signature.signing_key_digest = dirSig.getValue().getSigningKeyDigest();
+          vote.directory_footer.directory_signature.signature = dirSig.getValue().getSignature() != null;
+        }
+      }
+      return ToAvro.serialize(vote);
+    }
+  }
+
+  static class AvroBridgeNetworkStatus extends AvroDescriptor {
+    String descriptor_type;
+    String published;
+    FlagTreshold flagTreshold;
+    static class FlagTreshold {
+      Long stable_uptime;
+      Long stable_mtbf;
+      Integer enough_mtbf;
+      Long fast_speed;
+      Double guard_wfu;
+      Long guard_tk;
+      Long guard_bw_inc_exits;
+      Long guard_bw_exc_exits;
+      Integer ignoring_advertised;
+    }
+    List<Bridge> bridges;
+    static class Bridge {
+      R r; // bridge description
+      SortedSet<String> s; // flags
+      W w; // bandwidths
+      String p; // policy
+      String a; // port summary
+      String v;
+    }
+    static class R {
+      String nickname;
+      String identity;
+      String digest;
+      String date;
+      String ip;
+      Integer or_port;
+      Integer dir_port;
+    }
+    static class W {
+      Long bandwidth;
+      Long measured_bw;
+      Boolean unmeasured_bw;
+    }
+
+    static String convert(BridgeNetworkStatus desc) {
+      AvroBridgeNetworkStatus status = new AvroBridgeNetworkStatus();
+      for (String annotation : desc.getAnnotations()) {
+        status.descriptor_type = annotation.substring("@type ".length());
+      }
+      status.published = dateTimeFormat.format(desc.getPublishedMillis());
+      status.flagTreshold = new FlagTreshold();
+      if (desc.getStableUptime() >= 0) {
+        status.flagTreshold.stable_uptime = desc.getStableUptime();
+      }
+      if (desc.getStableMtbf() >= 0) {
+        status.flagTreshold.stable_mtbf = desc.getStableMtbf();
+      }
+      if (desc.getEnoughMtbfInfo() >= 0) {
+        status.flagTreshold.enough_mtbf = desc.getEnoughMtbfInfo();
+      }
+      if (desc.getFastBandwidth() >= 0) {
+        status.flagTreshold.fast_speed = desc.getFastBandwidth();
+      }
+      if (desc.getGuardWfu() >= 0) {
+        status.flagTreshold.guard_wfu = desc.getGuardWfu();
+      }
+      if (desc.getGuardTk() >= 0) {
+        status.flagTreshold.guard_tk = desc.getGuardTk();
+      }
+      if (desc.getGuardBandwidthIncludingExits() >= 0) {
+        status.flagTreshold.guard_bw_inc_exits = desc.getGuardBandwidthIncludingExits();
+      }
+      if (desc.getGuardBandwidthExcludingExits() >= 0) {
+        status.flagTreshold.guard_bw_exc_exits = desc.getGuardBandwidthExcludingExits();
+      }
+      if (desc.getIgnoringAdvertisedBws() >= 0) {
+        status.flagTreshold.ignoring_advertised = desc.getIgnoringAdvertisedBws();
+      }
+      if (desc.getStatusEntries() != null && !desc.getStatusEntries().isEmpty()) {
+        status.bridges = new ArrayList<Bridge>();
+        for (Map.Entry<String, NetworkStatusEntry> entry : desc.getStatusEntries().entrySet()) {
+          Bridge b = new Bridge();
+          b.r = new R();
+          b.r.nickname = entry.getValue().getNickname();
+          b.r.identity = entry.getValue().getDescriptor();
+          b.r.digest = entry.getValue().getFingerprint();
+          b.r.date = dateTimeFormat.format(entry.getValue().getPublishedMillis());
+          b.r.ip = entry.getValue().getAddress();
+          b.r.or_port = entry.getValue().getOrPort();
+          b.r.dir_port = entry.getValue().getDirPort();
+          if (entry.getValue().getFlags() != null && !entry.getValue().getFlags().isEmpty()) {
+            b.s = entry.getValue().getFlags();
+          }
+          b.w = new W();
+          if (entry.getValue().getBandwidth() >= 0) {
+            b.w.bandwidth = entry.getValue().getBandwidth();
+          }
+          if (entry.getValue().getMeasured() >= 0) {
+            b.w.measured_bw = entry.getValue().getMeasured();
+          }
+          if (entry.getValue().getUnmeasured()) {
+            b.w.unmeasured_bw = entry.getValue().getUnmeasured();
+          }
+          b.p = entry.getValue().getDefaultPolicy();
+          b.a = entry.getValue().getPortList();
+          b.v = entry.getValue().getVersion();
+          status.bridges.add(b);
+        }
+      }
+      return ToAvro.serialize(status);
+    }
+  }
+
+  static class AvroExitList extends AvroDescriptor {
+    String descriptor_type;
+    Long downloaded;
+    List<Entry> relays;
+    static class Entry {
+      String fingerprint;
+      String published;
+      String last_status;
+      // TODO List<Exit>
+      Exit exit_adress;
+    }
+    static class Exit {
+      String ip;
+      String date;
+    }
+
+    static String convert(ExitList desc) {
+      AvroExitList tordnsel = new AvroExitList();
+      for (String annotation : desc.getAnnotations()) {
+        tordnsel.descriptor_type = annotation.substring("@type ".length());
+      }
+      tordnsel.downloaded = desc.getDownloadedMillis();
+      if (desc.getExitListEntries() != null && !desc.getExitListEntries().isEmpty()) {
+        tordnsel.relays = new ArrayList<Entry>();
+        for(ExitListEntry entry : desc.getExitListEntries() ) {
+          Entry en = new Entry();
+          en.fingerprint = entry.getFingerprint();
+          en.published = dateTimeFormat.format(entry.getPublishedMillis());
+          en.last_status = dateTimeFormat.format(entry.getLastStatusMillis());
+          en.exit_adress = new Exit();
+          en.exit_adress.ip = entry.getExitAddress();
+          en.exit_adress.date = dateTimeFormat.format(entry.getScanMillis());
+          tordnsel.relays.add(en);
+        }
+      }
+      return ToAvro.serialize(tordnsel);
+    }
+  }
+
+//  static class AvroTorperfResult extends AvroDescriptor {
+//    String descriptor_type;
+//    String source;
+//    Integer filesize;
+//    String start;
+//    String socket;
+//    String connect;
+//    String negotiate;
+//    String request;
+//    String response;
+//    String datarequest;
+//    String dataresponse;
+//    String datacomplete;
+//    Integer writebytes;
+//    Integer readbytes;
+//    Boolean didtimeout;
+//    Long dataperc10;
+//    Long dataperc20;
+//    Long dataperc30;
+//    Long dataperc40;
+//    Long dataperc50;
+//    Long dataperc60;
+//    Long dataperc70;
+//    Long dataperc80;
+//    Long dataperc90;
+//    String launch;
+//    String used_at;
+//    List<String> path;
+//    List<Long> buildtimes;
+//    String timeout;
+//    Double quantile;
+//    Integer circ_id;
+//    Integer used_by;
+//
+//    static String convert(TorperfResult desc) {
+//      AvroTorperfResult torperf = new AvroTorperfResult();
+//      torperf.descriptor_type = "torperf 1.0";
+//      /*  TODO  hardcoding the descriptor type is a workaround to bug #17696 in
+//          metrics-lib (https://trac.torproject.org/projects/tor/ticket/17696)
+//      for (String annotation : desc.getAnnotations()) {
+//        torperf.descriptor_type = annotation.substring("@type ".length());
+//      }
+//      */
+//      torperf.source = desc.getSource();
+//      torperf.filesize = desc.getFileSize();
+//      torperf.start = dateTimeFormat.format(desc.getStartMillis());
+//      torperf.socket = dateTimeFormat.format(desc.getSocketMillis());
+//      torperf.connect = dateTimeFormat.format(desc.getConnectMillis());
+//      torperf.negotiate = dateTimeFormat.format(desc.getNegotiateMillis());
+//      torperf.request = dateTimeFormat.format(desc.getRequestMillis());
+//      torperf.response = dateTimeFormat.format(desc.getResponseMillis());
+//      torperf.datarequest = dateTimeFormat.format(desc.getDataRequestMillis());
+//      torperf.dataresponse = dateTimeFormat.format(desc.getDataResponseMillis());
+//      torperf.datacomplete = dateTimeFormat.format(desc.getDataCompleteMillis());
+//      torperf.writebytes = desc.getWriteBytes();
+//      torperf.readbytes = desc.getReadBytes();
+//      torperf.didtimeout = desc.didTimeout();
+//      if (desc.getDataPercentiles() != null && !desc.getDataPercentiles().isEmpty()) {
+//        torperf.dataperc10 = desc.getDataPercentiles().get(10);
+//        torperf.dataperc20 = desc.getDataPercentiles().get(20);
+//        torperf.dataperc30 = desc.getDataPercentiles().get(30);
+//        torperf.dataperc40 = desc.getDataPercentiles().get(40);
+//        torperf.dataperc50 = desc.getDataPercentiles().get(50);
+//        torperf.dataperc60 = desc.getDataPercentiles().get(60);
+//        torperf.dataperc70 = desc.getDataPercentiles().get(70);
+//        torperf.dataperc80 = desc.getDataPercentiles().get(80);
+//        torperf.dataperc90 = desc.getDataPercentiles().get(90);
+//      }
+//      if (desc.getLaunchMillis() >= 0) {
+//        torperf.launch = dateTimeFormat.format(desc.getLaunchMillis());
+//      }
+//      if (desc.getUsedAtMillis() >= 0) {
+//        torperf.used_at = dateTimeFormat.format(desc.getUsedAtMillis());
+//      }
+//      if (desc.getPath() != null && !desc.getPath().isEmpty()) {
+//        torperf.path = desc.getPath();
+//      }
+//      if (desc.getBuildTimes() != null && !desc.getBuildTimes().isEmpty()) {
+//        torperf.buildtimes = desc.getBuildTimes();
+//      }
+//      if (desc.getTimeout() >= 0) {
+//        torperf.timeout = dateTimeFormat.format(desc.getTimeout());
+//      }
+//      if (desc.getQuantile() >= 0) {
+//        torperf.quantile = desc.getQuantile();
+//      }
+//      if (desc.getCircId() >= 0) {
+//        torperf.circ_id = desc.getCircId();
+//      }
+//      if (desc.getUsedBy() >= 0) {
+//        torperf.used_by = desc.getUsedBy();
+//      }
+//      return ToAvro.serialize(torperf);
+//    }
+//  }
+
+
+  static class AvroTorperfResult extends AvroDescriptor {
+    static Torperf construct(TorperfResult desc) {
+
+      Torperf torperf = Torperf.newBuilder();
+      /*  TODO  hardcoding the descriptor type is a workaround to bug #17696 in
+          metrics-lib (https://trac.torproject.org/projects/tor/ticket/17696)
+      for (String annotation : desc.getAnnotations()) {
+        torperf.setDescriptorType(annotation.substring("@type ".length()));
+      }
+      */
+      //  TODO check CamelCasing with generated classes
+      torperf.setDescriptorType("torperf 1.0");
+      torperf.setSource(desc.getSource());
+      torperf.setFilesize(desc.getFileSize());
+      torperf.setStart(dateTimeFormat.format(desc.getStartMillis()));
+      torperf.setSocket(dateTimeFormat.format(desc.getSocketMillis()));
+      torperf.setConnect(dateTimeFormat.format(desc.getConnectMillis()));
+      torperf.setNegotiate(dateTimeFormat.format(desc.getNegotiateMillis()));
+      torperf.setRequest(dateTimeFormat.format(desc.getRequestMillis()));
+      torperf.setResponse(dateTimeFormat.format(desc.getResponseMillis()));
+      torperf.setDatarequest(dateTimeFormat.format(desc.getDataRequestMillis()));
+      torperf.setDataresponse(dateTimeFormat.format(desc.getDataResponseMillis()));
+      torperf.setDatacomplete(dateTimeFormat.format(desc.getDataCompleteMillis()));
+      torperf.setWritebytes(desc.getWriteBytes());
+      torperf.setReadBytes(desc.getReadBytes());
+      torperf.setDidTimeout(desc.didTimeout());
+      if (desc.getDataPercentiles() != null && !desc.getDataPercentiles().isEmpty()) {
+        torperf.setDataperc10(desc.getDataPercentiles().get(10));
+        torperf.setDataperc20(desc.getDataPercentiles().get(20));
+        torperf.setDataperc30(desc.getDataPercentiles().get(30));
+        torperf.setDataperc40(desc.getDataPercentiles().get(40));
+        torperf.setDataperc50(desc.getDataPercentiles().get(50));
+        torperf.setDataperc60(desc.getDataPercentiles().get(60));
+        torperf.setDataperc70(desc.getDataPercentiles().get(70));
+        torperf.setDataperc80(desc.getDataPercentiles().get(80));
+        torperf.setDataperc90(desc.getDataPercentiles().get(90));
+      }
+      if (desc.getLaunchMillis() >= 0) {
+        torperf.setLaunch(dateTimeFormat.format(desc.getLaunchMillis()));
+      }
+      if (desc.getUsedAtMillis() >= 0) {
+        torperf.setUsedAt(dateTimeFormat.format(desc.getUsedAtMillis()));
+      }
+      if (desc.getPath() != null && !desc.getPath().isEmpty()) {
+        torperf.setPath(desc.getPath());
+      }
+      if (desc.getBuildTimes() != null && !desc.getBuildTimes().isEmpty()) {
+      torperf.setBuildtimes(desc.getBuildTimes());
+      }
+      if (desc.getTimeout() >= 0) {
+        torperf.setTimeout(dateTimeFormat.format(desc.getTimeout()));
+      }
+      if (desc.getQuantile() >= 0) {
+        torperf.setQuantile(desc.getQuantile());
+      }
+      if (desc.getCircId() >= 0) {
+        torperf.setCircId(desc.getCircId());
+      }
+      if (desc.getUsedBy() >= 0) {
+        torperf.setUsedBy(desc.getUsedBy());
+      }
+      torperf.build();
+      return torperf;
+    }
+  }
+
+
+
+  /*  Convert everything to a JSON string and return that.
+   *  If flag 'verbose' is set also serialize attributes evaluating to null.
+   *  Gson docs: https://google-gson.googlecode.com/svn/trunk/gson/docs/javadocs/com/google/gson/GsonBuilder.html
+   */
+  static class ToAvro {
+    static String serialize(AvroDescriptor avroDescriptor) {
+
+      return "TODO";
+
+    }
+  }
+
+}

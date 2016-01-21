@@ -674,7 +674,7 @@ public class ConvertToJson {
     Boolean router_signature;                                                   // getRouterSignature
     String extra_info_digest;
     String extra_info_digest_sha256;                                            // getExtraInfoDigestSha256
-    String master_key_ed25519;                                                  // getMasterKeyEd25519
+    Boolean master_key_ed25519;                                                  // getMasterKeyEd25519
 
     static String convert(RelayExtraInfoDescriptor desc) {
       JsonRelayExtraInfoDescriptor relayExtra = new JsonRelayExtraInfoDescriptor();
@@ -990,7 +990,7 @@ public class ConvertToJson {
       relayExtra.router_signature = desc.getRouterSignature() != null;
       relayExtra.extra_info_digest = desc.getExtraInfoDigest();
       relayExtra.extra_info_digest_sha256 = desc.getExtraInfoDigestSha256();
-      relayExtra.master_key_ed25519 = desc.getMasterKeyEd25519();
+      relayExtra.master_key_ed25519 = desc.getMasterKeyEd25519() != null;
 
       return ToJson.serialize(relayExtra);
     }
@@ -1087,7 +1087,7 @@ public class ConvertToJson {
     Boolean router_signature;                                                   // getRouterSignature
     String extra_info_digest;
     String extra_info_digest_sha256;                                            // getExtraInfoDigestSha256
-    String master_key_ed25519;                                                  // getMasterKeyEd25519
+    Boolean master_key_ed25519;                                                  // getMasterKeyEd25519
 
     static String convert(BridgeExtraInfoDescriptor desc) {
       JsonBridgeExtraInfoDescriptor bridgeExtra = new JsonBridgeExtraInfoDescriptor();
@@ -1451,7 +1451,7 @@ public class ConvertToJson {
       bridgeExtra.router_signature = desc.getRouterSignature() != null;
       bridgeExtra.extra_info_digest = desc.getExtraInfoDigest();
       bridgeExtra.extra_info_digest_sha256 = desc.getExtraInfoDigestSha256();
-      bridgeExtra.master_key_ed25519 = desc.getMasterKeyEd25519();
+      bridgeExtra.master_key_ed25519 = desc.getMasterKeyEd25519() != null;
 
       return ToJson.serialize(bridgeExtra);
     }

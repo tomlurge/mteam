@@ -13,12 +13,9 @@ gson-2.3.1-sources.jar
 # tomlurge
 /collected
 /bin
-/lib
 /src/org
 /mteam/TestMe.java
 TestMe.java
 TestMeToo.java
-*.pdf
 *.iml
 classes
-build
